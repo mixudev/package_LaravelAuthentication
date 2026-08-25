@@ -13,7 +13,7 @@
     --panel-dark-2:#1B2732;
     --accent:#E8A33D;
     --accent-soft:#F2C57C;
-    --ok:#4ADE80;
+    --ok:#10B981;
     --danger:#EF4444;
     --paper:#FAF9F6;
     --card:#FFFFFF;
@@ -101,14 +101,14 @@
   .dot{
     width:7px;height:7px;border-radius:50%;
     background:var(--ok);
-    box-shadow:0 0 0 0 rgba(74,222,128,0.6);
+    box-shadow:0 0 0 0 rgba(16,185,129,0.6);
     animation:pulse 2.2s infinite;
     flex-shrink:0;
   }
   @keyframes pulse{
-    0%{box-shadow:0 0 0 0 rgba(74,222,128,0.55);}
-    70%{box-shadow:0 0 0 8px rgba(74,222,128,0);}
-    100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}
+    0%{box-shadow:0 0 0 0 rgba(16,185,129,0.55);}
+    70%{box-shadow:0 0 0 8px rgba(16,185,129,0);}
+    100%{box-shadow:0 0 0 0 rgba(16,185,129,0);}
   }
 
   .brand h1{
@@ -166,9 +166,9 @@
   }
   .card{
     width:100%;
-    max-width:420px;
+    max-width:440px;
   }
-  .card-head{margin-bottom:24px;}
+  .card-head{margin-bottom:20px;}
   .card-head h2{
     font-family:'Space Grotesk',sans-serif;
     font-size:25px;
@@ -188,17 +188,36 @@
     padding-bottom:1px;
   }
 
+  /* Animated Interactive Alerts */
+  .alert-container{
+    margin-bottom: 18px;
+    animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .alert{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
     padding: 12px 14px;
     border-radius: 10px;
     font-size: 13.5px;
-    margin-bottom: 18px;
     line-height: 1.45;
   }
   .alert-danger{
     background: #FEF2F2;
     border: 1px solid #FECACA;
     color: #991B1B;
+  }
+  .alert-success{
+    background: #ECFDF5;
+    border: 1px solid #A7F3D0;
+    color: #065F46;
+  }
+  .alert svg{
+    width:18px; height:18px; flex-shrink:0; margin-top:1px;
   }
 
   form{display:flex; flex-direction:column; gap:14px;}
@@ -232,13 +251,51 @@
     border-color:var(--accent);
     box-shadow:0 0 0 4px rgba(232,163,61,0.16);
   }
-  .field .is-invalid{
-    border-color: var(--danger);
+  .field input.is-invalid{
+    border-color: var(--danger) !important;
+    background: #FFFBFB;
   }
   .field-error{
     color: var(--danger);
     font-size: 12px;
     margin-top: 4px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Live Password Criteria Checklist */
+  .pwd-checklist{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+    background: #F4F3EE;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: var(--muted-2);
+  }
+  .pwd-rule{
+    display:flex;
+    align-items:center;
+    gap: 6px;
+    transition: color 0.15s ease;
+  }
+  .pwd-rule.valid{
+    color: var(--ok);
+    font-weight: 600;
+  }
+  .pwd-rule .icon-dot{
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .pwd-rule.valid .icon-dot{
+    background: var(--ok);
+    box-shadow: 0 0 0 2px rgba(16,185,129,0.25);
   }
 
   .toggle-pass{
@@ -272,14 +329,30 @@
     gap:8px;
     transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
   }
-  .btn-primary:hover{background:#232D38;}
-  .btn-primary:active{transform:translateY(1px);}
+  .btn-primary:hover:not(:disabled){background:#232D38;}
+  .btn-primary:active:not(:disabled){transform:translateY(1px);}
+  .btn-primary:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
   .btn-primary:focus-visible{
     outline:none;
     box-shadow:0 0 0 4px rgba(18,24,31,0.22);
   }
   .btn-primary svg{width:15px;height:15px; transition: transform .15s ease;}
   .btn-primary:hover svg{transform:translateX(2px);}
+
+  .spinner{
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 
   .divider{
     display:flex;
@@ -388,19 +461,38 @@
         <p>Sudah memiliki akun? <a href="{{ route('login') }}">Masuk di sini</a></p>
       </div>
 
-      @if ($errors->any())
-        <div class="alert alert-danger">
-          {{ $errors->first() }}
+      @if (session('status'))
+        <div class="alert-container">
+          <div class="alert alert-success">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <div>{{ session('status') }}</div>
+          </div>
         </div>
       @endif
 
-      <form method="POST" action="{{ route('register.perform') }}">
+      @if ($errors->any())
+        <div class="alert-container">
+          <div class="alert alert-danger">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            <div>
+              <strong>Terjadi kesalahan:</strong>
+              <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+                @foreach ($errors->all() as $error)
+                  <li>{{ $error }}</li>
+                @endforeach
+              </ul>
+            </div>
+          </div>
+        </div>
+      @endif
+
+      <form method="POST" action="{{ route('register.perform') }}" id="registerForm" novalidate>
         @csrf
 
         <div class="field">
           <label for="name">Nama Lengkap</label>
           <div class="input-shell">
-            <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="John Doe" autocomplete="name" required autofocus class="@error('name') is-invalid @enderror">
+            <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="Contoh: John Doe" autocomplete="name" required autofocus class="@error('name') is-invalid @enderror">
           </div>
           @error('name')
             <div class="field-error">{{ $message }}</div>
@@ -410,7 +502,7 @@
         <div class="field">
           <label for="email">Alamat Email</label>
           <div class="input-shell">
-            <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="nama@email.com" autocomplete="email" required class="@error('email') is-invalid @enderror">
+            <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="nama@perusahaan.com" autocomplete="email" required class="@error('email') is-invalid @enderror">
           </div>
           @error('email')
             <div class="field-error">{{ $message }}</div>
@@ -420,11 +512,20 @@
         <div class="field">
           <label for="password">Kata Sandi</label>
           <div class="input-shell">
-            <input type="password" id="password" name="password" placeholder="Minimal 8 karakter" autocomplete="new-password" required class="@error('password') is-invalid @enderror">
+            <input type="password" id="password" name="password" placeholder="Buat kata sandi yang kuat" autocomplete="new-password" required class="@error('password') is-invalid @enderror">
             <button type="button" class="toggle-pass" id="togglePass" aria-label="Tampilkan kata sandi">
               <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
+          
+          <!-- Live Interactive Password Checklist -->
+          <div class="pwd-checklist" id="pwdChecklist">
+            <div class="pwd-rule" id="ruleLen"><span class="icon-dot"></span> Minimal 8 karakter</div>
+            <div class="pwd-rule" id="ruleCase"><span class="icon-dot"></span> Huruf besar & kecil</div>
+            <div class="pwd-rule" id="ruleNum"><span class="icon-dot"></span> Minimal 1 angka</div>
+            <div class="pwd-rule" id="ruleSym"><span class="icon-dot"></span> Karakter spesial (@#$)</div>
+          </div>
+
           @error('password')
             <div class="field-error">{{ $message }}</div>
           @enderror
@@ -433,16 +534,17 @@
         <div class="field">
           <label for="password_confirmation">Konfirmasi Kata Sandi</label>
           <div class="input-shell">
-            <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Ulangi kata sandi" autocomplete="new-password" required class="@error('password_confirmation') is-invalid @enderror">
+            <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Ketik ulang kata sandi" autocomplete="new-password" required class="@error('password_confirmation') is-invalid @enderror">
           </div>
+          <div class="field-error" id="confirmError" style="display:none;">Kata sandi konfirmasi tidak cocok.</div>
           @error('password_confirmation')
             <div class="field-error">{{ $message }}</div>
           @enderror
         </div>
 
-        <button type="submit" class="btn-primary">
-          Daftar Sekarang
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        <button type="submit" class="btn-primary" id="btnSubmit">
+          <span id="btnText">Daftar Sekarang</span>
+          <svg id="btnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </button>
       </form>
 
@@ -479,8 +581,13 @@
 <script>
   const toggleBtn = document.getElementById('togglePass');
   const passInput = document.getElementById('password');
+  const passConfirm = document.getElementById('password_confirmation');
   const eyeIcon = document.getElementById('eyeIcon');
+  const registerForm = document.getElementById('registerForm');
+  const btnSubmit = document.getElementById('btnSubmit');
+  const btnText = document.getElementById('btnText');
 
+  // Password toggle
   if (toggleBtn && passInput && eyeIcon) {
     toggleBtn.addEventListener('click', () => {
       const isPassword = passInput.type === 'password';
@@ -489,6 +596,56 @@
       eyeIcon.innerHTML = isPassword
         ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.7 21.7 0 0 1 5.06-5.94M9.9 4.24A10.6 10.6 0 0 1 12 4c7 0 11 7 11 7a21.7 21.7 0 0 1-2.68 3.68M14.12 14.12a3 3 0 1 1-4.24-4.24" stroke-linecap="round" stroke-linejoin="round"/><line x1="1" y1="1" x2="23" y2="23"/>'
         : '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+    });
+  }
+
+  // Live Password Criteria Checker
+  const ruleLen = document.getElementById('ruleLen');
+  const ruleCase = document.getElementById('ruleCase');
+  const ruleNum = document.getElementById('ruleNum');
+  const ruleSym = document.getElementById('ruleSym');
+
+  if (passInput) {
+    passInput.addEventListener('input', () => {
+      const val = passInput.value;
+      
+      // Length
+      if (val.length >= 8) ruleLen.classList.add('valid');
+      else ruleLen.classList.remove('valid');
+
+      // Mixed Case
+      if (/[a-z]/.test(val) && /[A-Z]/.test(val)) ruleCase.classList.add('valid');
+      else ruleCase.classList.remove('valid');
+
+      // Number
+      if (/[0-9]/.test(val)) ruleNum.classList.add('valid');
+      else ruleNum.classList.remove('valid');
+
+      // Symbol
+      if (/[\W_]/.test(val)) ruleSym.classList.add('valid');
+      else ruleSym.classList.remove('valid');
+    });
+  }
+
+  // Live Confirmation Checker
+  if (passConfirm && passInput) {
+    const confirmError = document.getElementById('confirmError');
+    passConfirm.addEventListener('input', () => {
+      if (passConfirm.value && passConfirm.value !== passInput.value) {
+        confirmError.style.display = 'block';
+        passConfirm.classList.add('is-invalid');
+      } else {
+        confirmError.style.display = 'none';
+        passConfirm.classList.remove('is-invalid');
+      }
+    });
+  }
+
+  // Instant Feedback on Form Submission
+  if (registerForm) {
+    registerForm.addEventListener('submit', () => {
+      btnSubmit.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span> Mendaftarkan...';
     });
   }
 </script>

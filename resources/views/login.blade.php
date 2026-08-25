@@ -189,12 +189,26 @@
     padding-bottom:1px;
   }
 
+  .alert-container{
+    margin-bottom: 18px;
+    animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .alert{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
     padding: 12px 14px;
     border-radius: 10px;
     font-size: 13.5px;
     margin-bottom: 18px;
     line-height: 1.45;
+  }
+  .alert svg{
+    width:18px; height:18px; flex-shrink:0; margin-top:1px;
   }
   .alert-success{
     background: #ECFDF5;
@@ -205,6 +219,18 @@
     background: #FEF2F2;
     border: 1px solid #FECACA;
     color: #991B1B;
+  }
+
+  .spinner{
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   form{display:flex; flex-direction:column; gap:16px;}
@@ -458,14 +484,27 @@
       </div>
 
       @if (session('status'))
-        <div class="alert alert-success">
-          {{ session('status') }}
+        <div class="alert-container">
+          <div class="alert alert-success">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <div>{{ session('status') }}</div>
+          </div>
         </div>
       @endif
 
-      @if ($errors->has('identifier'))
-        <div class="alert alert-danger">
-          {{ $errors->first('identifier') }}
+      @if ($errors->any())
+        <div class="alert-container">
+          <div class="alert alert-danger">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            <div>
+              <strong>Gagal Masuk:</strong>
+              <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+                @foreach ($errors->all() as $error)
+                  <li>{{ $error }}</li>
+                @endforeach
+              </ul>
+            </div>
+          </div>
         </div>
       @endif
 
@@ -558,6 +597,15 @@
       eyeIcon.innerHTML = isPassword
         ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.7 21.7 0 0 1 5.06-5.94M9.9 4.24A10.6 10.6 0 0 1 12 4c7 0 11 7 11 7a21.7 21.7 0 0 1-2.68 3.68M14.12 14.12a3 3 0 1 1-4.24-4.24" stroke-linecap="round" stroke-linejoin="round"/><line x1="1" y1="1" x2="23" y2="23"/>'
         : '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+    });
+  }
+  const loginForm = document.getElementById('loginForm');
+  const btnSubmit = document.getElementById('btnSubmit');
+
+  if (loginForm && btnSubmit) {
+    loginForm.addEventListener('submit', () => {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<span class="spinner"></span> Memproses...';
     });
   }
 </script>

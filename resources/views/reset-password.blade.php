@@ -273,7 +273,22 @@
     box-shadow:0 0 0 4px rgba(18,24,31,0.22);
   }
   .btn-primary svg{width:15px;height:15px; transition: transform .15s ease;}
-  .btn-primary:hover svg{transform:translateX(2px);}
+  .spinner{
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .btn-primary:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 
   @media (max-width: 980px){
     .wrap{grid-template-columns:1fr;}
@@ -378,9 +393,9 @@
           @enderror
         </div>
 
-        <button type="submit" class="btn-primary">
-          Perbarui Kata Sandi
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        <button type="submit" class="btn-primary" id="btnSubmit">
+          <span id="btnText">Perbarui Kata Sandi</span>
+          <svg id="btnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </button>
       </form>
     </div>
@@ -392,6 +407,9 @@
   const toggleBtn = document.getElementById('togglePass');
   const passInput = document.getElementById('password');
   const eyeIcon = document.getElementById('eyeIcon');
+  const form = document.querySelector('form');
+  const btnSubmit = document.getElementById('btnSubmit');
+  const btnText = document.getElementById('btnText');
 
   if (toggleBtn && passInput && eyeIcon) {
     toggleBtn.addEventListener('click', () => {
@@ -401,6 +419,13 @@
       eyeIcon.innerHTML = isPassword
         ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.7 21.7 0 0 1 5.06-5.94M9.9 4.24A10.6 10.6 0 0 1 12 4c7 0 11 7 11 7a21.7 21.7 0 0 1-2.68 3.68M14.12 14.12a3 3 0 1 1-4.24-4.24" stroke-linecap="round" stroke-linejoin="round"/><line x1="1" y1="1" x2="23" y2="23"/>'
         : '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+    });
+  }
+
+  if (form && btnSubmit) {
+    form.addEventListener('submit', () => {
+      btnSubmit.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span> Memperbarui...';
     });
   }
 </script>

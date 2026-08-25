@@ -266,7 +266,22 @@
     box-shadow:0 0 0 4px rgba(18,24,31,0.22);
   }
   .btn-primary svg{width:15px;height:15px; transition: transform .15s ease;}
-  .btn-primary:hover svg{transform:translateX(2px);}
+  .spinner{
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .btn-primary:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 
   .back-row{
     margin-top: 20px;
@@ -366,9 +381,9 @@
           @enderror
         </div>
 
-        <button type="submit" class="btn-primary">
-          Kirim Tautan Pemulihan
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        <button type="submit" class="btn-primary" id="btnSubmit">
+          <span id="btnText">Kirim Tautan Pemulihan</span>
+          <svg id="btnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </button>
       </form>
 
@@ -379,6 +394,19 @@
   </main>
 
 </div>
+
+<script>
+  const form = document.querySelector('form');
+  const btnSubmit = document.getElementById('btnSubmit');
+  const btnText = document.getElementById('btnText');
+
+  if (form && btnSubmit) {
+    form.addEventListener('submit', () => {
+      btnSubmit.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span> Mengirim...';
+    });
+  }
+</script>
 
 </body>
 </html>
