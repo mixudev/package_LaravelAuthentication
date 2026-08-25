@@ -186,12 +186,18 @@ return [
             'auto_register' => env('AUTH_SOCIAL_AUTO_REGISTER', true), // Auto create user if doesn't exist
             'providers'     => [
                 'google' => [
-                    'enabled' => env('AUTH_GOOGLE_ENABLED', true),
-                    'scopes'  => ['openid', 'profile', 'email'],
+                    'enabled'       => env('AUTH_GOOGLE_ENABLED', true),
+                    'client_id'     => env('GOOGLE_CLIENT_ID'),
+                    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+                    'redirect'      => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
+                    'scopes'        => ['openid', 'profile', 'email'],
                 ],
                 'github' => [
-                    'enabled' => env('AUTH_GITHUB_ENABLED', true),
-                    'scopes'  => ['user:email', 'read:user'],
+                    'enabled'       => env('AUTH_GITHUB_ENABLED', true),
+                    'client_id'     => env('GITHUB_CLIENT_ID'),
+                    'client_secret' => env('GITHUB_CLIENT_SECRET'),
+                    'redirect'      => env('GITHUB_REDIRECT_URI', env('APP_URL') . '/auth/github/callback'),
+                    'scopes'        => ['user:email', 'read:user'],
                 ],
             ],
         ],

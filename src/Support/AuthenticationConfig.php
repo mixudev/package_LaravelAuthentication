@@ -188,11 +188,11 @@ final class AuthenticationConfig
     }
 
     /**
-     * @return array<int, string>
+     * @return array<string, mixed>
      */
-    public function getSocialProviderScopes(string $provider): array
+    public function getSocialProviderConfig(string $provider): array
     {
-        return (array) $this->config->get("authentication.features.social.providers.{$provider}.scopes", []);
+        return (array) $this->config->get("authentication.features.social.providers.{$provider}", []);
     }
 
     public function getRedirect(string $key, string $default = '/dashboard'): string

@@ -54,11 +54,26 @@ class SocialAuthService implements SocialAuthServiceInterface
             throw new AuthenticationException("Social provider [{$provider}] is disabled or not configured.");
         }
 
+        // Dynamically bridge credentials from config/authentication.php into Socialite
+        $providerConfig = $this->config->getSocialProviderConfig($provider);
+        if (!empty($providerConfig['client_id'])) {
+            config([
+                "services.{$provider}" => array_merge(
+                    (array) config("services.{$provider}", []),
+                    [
+                        'client_id'     => $providerConfig['client_id'],
+                        'client_secret' => $providerConfig['client_secret'] ?? '',
+                        'redirect'      => $providerConfig['redirect'] ?? url("/auth/{$provider}/callback"),
+                    ]
+                ),
+            ]);
+        }
+
         /** @var \Laravel\Socialite\Contracts\Factory $factory */
         $factory = app(\Laravel\Socialite\Contracts\Factory::class);
         $driver = $factory->driver($provider);
 
-        $scopes = $this->config->getSocialProviderScopes($provider);
+        $scopes = (array) ($providerConfig['scopes'] ?? []);
         if (!empty($scopes) && method_exists($driver, 'scopes')) {
             $driver->scopes($scopes);
         }
