@@ -518,12 +518,32 @@
             </button>
           </div>
           
-          <!-- Live Interactive Password Checklist -->
+          <!-- Live Interactive Password Checklist — driven by config/authentication.php -->
+          @php
+            $policy = $passwordPolicy ?? [
+              'min_length'        => 8,
+              'require_uppercase' => true,
+              'require_lowercase' => true,
+              'require_numbers'   => true,
+              'require_symbols'   => true,
+              'symbols_charset'   => '@$!%*#?&',
+            ];
+          @endphp
           <div class="pwd-checklist" id="pwdChecklist">
-            <div class="pwd-rule" id="ruleLen"><span class="icon-dot"></span> Minimal 8 karakter</div>
-            <div class="pwd-rule" id="ruleCase"><span class="icon-dot"></span> Huruf besar & kecil</div>
-            <div class="pwd-rule" id="ruleNum"><span class="icon-dot"></span> Minimal 1 angka</div>
-            <div class="pwd-rule" id="ruleSym"><span class="icon-dot"></span> Karakter spesial (@#$)</div>
+            <div class="pwd-rule" id="ruleLen"><span class="icon-dot"></span> Minimal {{ $policy['min_length'] }} karakter</div>
+            @if ($policy['require_uppercase'] && $policy['require_lowercase'])
+              <div class="pwd-rule" id="ruleCase"><span class="icon-dot"></span> Huruf besar &amp; kecil</div>
+            @elseif ($policy['require_uppercase'])
+              <div class="pwd-rule" id="ruleUpper"><span class="icon-dot"></span> Huruf kapital (A-Z)</div>
+            @elseif ($policy['require_lowercase'])
+              <div class="pwd-rule" id="ruleLower"><span class="icon-dot"></span> Huruf kecil (a-z)</div>
+            @endif
+            @if ($policy['require_numbers'])
+              <div class="pwd-rule" id="ruleNum"><span class="icon-dot"></span> Minimal 1 angka</div>
+            @endif
+            @if ($policy['require_symbols'])
+              <div class="pwd-rule" id="ruleSym"><span class="icon-dot"></span> Karakter spesial ({{ $policy['symbols_charset'] }})</div>
+            @endif
           </div>
 
           @error('password')
@@ -599,31 +619,33 @@
     });
   }
 
-  // Live Password Criteria Checker
-  const ruleLen = document.getElementById('ruleLen');
-  const ruleCase = document.getElementById('ruleCase');
-  const ruleNum = document.getElementById('ruleNum');
-  const ruleSym = document.getElementById('ruleSym');
+  // Live Password Criteria Checker — values injected from config/authentication.php via Blade
+  const PASSWORD_POLICY = {
+    minLength:       {{ $policy['min_length'] }},
+    requireUpper:    {{ $policy['require_uppercase'] ? 'true' : 'false' }},
+    requireLower:    {{ $policy['require_lowercase'] ? 'true' : 'false' }},
+    requireNumbers:  {{ $policy['require_numbers'] ? 'true' : 'false' }},
+    requireSymbols:  {{ $policy['require_symbols'] ? 'true' : 'false' }},
+    symbolsCharset:  {{ json_encode($policy['symbols_charset']) }},
+  };
+
+  function check(elId, condition) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    condition ? el.classList.add('valid') : el.classList.remove('valid');
+  }
 
   if (passInput) {
     passInput.addEventListener('input', () => {
       const val = passInput.value;
-      
-      // Length
-      if (val.length >= 8) ruleLen.classList.add('valid');
-      else ruleLen.classList.remove('valid');
+      const symbolPattern = new RegExp('[' + PASSWORD_POLICY.symbolsCharset.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + ']');
 
-      // Mixed Case
-      if (/[a-z]/.test(val) && /[A-Z]/.test(val)) ruleCase.classList.add('valid');
-      else ruleCase.classList.remove('valid');
-
-      // Number
-      if (/[0-9]/.test(val)) ruleNum.classList.add('valid');
-      else ruleNum.classList.remove('valid');
-
-      // Symbol
-      if (/[\W_]/.test(val)) ruleSym.classList.add('valid');
-      else ruleSym.classList.remove('valid');
+      check('ruleLen',   val.length >= PASSWORD_POLICY.minLength);
+      check('ruleCase',  PASSWORD_POLICY.requireUpper && PASSWORD_POLICY.requireLower ? /[a-z]/.test(val) && /[A-Z]/.test(val) : true);
+      check('ruleUpper', PASSWORD_POLICY.requireUpper  ? /[A-Z]/.test(val) : true);
+      check('ruleLower', PASSWORD_POLICY.requireLower  ? /[a-z]/.test(val) : true);
+      check('ruleNum',   PASSWORD_POLICY.requireNumbers ? /[0-9]/.test(val) : true);
+      check('ruleSym',   PASSWORD_POLICY.requireSymbols ? symbolPattern.test(val) : true);
     });
   }
 

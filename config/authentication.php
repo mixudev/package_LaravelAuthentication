@@ -83,11 +83,29 @@ return [
         'rehash' => true,
 
         'validation_rules' => [
-            'min_length'      => 8,
-            'require_mixed_case' => true,
-            'require_numbers'    => true,
-            'require_symbols'    => true,
-            'uncompromised'      => false,
+            /*
+            |----------------------------------------------------------
+            | Password Strength Policy
+            |----------------------------------------------------------
+            | Each rule can be toggled via environment variables so
+            | you can adjust the policy per environment (staging vs production).
+            |
+            | AUTH_PASSWORD_MIN_LENGTH        — Minimum character count (default: 8)
+            | AUTH_PASSWORD_REQUIRE_UPPERCASE — Must contain at least 1 uppercase letter
+            | AUTH_PASSWORD_REQUIRE_LOWERCASE — Must contain at least 1 lowercase letter
+            | AUTH_PASSWORD_REQUIRE_NUMBERS   — Must contain at least 1 digit
+            | AUTH_PASSWORD_REQUIRE_SYMBOLS   — Must contain at least 1 special char
+            | AUTH_PASSWORD_SYMBOLS_CHARSET   — Custom allowed symbol set (e.g. "@#$!%*")
+            | AUTH_PASSWORD_UNCOMPROMISED     — Check against HaveIBeenPwned (requires internet)
+            */
+            'min_length'         => (int) env('AUTH_PASSWORD_MIN_LENGTH', 8),
+            'require_uppercase'  => (bool) env('AUTH_PASSWORD_REQUIRE_UPPERCASE', true),
+            'require_lowercase'  => (bool) env('AUTH_PASSWORD_REQUIRE_LOWERCASE', true),
+            'require_mixed_case' => (bool) env('AUTH_PASSWORD_REQUIRE_UPPERCASE', true) && (bool) env('AUTH_PASSWORD_REQUIRE_LOWERCASE', true),
+            'require_numbers'    => (bool) env('AUTH_PASSWORD_REQUIRE_NUMBERS', true),
+            'require_symbols'    => (bool) env('AUTH_PASSWORD_REQUIRE_SYMBOLS', true),
+            'symbols_charset'    => env('AUTH_PASSWORD_SYMBOLS_CHARSET', '@$!%*#?&_-+=[]{}|;:,.<>'),
+            'uncompromised'      => (bool) env('AUTH_PASSWORD_UNCOMPROMISED', false),
         ],
 
         'history' => [

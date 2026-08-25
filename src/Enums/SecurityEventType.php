@@ -9,6 +9,7 @@ namespace Vendor\LaravelAuthentication\Enums;
  */
 enum SecurityEventType: string
 {
+    case LOGIN_ATTEMPT               = 'LOGIN_ATTEMPT';
     case LOGIN_SUCCESS               = 'LOGIN_SUCCESS';
     case LOGIN_FAILURE               = 'LOGIN_FAILURE';
     case LOGIN_THROTTLED             = 'LOGIN_THROTTLED';
@@ -21,4 +22,9 @@ enum SecurityEventType: string
     case EMAIL_VERIFIED              = 'EMAIL_VERIFIED';
     case SESSION_REVOKED             = 'SESSION_REVOKED';
     case TOKEN_REVOKED               = 'TOKEN_REVOKED';
+    case OTP_GENERATED               = 'OTP_GENERATED';
+    case OTP_VERIFIED                = 'OTP_VERIFIED';
+    case OTP_FAILED                  = 'OTP_FAILED';
+    case USER_REGISTERED             = 'USER_REGISTERED';
+    case SOCIAL_LOGIN                = 'SOCIAL_LOGIN';
 }

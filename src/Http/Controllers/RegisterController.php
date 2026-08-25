@@ -38,7 +38,16 @@ class RegisterController extends Controller
         }
 
         if (view()->exists('authentication::register')) {
-            return view('authentication::register');
+            return view('authentication::register', [
+                'passwordPolicy' => [
+                    'min_length'        => config('authentication.password.validation_rules.min_length', 8),
+                    'require_uppercase' => config('authentication.password.validation_rules.require_uppercase', true),
+                    'require_lowercase' => config('authentication.password.validation_rules.require_lowercase', true),
+                    'require_numbers'   => config('authentication.password.validation_rules.require_numbers', true),
+                    'require_symbols'   => config('authentication.password.validation_rules.require_symbols', true),
+                    'symbols_charset'   => config('authentication.password.validation_rules.symbols_charset', '@$!%*#?&'),
+                ],
+            ]);
         }
 
         return response()->json(['message' => 'Please register via POST.']);
