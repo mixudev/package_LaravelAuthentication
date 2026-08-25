@@ -233,6 +233,11 @@ return [
     | Route & HTTP Integration
     |--------------------------------------------------------------------------
     |
+    /*
+    |--------------------------------------------------------------------------
+    | Route & HTTP Integration
+    |--------------------------------------------------------------------------
+    |
     | Enable or disable built-in package routes for Web sessions or API auth.
     |
     */
@@ -247,6 +252,27 @@ return [
             'prefix'     => 'api/v1/auth',
             'middleware' => ['api'],
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | UI Views Configuration (Custom / Bring-Your-Own-UI)
+    |--------------------------------------------------------------------------
+    |
+    | Define custom Blade views if you prefer using your own UI templates
+    | instead of the package's built-in Sentra Console dark theme.
+    |
+    | You can point these to any Blade view in your application, e.g.:
+    | 'login' => 'auth.login' (points to resources/views/auth/login.blade.php)
+    |
+    */
+    'views' => [
+        'login'           => env('AUTH_VIEW_LOGIN', 'authentication::login'),
+        'register'        => env('AUTH_VIEW_REGISTER', 'authentication::register'),
+        'forgot_password' => env('AUTH_VIEW_FORGOT_PASSWORD', 'authentication::forgot-password'),
+        'reset_password'  => env('AUTH_VIEW_RESET_PASSWORD', 'authentication::reset-password'),
+        'otp_request'     => env('AUTH_VIEW_OTP_REQUEST', 'authentication::otp-request'),
+        'otp_verify'      => env('AUTH_VIEW_OTP_VERIFY', 'authentication::otp-verify'),
     ],
 
 ];

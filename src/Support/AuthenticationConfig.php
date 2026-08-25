@@ -199,4 +199,9 @@ final class AuthenticationConfig
     {
         return (string) $this->config->get("authentication.redirects.{$key}", $default);
     }
+
+    public function getView(string $key, string $default): string
+    {
+        return (string) $this->config->get("authentication.views.{$key}", $default);
+    }
 }

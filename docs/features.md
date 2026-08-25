@@ -125,3 +125,23 @@ Provides secure password reset links with user enumeration protection.
 - **API Endpoints**:
   - `POST /api/v1/auth/forgot-password`
   - `POST /api/v1/auth/reset-password`
+
+---
+
+## 5. Dynamic Password Strength Policies (`password.validation_rules`)
+
+Customize password complexity requirements per environment via `.env`:
+
+### Configuration:
+```env
+AUTH_PASSWORD_MIN_LENGTH=8
+AUTH_PASSWORD_REQUIRE_UPPERCASE=true
+AUTH_PASSWORD_REQUIRE_LOWERCASE=true
+AUTH_PASSWORD_REQUIRE_NUMBERS=true
+AUTH_PASSWORD_REQUIRE_SYMBOLS=true
+AUTH_PASSWORD_SYMBOLS_CHARSET="@#$!%*"
+```
+
+- **Backend Validation**: Handled by `Vendor\LaravelAuthentication\Rules\PasswordRule`.
+- **Frontend Sync**: The interactive password checklist on the registration page automatically synchronizes with active `.env` configuration (hiding disabled requirements and reflecting custom symbol sets and minimum lengths).
+

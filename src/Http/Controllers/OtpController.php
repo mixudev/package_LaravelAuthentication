@@ -41,8 +41,10 @@ class OtpController extends Controller
             abort(404, 'OTP authentication is disabled.');
         }
 
-        if (view()->exists('authentication::otp-request')) {
-            return view('authentication::otp-request');
+        $viewName = (string) config('authentication.views.otp_request', 'authentication::otp-request');
+
+        if (view()->exists($viewName)) {
+            return view($viewName);
         }
 
         return response()->json(['message' => 'Please request an OTP code via POST.']);
@@ -82,9 +84,10 @@ class OtpController extends Controller
         }
 
         $identifier = (string) $request->query('identifier', session('otp_identifier', ''));
+        $viewName = (string) config('authentication.views.otp_verify', 'authentication::otp-verify');
 
-        if (view()->exists('authentication::otp-verify')) {
-            return view('authentication::otp-verify', ['identifier' => $identifier]);
+        if (view()->exists($viewName)) {
+            return view($viewName, ['identifier' => $identifier]);
         }
 
         return response()->json(['message' => 'Please verify OTP code via POST.', 'identifier' => $identifier]);

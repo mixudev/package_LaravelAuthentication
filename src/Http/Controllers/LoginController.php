@@ -28,8 +28,10 @@ class LoginController extends Controller
      */
     public function showLoginForm(): View|JsonResponse
     {
-        if (view()->exists('authentication::login')) {
-            return view('authentication::login');
+        $viewName = (string) config('authentication.views.login', 'authentication::login');
+
+        if (view()->exists($viewName)) {
+            return view($viewName);
         }
 
         return response()->json(['message' => 'Please authenticate via POST.']);

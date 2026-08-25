@@ -24,8 +24,10 @@ class PasswordResetController extends Controller
 
     public function showLinkRequestForm(): View|JsonResponse
     {
-        if (view()->exists('authentication::forgot-password')) {
-            return view('authentication::forgot-password');
+        $viewName = (string) config('authentication.views.forgot_password', 'authentication::forgot-password');
+
+        if (view()->exists($viewName)) {
+            return view($viewName);
         }
 
         return response()->json(['message' => 'Please request password reset link via POST.']);
@@ -56,8 +58,10 @@ class PasswordResetController extends Controller
 
     public function showResetForm(Request $request, string $token): View|JsonResponse
     {
-        if (view()->exists('authentication::reset-password')) {
-            return view('authentication::reset-password', [
+        $viewName = (string) config('authentication.views.reset_password', 'authentication::reset-password');
+
+        if (view()->exists($viewName)) {
+            return view($viewName, [
                 'token' => $token,
                 'email' => $request->query('email'),
             ]);

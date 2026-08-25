@@ -37,8 +37,10 @@ class RegisterController extends Controller
             abort(404, 'Registration is currently disabled.');
         }
 
-        if (view()->exists('authentication::register')) {
-            return view('authentication::register', [
+        $viewName = (string) config('authentication.views.register', 'authentication::register');
+
+        if (view()->exists($viewName)) {
+            return view($viewName, [
                 'passwordPolicy' => [
                     'min_length'        => config('authentication.password.validation_rules.min_length', 8),
                     'require_uppercase' => config('authentication.password.validation_rules.require_uppercase', true),

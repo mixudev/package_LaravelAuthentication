@@ -1,92 +1,60 @@
-# Laravel Authentication Package
+# Enterprise Authentication Package for Laravel
 
 [![CI Tests](https://github.com/mixudev/package_LaravelAuthentication/actions/workflows/ci.yml/badge.svg)](https://github.com/mixudev/package_LaravelAuthentication/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PHP Version](https://img.shields.io/badge/php-%5E8.1%20%7C%20%5E8.2%20%7C%20%5E8.3%20%7C%20%5E8.4%20%7C%20%5E8.5-8892BF.svg)](https://php.net)
 [![Laravel Version](https://img.shields.io/badge/laravel-10.x%20%7C%2011.x%20%7C%2012.x%20%7C%2013.x-FF2D20.svg)](https://laravel.com)
 
-A production-grade, modular, portable, secure-by-default, and extensible authentication library for Laravel applications. Designed to be reused across dozens of diverse client applications via standard Composer workflows without duplicating or modifying core code.
+A production-grade, modular, portable, secure-by-default, and extensible authentication architecture for Laravel 10.x, 11.x, 12.x, and 13.x applications.
+
+Designed to be integrated effortlessly into monolithic applications, REST APIs, SPAs, and multi-tenant platforms without duplicating or modifying core code.
 
 ---
 
-## Table of Contents
-1. [Key Features](#key-features)
-2. [Compatibility Matrix](#compatibility-matrix)
-3. [Architecture Overview](#architecture-overview)
-4. [Installation](#installation)
-5. [Publishing Assets & Views](#publishing-assets--views)
-6. [Modular Feature Switches](#modular-feature-switches)
-7. [User Registration (Web & API)](#user-registration-web--api)
-8. [Passwordless OTP Authentication](#passwordless-otp-authentication)
-9. [Social / OAuth Login (Google & GitHub)](#social--oauth-login-google--github)
-10. [Password Recovery & Reset](#password-recovery--reset)
-11. [Supported Login Strategies](#supported-login-strategies)
-12. [Extending Custom Strategies (e.g. Employee ID)](#extending-custom-strategies-eg-employee-id)
-13. [API Endpoints Reference](#api-endpoints-reference)
-14. [Security & Threat Mitigations](#security--threat-mitigations)
-15. [Testing](#testing)
+## 📑 Documentation Hub
+
+In-depth technical guides are available in the [`docs/`](docs/index.md) directory:
+
+- 🚀 [1. Getting Started Guide](docs/getting-started.md)
+- 📁 [2. Unified Single-Folder Module Mode](docs/modular-installation.md)
+- ⚙️ [3. Features & Modular Switches](docs/features.md)
+- 🎨 [4. Views & Custom UI Guide](docs/views-customization.md)
+- 🧩 [5. Strategies & Extending the Package](docs/strategies-and-extending.md)
+- 🔌 [6. REST API Reference](docs/api-reference.md)
+- 🛡️ [7. Security & Threat Mitigations](docs/security-and-best-practices.md)
 
 ---
 
-## Key Features
+## ✨ Core Highlights
 
-- **Modular Feature Architecture**: Toggle User Registration, Password Recovery, Passwordless OTP, and Socialite OAuth via simple boolean config flags.
-- **Decoupled Architecture**: Zero hard-coded coupling to `App\Models\User` or host application namespaces.
-- **Ready-to-Use Dark Console UI**: Beautiful, accessible, responsive Blade views (`login`, `register`, `forgot-password`, `reset-password`, `otp-request`, `otp-verify`) matching high-grade developer console aesthetics.
-- **Passwordless OTP Login**: Cryptographically secure, rate-limited, single-use OTP codes with configurable expiry and timing-safe verification.
-- **OAuth Social Login**: Built-in support for Google, GitHub, and custom providers via Laravel Socialite with automated user provisioning.
-- **Complete REST API**: Every authentication flow is 100% supported via clean JSON endpoints (`/api/v1/auth/...`).
-- **Strategy Pattern Engine**: Easily switch between `username_or_email`, `email_password`, `username_password`, or add custom strategies (`employee_id`, `phone_number`, `sso`) at runtime.
-- **Composite Rate Limiting & Account Lockout**: Anti-brute force and credential stuffing defense with configurable decay windows and IP/Identifier composite throttling.
-- **Session Security**: Native session ID regeneration upon login (session fixation prevention) and complete cache/token invalidation on logout.
-- **Password Hygiene**: Transparent password rehashing to modern algorithms (Argon2id/Bcrypt) and historical password reuse prevention.
-
----
-
-## Compatibility Matrix
-
-| Package Version | PHP Versions Supported | Laravel Target Versions | Status |
-| :--- | :--- | :--- | :--- |
-| **1.1.x** / **main** | `8.1`, `8.2`, `8.3`, `8.4`, `8.5` | `10.x`, `11.x`, `12.x`, `13.x` | **Active / Current** |
-| **2.0.x** *(Planned)* | `8.3`, `8.4`, `8.5` | `12.x`, `13.x`, `14.x` | *Future Roadmap* |
+- **Modular Subsystem Switches**: Toggle User Registration, Password Recovery, Passwordless OTP, and Socialite OAuth via simple boolean config flags.
+- **Decoupled Architecture**: Zero hardcoded application coupling (`App\Models\User`). Easily maps to any custom Authenticatable model.
+- **Dual UI Support**:
+  - Ready-to-use **Sentra Console** dark theme with real-time client validation, animated spinners, and live password checklist.
+  - **Bring-Your-Own-UI**: Point the package to your own custom Blade templates (`AUTH_VIEW_LOGIN=auth.login`) in seconds.
+- **Unified Single-Folder Module Exporter**: Package all config, migrations, views, and routes into a self-contained `modules/Authentication/` folder via `php artisan authentication:install-module`.
+- **Passwordless OTP Login**: Single-use, cryptographically secure OTP codes with configurable expiry, rate-limiting, and timing-safe verification.
+- **OAuth Social Login**: Google & GitHub OAuth via Laravel Socialite with automated user provisioning.
+- **Dynamic Password Strength Policies**: Granular `.env` configuration for minimum length, uppercase, lowercase, numbers, and custom special symbol sets.
+- **Zero-Trust Security**:
+  - Zero User Enumeration (constant-time responses and identical messaging across valid and non-existent accounts).
+  - Composite rate limiting (`sha1(ip + identifier)`).
+  - Account lockout with exponential decay.
+  - Session fixation mitigation with automated `session()->regenerate()`.
+  - Sensitive parameter redaction (`#[\SensitiveParameter]`).
+- **Complete REST API**: Every authentication flow is 100% supported via stateless JSON endpoints (`/api/v1/auth/*`) with Laravel Sanctum token issuance.
 
 ---
 
-## Architecture Overview
+## 📦 Installation
 
-```
-HTTP Request (Web / JSON API)
-        ↓
-Feature Guard (Enabled / Disabled Check)
-        ↓
-Rate Limiter (LoginAttemptManager - Composite Key)
-        ↓
-Authentication / Registration / OTP / Social Orchestrator
-        ↓
-Strategy Selection & Identity Resolver
-        ↓
-Credential Verification & Security Policies
-        ↓
-Session Login (Web) OR Sanctum Bearer Token (API)
-        ↓
-Event Dispatcher (LoginSucceeded / UserRegistered / OtpVerified)
-        ↓
-Security Audit Log (Redacted PII)
-        ↓
-Response (Redirect / JSON DTO)
-```
-
----
-
-## Installation
-
-### A. Standard Composer Require
+### Option 1: Standard Composer Require
 ```bash
 composer require mixudev/laravel-authentication
 ```
 
-### B. Local Composer Path Repository (Monorepos / Local Dev)
-In host application's `composer.json`:
+### Option 2: Local Path Repository (Monorepos / Local Development)
+Add to your application's `composer.json`:
 ```json
 {
     "repositories": [
@@ -107,75 +75,68 @@ composer require mixudev/laravel-authentication:@dev
 
 ---
 
-## Publishing Assets & Views
+## 🛠️ Setup & Publishing Modes
 
-### Standard Publishing Mode (Individual Folders):
+### Mode A: Standard Publishing (Individual Folders)
 ```bash
 # 1. Publish Configuration
 php artisan vendor:publish --tag=authentication-config
 
-# 2. Publish Database Migrations & Run
+# 2. Publish & Run Migrations
 php artisan vendor:publish --tag=authentication-migrations
 php artisan migrate
 
-# 3. Publish UI Views (Optional - to customize Blade templates)
+# 3. Publish UI Views (Optional - for customizing Blade templates)
 php artisan vendor:publish --tag=authentication-views
 ```
 
 ---
 
-### Unified Single-Folder Module Mode (Recommended for Clean Organization):
-If you prefer keeping all configuration, migrations, views, and routes together in a single clean module directory (`modules/Authentication/` or `app/Modules/Authentication/`):
+### Mode B: Unified Single-Folder Module Mode (Clean Organization)
+Export all package assets (Config, Migrations, Views, Routes, and ServiceProvider) into a single folder:
 
 ```bash
+# Export into modules/Authentication/
 php artisan authentication:install-module
+
+# Or specify a custom directory:
+php artisan authentication:install-module --path=app/Modules/Authentication
 ```
 
-See the [Unified Module Installation Guide](docs/modular-installation.md) for full step-by-step instructions.
+See the [Unified Module Guide](docs/modular-installation.md) for full 3-step setup instructions.
 
 ---
 
-## Modular Feature Switches
+## ⚙️ Modular Feature Switches
 
-In your published `config/authentication.php`, enable or disable entire subsystems with simple boolean switches. When a feature is disabled, its routes, controller actions, and API endpoints immediately fail-closed:
+In `config/authentication.php` (or `.env`), toggle entire subsystems on or off. When disabled, associated routes, controller actions, and UI buttons fail-closed automatically:
 
 ```php
 'features' => [
-    // 1. User Registration (Web & API)
     'registration' => [
         'enabled'                => env('AUTH_REGISTRATION_ENABLED', true),
         'auto_login_on_register' => env('AUTH_AUTO_LOGIN_ON_REGISTER', true),
-        'require_email_verify'   => env('AUTH_REQUIRE_EMAIL_VERIFY', false),
     ],
 
-    // 2. Self-Service Password Reset (Web & API)
     'forgot_password' => [
         'enabled' => env('AUTH_FORGOT_PASSWORD_ENABLED', true),
     ],
 
-    // 3. Passwordless OTP Login (Web & API)
     'otp' => [
         'enabled'          => env('AUTH_OTP_ENABLED', true),
-        'length'           => 6,
-        'expiry_minutes'   => 10,
-        'max_attempts'     => 3,
-        'throttle_seconds' => 60,
-        'type'             => 'numeric', // 'numeric' or 'alphanumeric'
+        'length'           => (int) env('AUTH_OTP_LENGTH', 6),
+        'expiry_minutes'   => (int) env('AUTH_OTP_EXPIRY_MINUTES', 10),
+        'max_attempts'     => (int) env('AUTH_OTP_MAX_ATTEMPTS', 3),
+        'throttle_seconds' => (int) env('AUTH_OTP_THROTTLE_SECONDS', 60),
+        'type'             => env('AUTH_OTP_TYPE', 'numeric'), // 'numeric' or 'alphanumeric'
     ],
 
-    // 4. Socialite OAuth Login (Web & API)
     'social' => [
         'enabled'       => env('AUTH_SOCIAL_ENABLED', true),
-        'auto_register' => true,
+        'auto_register' => env('AUTH_SOCIAL_AUTO_REGISTER', true),
         'providers'     => [
-            'google' => [
-                'enabled' => env('AUTH_GOOGLE_ENABLED', true),
-                'scopes'  => ['openid', 'profile', 'email'],
-            ],
-            'github' => [
-                'enabled' => env('AUTH_GITHUB_ENABLED', true),
-                'scopes'  => ['user:email', 'read:user'],
-            ],
+            'google' => ['enabled' => env('AUTH_GOOGLE_ENABLED', true)],
+            'github' => ['enabled' => env('AUTH_GITHUB_ENABLED', true)],
         ],
     ],
 ],
@@ -183,188 +144,82 @@ In your published `config/authentication.php`, enable or disable entire subsyste
 
 ---
 
-## User Registration (Web & API)
+## 🔒 Dynamic Password Policies (.env)
 
-Registration dynamically creates users using your configured Eloquent model (`config('authentication.user_model')`) without hardcoded database assumptions.
+Customize your application's password complexity rules directly in your `.env` file without touching code:
 
-- **Web Route**: `GET /register`, `POST /register`
-- **API Route**: `POST /api/v1/auth/register`
-- **Payload**:
-  ```json
-  {
-    "name": "Jane Doe",
-    "email": "jane@example.com",
-    "password": "SecurePassword123!",
-    "password_confirmation": "SecurePassword123!"
-  }
-  ```
-- **Events**: Dispatches `Vendor\LaravelAuthentication\Events\UserRegistered`.
-
----
-
-## Passwordless OTP Authentication
-
-Provides passwordless authentication using single-use verification codes.
-
-- **Web Routes**:
-  - Request Code: `GET /otp/login`, `POST /otp/send`
-  - Verify Code: `GET /otp/verify?identifier=...`, `POST /otp/verify`
-- **API Endpoints**:
-  - `POST /api/v1/auth/otp/send` (`{"identifier": "jane@example.com"}`)
-  - `POST /api/v1/auth/otp/verify` (`{"identifier": "jane@example.com", "code": "123456"}`)
-- **Events**:
-  - `Vendor\LaravelAuthentication\Events\OtpGenerated` (Listen to this event to send SMS, WhatsApp, or custom Mail)
-  - `Vendor\LaravelAuthentication\Events\OtpVerified`
-
----
-
-## Social / OAuth Login (Google & GitHub)
-
-Integrates cleanly with Laravel Socialite.
-
-### Prerequisites:
-Install Socialite in your host application:
-```bash
-composer require laravel/socialite
-```
-Configure your OAuth keys in `config/services.php`:
-```php
-'google' => [
-    'client_id'     => env('GOOGLE_CLIENT_ID'),
-    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    'redirect'      => env('APP_URL') . '/auth/google/callback',
-],
-'github' => [
-    'client_id'     => env('GITHUB_CLIENT_ID'),
-    'client_secret' => env('GITHUB_CLIENT_SECRET'),
-    'redirect'      => env('APP_URL') . '/auth/github/callback',
-],
+```env
+AUTH_PASSWORD_MIN_LENGTH=8
+AUTH_PASSWORD_REQUIRE_UPPERCASE=true
+AUTH_PASSWORD_REQUIRE_LOWERCASE=true
+AUTH_PASSWORD_REQUIRE_NUMBERS=true
+AUTH_PASSWORD_REQUIRE_SYMBOLS=true
+AUTH_PASSWORD_SYMBOLS_CHARSET="@#$!%*"
 ```
 
-- **Web Routes**:
-  - Redirect: `GET /auth/{provider}/redirect`
-  - Callback: `GET /auth/{provider}/callback`
-- **API Endpoint**:
-  - `POST /api/v1/auth/social/{provider}`
+The live frontend registration checklist and backend validation automatically synchronize with these rules!
 
 ---
 
-## Password Recovery & Reset
+## 🎨 Bring Your Own UI (Custom Views)
 
-Self-service password recovery with user enumeration defense.
+To replace the built-in dark theme with your own custom Blade templates (e.g. Tailwind, Bootstrap, Filament):
 
-- **Web Routes**:
-  - Request Reset Link: `GET /forgot-password`, `POST /forgot-password`
-  - Reset Form: `GET /reset-password/{token}`, `POST /reset-password`
-- **API Endpoints**:
-  - `POST /api/v1/auth/forgot-password` (`{"email": "user@example.com"}`)
-  - `POST /api/v1/auth/reset-password` (`{"token": "...", "email": "...", "password": "...", "password_confirmation": "..."}`)
-
----
-
-## API Endpoints Reference
-
-All API routes default to the prefix `/api/v1/auth`:
-
-| Method | Endpoint | Description | Toggle Flag |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/login` | Authenticate with credentials & receive Bearer token | Always active |
-| `POST` | `/api/v1/auth/register` | Register new user account | `features.registration.enabled` |
-| `POST` | `/api/v1/auth/forgot-password` | Send password reset email | `features.forgot_password.enabled` |
-| `POST` | `/api/v1/auth/reset-password` | Reset password using token | `features.forgot_password.enabled` |
-| `POST` | `/api/v1/auth/otp/send` | Request single-use OTP code | `features.otp.enabled` |
-| `POST` | `/api/v1/auth/otp/verify` | Verify OTP code & receive Bearer token | `features.otp.enabled` |
-| `POST` | `/api/v1/auth/social/{provider}` | Stateless OAuth token exchange | `features.social.enabled` |
-| `POST` | `/api/v1/auth/logout` | Revoke current Bearer token | Guard protected (`auth:sanctum`) |
-
----
-
-## Supported Login Strategies
-
-Configure default strategy in `config/authentication.php`:
-- `username_or_email` *(Default)*: Autodetects whether input is email or username.
-- `email_password`: Strictly expects standard email format.
-- `username_password`: Strictly matches against the username column.
-- `custom_identifier`: Matches against custom configured column (e.g. `employee_id`).
-
----
-
-## Extending Custom Strategies (e.g. Employee ID)
-
-### Step 1: Implement Strategy
-```php
-namespace App\Authentication\Strategies;
-
-use Illuminate\Contracts\Auth\Authenticatable;
-use Vendor\LaravelAuthentication\Contracts\AuthenticationStrategyInterface;
-use Vendor\LaravelAuthentication\DTO\LoginData;
-use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-
-class EmployeeIdStrategy implements AuthenticationStrategyInterface
-{
-    public function name(): string
-    {
-        return 'employee_id';
-    }
-
-    public function supports(LoginData $data): bool
-    {
-        return str_starts_with($data->identifier, 'EMP-');
-    }
-
-    public function resolveUser(LoginData $data, AuthenticationContext $context): ?Authenticatable
-    {
-        return User::where('employee_id', $data->identifier)->first();
-    }
-
-    public function validateCredentials(Authenticatable $user, LoginData $data): bool
-    {
-        return Hash::check($data->password, $user->getAuthPassword());
-    }
-}
+In `config/authentication.php` or `.env`:
+```env
+AUTH_VIEW_LOGIN=auth.login
+AUTH_VIEW_REGISTER=auth.register
+AUTH_VIEW_FORGOT_PASSWORD=auth.forgot-password
+AUTH_VIEW_RESET_PASSWORD=auth.reset-password
+AUTH_VIEW_OTP_REQUEST=auth.otp-request
+AUTH_VIEW_OTP_VERIFY=auth.otp-verify
 ```
 
-### Step 2: Register in `AppServiceProvider`
-```php
-use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
-use App\Authentication\Strategies\EmployeeIdStrategy;
-
-public function boot(AuthenticationStrategyRegistry $registry): void
-{
-    $registry->register('employee_id', EmployeeIdStrategy::class);
-}
-```
+Check the [Custom Views Guide](docs/views-customization.md) for complete field specifications, route helpers, and copy-paste starter templates.
 
 ---
 
-## Security & Threat Mitigations
+## 🔌 REST API Endpoints
 
-| Threat | Attack Vector | Mitigation in Package |
+All endpoints support pure JSON payloads under `/api/v1/auth`:
+
+| Method | URI | Description |
 | :--- | :--- | :--- |
-| **Brute Force** | High-frequency password guessing | Rate limiting with IP + Identifier composite throttling. |
-| **User Enumeration** | Timing/error message discrepancy probing | Identical generic error messages and uniform execution paths. |
-| **Session Fixation** | Attacker pre-sets session ID | Full `session()->regenerate()` immediately upon valid login. |
-| **SQL Injection** | Malicious identifier payloads | Parameterized Eloquent/PDO query bindings throughout. |
-| **Credential Leakage** | Plaintext logs / stack traces | Redacted audit log sinks and `#[\SensitiveParameter]` attributes. |
-| **Password Reuse** | Immediate revert to old passwords | Encrypted password history repository tracking last *N* hashes. |
+| `POST` | `/api/v1/auth/login` | Authenticate and issue Sanctum token |
+| `POST` | `/api/v1/auth/register` | Register new account and issue token |
+| `POST` | `/api/v1/auth/otp/send` | Dispatch OTP verification code |
+| `POST` | `/api/v1/auth/otp/verify` | Verify OTP code and authenticate |
+| `POST` | `/api/v1/auth/forgot-password` | Request password reset email |
+| `POST` | `/api/v1/auth/reset-password` | Update password using reset token |
+| `POST` | `/api/v1/auth/social/{provider}` | Exchange OAuth credentials for session/token |
+| `POST` | `/api/v1/auth/logout` | Revoke current token / destroy session |
+
+See the [REST API Reference](docs/api-reference.md) for complete request and response schemas.
 
 ---
 
-## Testing
+## 🛡️ Security Architecture
 
-Run the test suite in the package:
-```bash
-composer test
-```
-Or execute PHPUnit:
+| Vector | Protection Mechanism |
+| :--- | :--- |
+| **User Enumeration** | Timing normalization (`usleep`) and uniform generic responses across valid & non-existent accounts. |
+| **Brute Force & Credential Stuffing** | Composite rate limiting (`sha1(ip + identifier)`) with configurable lockout thresholds. |
+| **Session Fixation** | Automated `session()->regenerate()` immediately following successful authentication. |
+| **Credential Leakage** | All raw credentials use PHP 8.2+ `#[\SensitiveParameter]` attributes to prevent exposure in logs & stack traces. |
+| **Password Rehashing** | Automatic rehashing to modern cryptographic algorithms upon successful login. |
+
+---
+
+## 🧪 Testing
+
+Run package tests with PHPUnit:
+
 ```bash
 vendor/bin/phpunit
 ```
 
 ---
 
-## License
+## 📄 License
 
-This package is open-sourced software licensed under the [MIT License](LICENSE).
+This package is open-sourced software licensed under the [MIT license](LICENSE.md).
