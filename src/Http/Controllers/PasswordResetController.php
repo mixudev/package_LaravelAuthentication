@@ -24,6 +24,10 @@ class PasswordResetController extends Controller
 
     public function showLinkRequestForm(): View|JsonResponse
     {
+        if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
+            abort(404, 'Password reset feature is currently disabled.');
+        }
+
         $viewName = (string) config('authentication.views.forgot_password', 'authentication::forgot-password');
 
         if (view()->exists($viewName)) {
@@ -35,6 +39,10 @@ class PasswordResetController extends Controller
 
     public function sendResetLinkEmail(ForgotPasswordRequest $request): RedirectResponse|JsonResponse
     {
+        if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
+            abort(404, 'Password reset feature is currently disabled.');
+        }
+
         // Intentionally discard the broker status result.
         // We ALWAYS return the same generic success message to prevent user enumeration
         // (an attacker must not learn whether the submitted email exists in the database).
@@ -58,6 +66,10 @@ class PasswordResetController extends Controller
 
     public function showResetForm(Request $request, string $token): View|JsonResponse
     {
+        if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
+            abort(404, 'Password reset feature is currently disabled.');
+        }
+
         $viewName = (string) config('authentication.views.reset_password', 'authentication::reset-password');
 
         if (view()->exists($viewName)) {
@@ -76,6 +88,10 @@ class PasswordResetController extends Controller
 
     public function reset(ResetPasswordRequest $request): RedirectResponse
     {
+        if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
+            abort(404, 'Password reset feature is currently disabled.');
+        }
+
         $status = Password::broker()->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
@@ -90,6 +106,13 @@ class PasswordResetController extends Controller
 
     public function apiSendResetLink(ForgotPasswordRequest $request): JsonResponse
     {
+        if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Password reset feature is currently disabled.',
+            ], 403);
+        }
+
         $status = Password::broker()->sendResetLink($request->only('email'));
 
         // Always return generic success to prevent user enumeration
@@ -101,6 +124,13 @@ class PasswordResetController extends Controller
 
     public function apiResetPassword(ResetPasswordRequest $request): JsonResponse
     {
+        if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Password reset feature is currently disabled.',
+            ], 403);
+        }
+
         $status = Password::broker()->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {

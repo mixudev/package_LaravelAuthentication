@@ -115,11 +115,13 @@ class AuthenticationModuleServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // 1. Merge Module Config
-        \$this->mergeConfigFrom(
-            __DIR__ . '/Config/authentication.php',
-            'authentication'
-        );
+        // 1. Load & Override Module Config
+        \$moduleConfigFile = __DIR__ . '/Config/authentication.php';
+        if (file_exists(\$moduleConfigFile)) {
+            \$moduleConfig = require \$moduleConfigFile;
+            \$currentConfig = \$this->app['config']->get('authentication', []);
+            \$this->app['config']->set('authentication', array_replace_recursive(\$currentConfig, \$moduleConfig));
+        }
     }
 
     public function boot(): void

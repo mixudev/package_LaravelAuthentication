@@ -33,10 +33,40 @@ modules/Authentication/
 
 ---
 
-## 🚀 Quick Setup Guide (3 Steps)
+## 🚀 Quick Setup Guide for New or Existing Projects
+
+### Step 0: Require the Package via Composer
+Before running any Artisan commands, make sure the package is installed in your Laravel project:
+
+#### Option A: If Published to Packagist / GitHub
+```bash
+composer require mixudev/laravel-authentication
+```
+
+#### Option B: If Testing Locally (Path Repository)
+Add the local package path to your new project's `composer.json`:
+```json
+"repositories": [
+    {
+        "type": "path",
+        "url": "../packages/LaravelAuthentication",
+        "options": {
+            "symlink": true
+        }
+    }
+]
+```
+*(Sesuaikan path `url` ke lokasi folder package Anda, misalnya `D:/WEBSITE/PACKAGE/LaravelAuthentication`)*
+
+Lalu jalankan di terminal project baru Anda:
+```bash
+composer require mixudev/laravel-authentication:@dev
+```
+
+---
 
 ### Step 1: Run the Module Exporter Command
-Run the following Artisan command in your Laravel application:
+Once composer finishes installing the package, run:
 
 ```bash
 # Default path: modules/Authentication
