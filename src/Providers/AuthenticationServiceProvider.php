@@ -9,6 +9,7 @@ use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\CredentialResolverInterface;
 use Vendor\LaravelAuthentication\Contracts\CredentialValidatorInterface;
+use Vendor\LaravelAuthentication\Contracts\LoginAttemptManagerInterface;
 use Vendor\LaravelAuthentication\Contracts\OtpServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
 use Vendor\LaravelAuthentication\Contracts\RegistrationServiceInterface;
@@ -82,35 +83,61 @@ class AuthenticationServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // 1. Publish Configuration
         if ($this->app->runningInConsole()) {
+            // 1. Publish Configuration
             $this->publishes([
                 __DIR__ . '/../../config/authentication.php' => config_path('authentication.php'),
             ], 'authentication-config');
 
-            // 2. Publish Migrations
-            $this->publishes([
-                __DIR__ . '/../../database/migrations' => database_path('migrations'),
-            ], 'authentication-migrations');
+            // 2. Publish Migrations (enumerate files explicitly — publishes() does not support directory-to-directory)
+            $this->publishes(
+                $this->buildPublishMap(
+                    __DIR__ . '/../../database/migrations',
+                    database_path('migrations')
+                ),
+                'authentication-migrations'
+            );
 
-            // 3. Publish Views (optional UI customization)
-            $this->publishes([
-                __DIR__ . '/../../resources/views' => resource_path('views/vendor/authentication'),
-            ], 'authentication-views');
+            // 3. Publish Views (enumerate files explicitly, including sub-directories)
+            $this->publishes(
+                $this->buildPublishMap(
+                    __DIR__ . '/../../resources/views',
+                    resource_path('views/vendor/authentication')
+                ),
+                'authentication-views'
+            );
 
             // 4. Publish Translations
-            $this->publishes([
-                __DIR__ . '/../../resources/lang' => $this->app->langPath('vendor/authentication'),
-            ], 'authentication-lang');
+            if (is_dir(__DIR__ . '/../../resources/lang')) {
+                $this->publishes(
+                    $this->buildPublishMap(
+                        __DIR__ . '/../../resources/lang',
+                        $this->app->langPath('vendor/authentication')
+                    ),
+                    'authentication-lang'
+                );
+            }
 
             // 5. Publish Full Unified Module in one directory
-            $this->publishes([
+            //    The `authentication:install-module` Artisan command is the recommended method.
+            //    This tag provides a standard `vendor:publish` alternative.
+            $modulePublishMap = [
                 __DIR__ . '/../../config/authentication.php' => base_path('modules/Authentication/Config/authentication.php'),
-                __DIR__ . '/../../database/migrations'      => base_path('modules/Authentication/Database/Migrations'),
-                __DIR__ . '/../../resources/views'          => base_path('modules/Authentication/Resources/Views'),
-                __DIR__ . '/../../routes/web.php'           => base_path('modules/Authentication/Routes/web.php'),
-                __DIR__ . '/../../routes/api.php'           => base_path('modules/Authentication/Routes/api.php'),
-            ], 'authentication-module');
+                __DIR__ . '/../../routes/web.php'            => base_path('modules/Authentication/Routes/web.php'),
+                __DIR__ . '/../../routes/api.php'            => base_path('modules/Authentication/Routes/api.php'),
+            ];
+            $modulePublishMap = array_merge(
+                $modulePublishMap,
+                $this->buildPublishMap(
+                    __DIR__ . '/../../database/migrations',
+                    base_path('modules/Authentication/Database/Migrations')
+                ),
+                $this->buildPublishMap(
+                    __DIR__ . '/../../resources/views',
+                    base_path('modules/Authentication/Resources/Views')
+                )
+            );
+            $this->publishes($modulePublishMap, 'authentication-module');
 
             // Register CLI Commands
             $this->commands([
@@ -141,5 +168,60 @@ class AuthenticationServiceProvider extends ServiceProvider
         if (config('authentication.routes.api.enabled', false)) {
             $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
         }
+    }
+
+    /**
+     * Recursively enumerate all files in a source directory and map them
+     * to corresponding paths in the destination directory.
+     *
+     * Laravel's publishes() method does not support directory-to-directory mapping;
+     * each source file must be listed individually.
+     *
+     * Normalizes paths using realpath() to handle cross-platform separator differences
+     * (e.g., Windows backslash vs Unix forward slash).
+     *
+     * @return array<string, string>
+     */
+    protected function buildPublishMap(string $sourceDir, string $destDir): array
+    {
+        $map = [];
+
+        $resolvedSource = realpath($sourceDir);
+
+        if ($resolvedSource === false || !is_dir($resolvedSource)) {
+            return $map;
+        }
+
+        /** @var \SplFileInfo $file */
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($resolvedSource, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+
+            $absoluteSource = $file->getPathname();
+
+            // Strip the base source directory, normalize separators to forward slashes
+            $relativePath = ltrim(
+                str_replace(
+                    [DIRECTORY_SEPARATOR, '\\'],
+                    '/',
+                    substr($absoluteSource, strlen($resolvedSource))
+                ),
+                '/'
+            );
+
+            // Build destination path using OS-native separator
+            $absoluteDest = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $destDir), DIRECTORY_SEPARATOR)
+                . DIRECTORY_SEPARATOR
+                . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+
+            $map[$absoluteSource] = $absoluteDest;
+        }
+
+        return $map;
     }
 }
