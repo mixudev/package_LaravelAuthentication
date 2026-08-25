@@ -178,6 +178,11 @@ return [
             'max_attempts'     => (int) env('AUTH_OTP_MAX_ATTEMPTS', 3),
             'throttle_seconds' => (int) env('AUTH_OTP_THROTTLE_SECONDS', 60),
             'type'             => env('AUTH_OTP_TYPE', 'numeric'), // 'numeric' or 'alphanumeric'
+
+            // Automated Email Dispatching
+            'send_email'       => env('AUTH_OTP_SEND_EMAIL', true),
+            'email_subject'    => env('AUTH_OTP_EMAIL_SUBJECT', null), // null = default: '{App Name} — Kode Verifikasi Masuk (OTP)'
+            'email_view'       => env('AUTH_OTP_EMAIL_VIEW', 'authentication::emails.otp'),
         ],
 
         // Social / OAuth Login via Laravel Socialite (Web & API)
@@ -239,11 +244,6 @@ return [
     | Route & HTTP Integration
     |--------------------------------------------------------------------------
     |
-    /*
-    |--------------------------------------------------------------------------
-    | Route & HTTP Integration
-    |--------------------------------------------------------------------------
-    |
     | Enable or disable built-in package routes for Web sessions or API auth.
     |
     */
@@ -279,6 +279,7 @@ return [
         'reset_password'  => env('AUTH_VIEW_RESET_PASSWORD', 'authentication::reset-password'),
         'otp_request'     => env('AUTH_VIEW_OTP_REQUEST', 'authentication::otp-request'),
         'otp_verify'      => env('AUTH_VIEW_OTP_VERIFY', 'authentication::otp-verify'),
+        'otp_email'       => env('AUTH_VIEW_OTP_EMAIL', 'authentication::emails.otp'),
     ],
 
 ];

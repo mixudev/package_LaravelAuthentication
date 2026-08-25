@@ -83,7 +83,11 @@ class OtpService implements OtpServiceInterface
         $usernameCol = $this->config->getIdentifierColumn('username');
         $user = $this->resolver->resolveByColumns([$emailCol, $usernameCol], $normalized);
 
+        // 1. Dispatch framework event for custom listeners (SMS / WhatsApp / Webhooks)
         $this->events->dispatch(new OtpGenerated($user, $normalized, $code, $context, $expiryMinutes));
+
+        // 2. Automatically send email notification if enabled
+        $this->dispatchOtpEmail($user, $normalized, $code, $expiryMinutes);
 
         $this->auditService->logEvent(
             SecurityEventType::LOGIN_ATTEMPT,
@@ -94,6 +98,44 @@ class OtpService implements OtpServiceInterface
         );
 
         return $code;
+    }
+
+    /**
+     * Dispatch OTP Email notification using configured Mailer.
+     */
+    protected function dispatchOtpEmail(?Authenticatable $user, string $identifier, string $code, int $expiryMinutes): void
+    {
+        if (! (bool) config('authentication.features.otp.send_email', true)) {
+            return;
+        }
+
+        $recipientEmail = null;
+
+        if ($user !== null) {
+            $userEmailProp = $user->email ?? (method_exists($user, 'getEmailForPasswordReset') ? $user->getEmailForPasswordReset() : null);
+            if (!empty($userEmailProp) && is_string($userEmailProp)) {
+                $recipientEmail = $userEmailProp;
+            }
+        }
+
+        if (empty($recipientEmail) && filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            $recipientEmail = $identifier;
+        }
+
+        if (!empty($recipientEmail)) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($recipientEmail)->send(
+                    new \Vendor\LaravelAuthentication\Mail\OtpMail(
+                        code: $code,
+                        expiryMinutes: $expiryMinutes,
+                        identifier: $identifier,
+                        user: $user
+                    )
+                );
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
     }
 
     public function verify(string $identifier, #[\SensitiveParameter] string $code, AuthenticationContext $context): ?Authenticatable

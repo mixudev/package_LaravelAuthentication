@@ -40,10 +40,17 @@ Enables login via one-time verification codes sent to the user's email or identi
         'max_attempts'     => (int) env('AUTH_OTP_MAX_ATTEMPTS', 3),
         'throttle_seconds' => (int) env('AUTH_OTP_THROTTLE_SECONDS', 60),
         'type'             => 'numeric', // 'numeric' or 'alphanumeric'
+
+        // Automated HTML Email Delivery
+        'send_email'       => env('AUTH_OTP_SEND_EMAIL', true),
+        'email_subject'    => env('AUTH_OTP_EMAIL_SUBJECT', null), // null = '{App Name} — Kode Verifikasi Masuk (OTP)'
+        'email_view'       => env('AUTH_OTP_EMAIL_VIEW', 'authentication::emails.otp'),
     ],
 ],
 ```
 
+- **Built-in HTML Email Template**: Located at `resources/views/emails/otp.blade.php` (published via `php artisan vendor:publish --tag=authentication-views`).
+- **Custom Email Template**: Set `AUTH_OTP_EMAIL_VIEW=emails.my-custom-otp` or `AUTH_VIEW_OTP_EMAIL=emails.my-custom-otp` in `.env`.
 - **Web Endpoints**:
   - Request Code: `GET /otp/login`, `POST /otp/send`
   - Verify Code: `GET /otp/verify?identifier=...`, `POST /otp/verify`
@@ -51,7 +58,7 @@ Enables login via one-time verification codes sent to the user's email or identi
   - `POST /api/v1/auth/otp/send`
   - `POST /api/v1/auth/otp/verify`
 - **Events**:
-  - `Vendor\LaravelAuthentication\Events\OtpGenerated` (Contains the unhashed code to send via Mail/SMS/WhatsApp notification)
+  - `Vendor\LaravelAuthentication\Events\OtpGenerated` (Contains unhashed code for SMS / WhatsApp / Webhook listeners)
   - `Vendor\LaravelAuthentication\Events\OtpVerified`
 
 ---
