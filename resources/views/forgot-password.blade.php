@@ -184,11 +184,19 @@
   }
 
   .alert{
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
     padding: 12px 14px;
     border-radius: 10px;
     font-size: 13.5px;
     margin-bottom: 18px;
     line-height: 1.45;
+    animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
   .alert-success{
     background: #ECFDF5;
@@ -357,16 +365,13 @@
       </div>
 
       @if (session('status'))
-        <div class="alert alert-success">
-          {{ session('status') }}
+        <div class="alert alert-success" role="alert">
+          <svg viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;flex-shrink:0;margin-top:1px"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          <div>{{ session('status') }}</div>
         </div>
       @endif
 
-      @if ($errors->any())
-        <div class="alert alert-danger">
-          {{ $errors->first() }}
-        </div>
-      @endif
+      {{-- No error block here — we never expose whether an email exists or not --}}
 
       <form method="POST" action="{{ route('password.email') }}">
         @csrf
@@ -374,11 +379,10 @@
         <div class="field">
           <label for="email">Alamat Email</label>
           <div class="input-shell">
-            <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="nama@email.com" autocomplete="email" required autofocus class="@error('email') is-invalid @enderror">
+            {{-- Do not pre-fill email on return to prevent enumeration via field --}}
+            <input type="email" id="email" name="email" placeholder="nama@email.com" autocomplete="email" required autofocus>
           </div>
-          @error('email')
-            <div class="field-error">{{ $message }}</div>
-          @enderror
+          {{-- No per-field error messages — they can reveal email existence --}}
         </div>
 
         <button type="submit" class="btn-primary" id="btnSubmit">

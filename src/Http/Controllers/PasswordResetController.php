@@ -33,20 +33,25 @@ class PasswordResetController extends Controller
 
     public function sendResetLinkEmail(ForgotPasswordRequest $request): RedirectResponse|JsonResponse
     {
-        $status = Password::broker()->sendResetLink(
-            $request->only('email')
-        );
+        // Intentionally discard the broker status result.
+        // We ALWAYS return the same generic success message to prevent user enumeration
+        // (an attacker must not learn whether the submitted email exists in the database).
+        Password::broker()->sendResetLink($request->only('email'));
+
+        // Normalize timing to prevent timing-based enumeration attacks
+        usleep(random_int(50_000, 150_000));
+
+        /** @var string $genericMessage */
+        $genericMessage = 'If an account with that email exists, a password reset link has been sent. Please check your inbox.';
 
         if ($request->expectsJson()) {
             return response()->json([
                 'status'  => 'success',
-                'message' => trans($status),
+                'message' => $genericMessage,
             ]);
         }
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with('status', trans($status))
-            : back()->withErrors(['email' => trans($status)]);
+        return back()->with('status', $genericMessage);
     }
 
     public function showResetForm(Request $request, string $token): View|JsonResponse
