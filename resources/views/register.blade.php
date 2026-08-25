@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Masuk — Console</title>
+<title>Daftar Akun — Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -41,7 +41,6 @@
     grid-template-columns: 44% 56%;
   }
 
-  /* ===== Left brand panel ===== */
   .brand{
     position:relative;
     background:
@@ -196,24 +195,19 @@
     margin-bottom: 18px;
     line-height: 1.45;
   }
-  .alert-success{
-    background: #ECFDF5;
-    border: 1px solid #A7F3D0;
-    color: #065F46;
-  }
   .alert-danger{
     background: #FEF2F2;
     border: 1px solid #FECACA;
     color: #991B1B;
   }
 
-  form{display:flex; flex-direction:column; gap:16px;}
+  form{display:flex; flex-direction:column; gap:14px;}
 
   .field label{
     display:block;
     font-size:13px;
     font-weight:600;
-    margin-bottom:7px;
+    margin-bottom:6px;
     color:var(--text);
   }
   .field .input-shell{
@@ -223,8 +217,8 @@
   }
   .field input{
     width:100%;
-    padding:12px 14px;
-    font-size:14.5px;
+    padding:11px 14px;
+    font-size:14px;
     font-family:'Inter',sans-serif;
     color:var(--text);
     background:var(--card);
@@ -243,8 +237,8 @@
   }
   .field-error{
     color: var(--danger);
-    font-size: 12.5px;
-    margin-top: 5px;
+    font-size: 12px;
+    margin-top: 4px;
   }
 
   .toggle-pass{
@@ -260,40 +254,10 @@
   .toggle-pass:hover{color:var(--text);}
   .toggle-pass svg{width:18px;height:18px;}
 
-  .row-between{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    font-size:13.5px;
-    margin-top:2px;
-  }
-  .remember{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    color:var(--muted-2);
-    user-select:none;
-    cursor:pointer;
-  }
-  .remember input{
-    width:16px;height:16px;
-    accent-color:var(--ink);
-    cursor:pointer;
-  }
-  .row-between a{
-    color:var(--muted-2);
-    font-weight:500;
-    border-bottom:1px solid transparent;
-  }
-  .row-between a:hover{
-    color:var(--text);
-    border-bottom-color:var(--text);
-  }
-
   .btn-primary{
-    margin-top:6px;
+    margin-top:8px;
     width:100%;
-    padding:12.5px 14px;
+    padding:12px 14px;
     background:var(--ink);
     color:#fff;
     border:none;
@@ -317,31 +281,11 @@
   .btn-primary svg{width:15px;height:15px; transition: transform .15s ease;}
   .btn-primary:hover svg{transform:translateX(2px);}
 
-  .btn-otp{
-    margin-top:10px;
-    width:100%;
-    padding:11px 14px;
-    background:transparent;
-    color:var(--text);
-    border:1.5px solid var(--line);
-    border-radius:10px;
-    font-size:13.5px;
-    font-weight:600;
-    font-family:'Inter',sans-serif;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    transition: border-color .15s ease, background .15s ease;
-  }
-  .btn-otp:hover{border-color:#C9C2B2; background:#FBFAF7;}
-
   .divider{
     display:flex;
     align-items:center;
     gap:12px;
-    margin:20px 0 16px;
+    margin:18px 0 14px;
     color:var(--muted);
     font-size:12.5px;
   }
@@ -362,7 +306,7 @@
     align-items:center;
     justify-content:center;
     gap:9px;
-    padding:11px 10px;
+    padding:10px 10px;
     border:1.5px solid var(--line);
     border-radius:10px;
     background:var(--card);
@@ -376,15 +320,13 @@
   .btn-oauth svg{width:16px;height:16px;}
 
   .legal{
-    margin-top:24px;
+    margin-top:22px;
     font-size:12px;
     line-height:1.6;
     color:var(--muted);
     text-align:center;
   }
-  .legal a{text-decoration:underline; color:var(--muted-2);}
 
-  /* ===== Responsive ===== */
   @media (max-width: 980px){
     .wrap{grid-template-columns:1fr;}
     .brand{padding:34px 28px 26px; min-height:auto;}
@@ -400,18 +342,12 @@
     .oauth-row{grid-template-columns:1fr;}
     .card-head h2{font-size:22px;}
   }
-
-  @media (prefers-reduced-motion: reduce){
-    .dot{animation:none;}
-    .pulse-path{animation:none !important;}
-  }
 </style>
 </head>
 <body>
 
 <div class="wrap">
 
-  <!-- LEFT: brand / monitoring panel -->
   <aside class="brand">
     <div class="brand-top">
       <div class="logo">
@@ -421,10 +357,10 @@
         Sentra
       </div>
 
-      <span class="status-badge"><span class="dot"></span> Semua sistem normal</span>
+      <span class="status-badge"><span class="dot"></span> Pendaftaran Pengguna Baru</span>
 
-      <h1>Kendali penuh, dari satu tempat.</h1>
-      <p>Masuk untuk memantau sistem, mengelola akses tim, dan menjaga semuanya tetap berjalan sebagaimana mestinya.</p>
+      <h1>Mulai bangun bersama tim Anda.</h1>
+      <p>Buat akun baru untuk mengakses dasbor, menghubungkan integrasi, dan mengelola keamanan organisasi Anda.</p>
     </div>
 
     <div>
@@ -435,54 +371,56 @@
             <animate attributeName="stroke-dashoffset" from="400" to="0" dur="3.2s" repeatCount="indefinite"/>
           </path>
         </svg>
-        <div class="pulse-caption"><span>UPTIME 99.98%</span><span>LATENSI 42ms</span></div>
+        <div class="pulse-caption"><span>PENDAFTARAN CEPAT</span><span>ENKRIPSI DATA END-TO-END</span></div>
       </div>
 
       <div class="brand-foot">
         <span>© {{ date('Y') }} Sentra Console</span>
-        <span><b>Sistem Keamanan</b> Aktif</span>
+        <span><b>Keamanan</b> Terverifikasi</span>
       </div>
     </div>
   </aside>
 
-  <!-- RIGHT: form -->
   <main class="stage">
     <div class="card">
       <div class="card-head">
-        <h2>Masuk ke akun Anda</h2>
-        @if (config('authentication.features.registration.enabled', true))
-          <p>Belum punya akun? <a href="{{ route('register') }}">Daftar gratis</a></p>
-        @else
-          <p>Masukkan kredensial Anda untuk melanjutkan.</p>
-        @endif
+        <h2>Buat akun baru</h2>
+        <p>Sudah memiliki akun? <a href="{{ route('login') }}">Masuk di sini</a></p>
       </div>
 
-      @if (session('status'))
-        <div class="alert alert-success">
-          {{ session('status') }}
-        </div>
-      @endif
-
-      @if ($errors->has('identifier'))
+      @if ($errors->any())
         <div class="alert alert-danger">
-          {{ $errors->first('identifier') }}
+          {{ $errors->first() }}
         </div>
       @endif
 
-      <form method="POST" action="{{ route('login.perform') }}" id="loginForm">
+      <form method="POST" action="{{ route('register.perform') }}">
         @csrf
 
         <div class="field">
-          <label for="identifier">Email / Nama Pengguna</label>
+          <label for="name">Nama Lengkap</label>
           <div class="input-shell">
-            <input type="text" id="identifier" name="identifier" value="{{ old('identifier') }}" placeholder="nama@email.com atau username" autocomplete="username" required autofocus class="@error('identifier') is-invalid @enderror">
+            <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="John Doe" autocomplete="name" required autofocus class="@error('name') is-invalid @enderror">
           </div>
+          @error('name')
+            <div class="field-error">{{ $message }}</div>
+          @enderror
         </div>
 
         <div class="field">
-          <label for="password">Kata sandi</label>
+          <label for="email">Alamat Email</label>
           <div class="input-shell">
-            <input type="password" id="password" name="password" placeholder="Masukkan kata sandi" autocomplete="current-password" required class="@error('password') is-invalid @enderror">
+            <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="nama@email.com" autocomplete="email" required class="@error('email') is-invalid @enderror">
+          </div>
+          @error('email')
+            <div class="field-error">{{ $message }}</div>
+          @enderror
+        </div>
+
+        <div class="field">
+          <label for="password">Kata Sandi</label>
+          <div class="input-shell">
+            <input type="password" id="password" name="password" placeholder="Minimal 8 karakter" autocomplete="new-password" required class="@error('password') is-invalid @enderror">
             <button type="button" class="toggle-pass" id="togglePass" aria-label="Tampilkan kata sandi">
               <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
@@ -492,27 +430,20 @@
           @enderror
         </div>
 
-        <div class="row-between">
-          <label class="remember">
-            <input type="checkbox" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
-            Ingat saya
-          </label>
-          @if (config('authentication.features.forgot_password.enabled', true))
-            <a href="{{ route('password.request') }}">Lupa kata sandi?</a>
-          @endif
+        <div class="field">
+          <label for="password_confirmation">Konfirmasi Kata Sandi</label>
+          <div class="input-shell">
+            <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Ulangi kata sandi" autocomplete="new-password" required class="@error('password_confirmation') is-invalid @enderror">
+          </div>
+          @error('password_confirmation')
+            <div class="field-error">{{ $message }}</div>
+          @enderror
         </div>
 
-        <button type="submit" class="btn-primary" id="btnSubmit">
-          Masuk
+        <button type="submit" class="btn-primary">
+          Daftar Sekarang
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </button>
-
-        @if (config('authentication.features.otp.enabled', true))
-          <a href="{{ route('otp.request.form') }}" class="btn-otp">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            Masuk dengan Kode OTP
-          </a>
-        @endif
       </form>
 
       @php
@@ -521,7 +452,7 @@
       @endphp
 
       @if ($hasGoogle || $hasGithub)
-        <div class="divider">atau lanjutkan dengan</div>
+        <div class="divider">atau daftar dengan</div>
 
         <div class="oauth-row">
           @if ($hasGoogle)
@@ -539,7 +470,7 @@
         </div>
       @endif
 
-      <p class="legal">Dengan masuk, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami.</p>
+      <p class="legal">Dengan mendaftar, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami.</p>
     </div>
   </main>
 

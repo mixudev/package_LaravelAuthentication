@@ -126,4 +126,77 @@ final class AuthenticationConfig
     {
         return (string) $this->config->get('authentication.audit.driver', 'database');
     }
+
+    public function isRegistrationEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.features.registration.enabled', true);
+    }
+
+    public function shouldAutoLoginOnRegister(): bool
+    {
+        return (bool) $this->config->get('authentication.features.registration.auto_login_on_register', true);
+    }
+
+    public function isForgotPasswordEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.features.forgot_password.enabled', true);
+    }
+
+    public function isOtpEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.features.otp.enabled', true);
+    }
+
+    public function getOtpLength(): int
+    {
+        return (int) $this->config->get('authentication.features.otp.length', 6);
+    }
+
+    public function getOtpExpiryMinutes(): int
+    {
+        return (int) $this->config->get('authentication.features.otp.expiry_minutes', 10);
+    }
+
+    public function getOtpMaxAttempts(): int
+    {
+        return (int) $this->config->get('authentication.features.otp.max_attempts', 3);
+    }
+
+    public function getOtpThrottleSeconds(): int
+    {
+        return (int) $this->config->get('authentication.features.otp.throttle_seconds', 60);
+    }
+
+    public function getOtpType(): string
+    {
+        return (string) $this->config->get('authentication.features.otp.type', 'numeric');
+    }
+
+    public function isSocialEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.features.social.enabled', true);
+    }
+
+    public function isSocialAutoRegisterEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.features.social.auto_register', true);
+    }
+
+    public function isSocialProviderEnabled(string $provider): bool
+    {
+        return (bool) $this->config->get("authentication.features.social.providers.{$provider}.enabled", false);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getSocialProviderScopes(string $provider): array
+    {
+        return (array) $this->config->get("authentication.features.social.providers.{$provider}.scopes", []);
+    }
+
+    public function getRedirect(string $key, string $default = '/dashboard'): string
+    {
+        return (string) $this->config->get("authentication.redirects.{$key}", $default);
+    }
 }

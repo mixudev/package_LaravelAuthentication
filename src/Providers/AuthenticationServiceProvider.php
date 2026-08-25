@@ -9,8 +9,10 @@ use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\CredentialResolverInterface;
 use Vendor\LaravelAuthentication\Contracts\CredentialValidatorInterface;
-use Vendor\LaravelAuthentication\Contracts\LoginAttemptManagerInterface;
+use Vendor\LaravelAuthentication\Contracts\OtpServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
+use Vendor\LaravelAuthentication\Contracts\RegistrationServiceInterface;
+use Vendor\LaravelAuthentication\Contracts\SocialAuthServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\Repositories\PasswordHistoryRepository;
 use Vendor\LaravelAuthentication\Services\AuthenticationAuditService;
@@ -18,6 +20,9 @@ use Vendor\LaravelAuthentication\Services\AuthenticationService;
 use Vendor\LaravelAuthentication\Services\CredentialResolver;
 use Vendor\LaravelAuthentication\Services\CredentialValidator;
 use Vendor\LaravelAuthentication\Services\LoginAttemptManager;
+use Vendor\LaravelAuthentication\Services\OtpService;
+use Vendor\LaravelAuthentication\Services\RegistrationService;
+use Vendor\LaravelAuthentication\Services\SocialAuthService;
 use Vendor\LaravelAuthentication\Services\TokenService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
@@ -63,6 +68,9 @@ class AuthenticationServiceProvider extends ServiceProvider
         $this->app->bind(TokenManagerInterface::class, TokenService::class);
         $this->app->bind(AuditLoggerInterface::class, AuthenticationAuditService::class);
         $this->app->bind(PasswordHistoryRepositoryInterface::class, PasswordHistoryRepository::class);
+        $this->app->bind(RegistrationServiceInterface::class, RegistrationService::class);
+        $this->app->bind(OtpServiceInterface::class, OtpService::class);
+        $this->app->bind(SocialAuthServiceInterface::class, SocialAuthService::class);
         $this->app->bind(AuthenticationServiceInterface::class, AuthenticationService::class);
 
         // Alias main package entrypoint

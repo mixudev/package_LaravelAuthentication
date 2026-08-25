@@ -132,6 +132,70 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Modular Authentication Feature Switches
+    |--------------------------------------------------------------------------
+    |
+    | Enable or disable high-level authentication features with a single flag.
+    | Unused routes and controllers are fail-closed when a feature is disabled.
+    |
+    */
+    'features' => [
+        // User registration (Web & API)
+        'registration' => [
+            'enabled'               => env('AUTH_REGISTRATION_ENABLED', true),
+            'auto_login_on_register'=> env('AUTH_AUTO_LOGIN_ON_REGISTER', true),
+            'require_email_verify'  => env('AUTH_REQUIRE_EMAIL_VERIFY', false),
+        ],
+
+        // Self-service password reset & recovery (Web & API)
+        'forgot_password' => [
+            'enabled' => env('AUTH_FORGOT_PASSWORD_ENABLED', true),
+        ],
+
+        // One-Time Password (OTP) / Passwordless Login (Web & API)
+        'otp' => [
+            'enabled'          => env('AUTH_OTP_ENABLED', true),
+            'length'           => (int) env('AUTH_OTP_LENGTH', 6),
+            'expiry_minutes'   => (int) env('AUTH_OTP_EXPIRY_MINUTES', 10),
+            'max_attempts'     => (int) env('AUTH_OTP_MAX_ATTEMPTS', 3),
+            'throttle_seconds' => (int) env('AUTH_OTP_THROTTLE_SECONDS', 60),
+            'type'             => env('AUTH_OTP_TYPE', 'numeric'), // 'numeric' or 'alphanumeric'
+        ],
+
+        // Social / OAuth Login via Laravel Socialite (Web & API)
+        'social' => [
+            'enabled'       => env('AUTH_SOCIAL_ENABLED', true),
+            'auto_register' => env('AUTH_SOCIAL_AUTO_REGISTER', true), // Auto create user if doesn't exist
+            'providers'     => [
+                'google' => [
+                    'enabled' => env('AUTH_GOOGLE_ENABLED', true),
+                    'scopes'  => ['openid', 'profile', 'email'],
+                ],
+                'github' => [
+                    'enabled' => env('AUTH_GITHUB_ENABLED', true),
+                    'scopes'  => ['user:email', 'read:user'],
+                ],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect Routes / Paths
+    |--------------------------------------------------------------------------
+    |
+    | Default redirection destinations after successful authentication events.
+    |
+    */
+    'redirects' => [
+        'login'          => env('AUTH_REDIRECT_LOGIN', '/dashboard'),
+        'register'       => env('AUTH_REDIRECT_REGISTER', '/dashboard'),
+        'logout'         => env('AUTH_REDIRECT_LOGOUT', '/login'),
+        'password_reset' => env('AUTH_REDIRECT_PASSWORD_RESET', '/login'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Audit Logging System
     |--------------------------------------------------------------------------
     |
@@ -161,7 +225,7 @@ return [
             'middleware' => ['web'],
         ],
         'api' => [
-            'enabled'    => env('AUTH_API_ROUTES_ENABLED', false),
+            'enabled'    => env('AUTH_API_ROUTES_ENABLED', true),
             'prefix'     => 'api/v1/auth',
             'middleware' => ['api'],
         ],
