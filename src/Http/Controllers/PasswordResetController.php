@@ -1,0 +1,114 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Vendor\LaravelAuthentication\Http\Controllers;
+
+use Illuminate\Contracts\Auth\PasswordBroker;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\ValidationException;
+use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
+use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
+use Vendor\LaravelAuthentication\Services\PasswordService;
+
+class PasswordResetController extends Controller
+{
+    public function __construct(
+        protected readonly PasswordService $passwordService
+    ) {}
+
+    public function showLinkRequestForm(): View|JsonResponse
+    {
+        if (view()->exists('authentication::forgot-password')) {
+            return view('authentication::forgot-password');
+        }
+
+        return response()->json(['message' => 'Please request password reset link via POST.']);
+    }
+
+    public function sendResetLinkEmail(ForgotPasswordRequest $request): RedirectResponse|JsonResponse
+    {
+        $status = Password::broker()->sendResetLink(
+            $request->only('email')
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => trans($status),
+            ]);
+        }
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('status', trans($status))
+            : back()->withErrors(['email' => trans($status)]);
+    }
+
+    public function showResetForm(Request $request, string $token): View|JsonResponse
+    {
+        if (view()->exists('authentication::reset-password')) {
+            return view('authentication::reset-password', [
+                'token' => $token,
+                'email' => $request->query('email'),
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Please reset password via POST.',
+            'token'   => $token,
+            'email'   => $request->query('email'),
+        ]);
+    }
+
+    public function reset(ResetPasswordRequest $request): RedirectResponse
+    {
+        $status = Password::broker()->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $this->passwordService->updatePassword($user, $password);
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('status', trans($status))
+            : back()->withErrors(['email' => trans($status)]);
+    }
+
+    public function apiSendResetLink(ForgotPasswordRequest $request): JsonResponse
+    {
+        $status = Password::broker()->sendResetLink($request->only('email'));
+
+        // Always return generic success to prevent user enumeration
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'If an account exists with that email, a password reset link has been dispatched.',
+        ]);
+    }
+
+    public function apiResetPassword(ResetPasswordRequest $request): JsonResponse
+    {
+        $status = Password::broker()->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $this->passwordService->updatePassword($user, $password);
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Password has been reset successfully.',
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'failed',
+            'message' => trans($status),
+        ], 400);
+    }
+}
