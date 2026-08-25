@@ -12,7 +12,11 @@ This package provides an enterprise-grade, modular, portable, and secure authent
   - Installation via Packagist, VCS, or Path Repository
   - Publishing configuration, migrations, and views
   - Database schema & migrations
-- [2. Features & Modules](features.md)
+- [2. Unified Single-Folder Module Mode](modular-installation.md)
+  - One-command export into `modules/Authentication/`
+  - Zero-clutter project structure
+  - Step-by-step activation guide
+- [3. Features & Modules](features.md)
   - Modular feature switches (`config/authentication.php`)
   - User Registration Engine
   - Passwordless OTP Authentication

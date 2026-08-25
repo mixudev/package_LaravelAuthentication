@@ -102,6 +102,20 @@ class AuthenticationServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../../resources/lang' => $this->app->langPath('vendor/authentication'),
             ], 'authentication-lang');
+
+            // 5. Publish Full Unified Module in one directory
+            $this->publishes([
+                __DIR__ . '/../../config/authentication.php' => base_path('modules/Authentication/Config/authentication.php'),
+                __DIR__ . '/../../database/migrations'      => base_path('modules/Authentication/Database/Migrations'),
+                __DIR__ . '/../../resources/views'          => base_path('modules/Authentication/Resources/Views'),
+                __DIR__ . '/../../routes/web.php'           => base_path('modules/Authentication/Routes/web.php'),
+                __DIR__ . '/../../routes/api.php'           => base_path('modules/Authentication/Routes/api.php'),
+            ], 'authentication-module');
+
+            // Register CLI Commands
+            $this->commands([
+                \Vendor\LaravelAuthentication\Console\InstallModuleCommand::class,
+            ]);
         }
 
         // Load Migrations automatically if in testing or auto-load enabled

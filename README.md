@@ -109,8 +109,7 @@ composer require mixudev/laravel-authentication:@dev
 
 ## Publishing Assets & Views
 
-After installation, publish the configuration, database migrations, and optional UI views:
-
+### Standard Publishing Mode (Individual Folders):
 ```bash
 # 1. Publish Configuration
 php artisan vendor:publish --tag=authentication-config
@@ -122,6 +121,17 @@ php artisan migrate
 # 3. Publish UI Views (Optional - to customize Blade templates)
 php artisan vendor:publish --tag=authentication-views
 ```
+
+---
+
+### Unified Single-Folder Module Mode (Recommended for Clean Organization):
+If you prefer keeping all configuration, migrations, views, and routes together in a single clean module directory (`modules/Authentication/` or `app/Modules/Authentication/`):
+
+```bash
+php artisan authentication:install-module
+```
+
+See the [Unified Module Installation Guide](docs/modular-installation.md) for full step-by-step instructions.
 
 ---
 
