@@ -36,7 +36,15 @@ class AuthenticationAttempt extends Model
         'attempted_at',
     ];
 
-    protected $casts = [
-        'attempted_at' => 'datetime',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'attempted_at' => 'datetime',
+        ];
+    }
 }

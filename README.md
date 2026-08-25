@@ -3,7 +3,7 @@
 [![CI Tests](https://github.com/mixudev/package_LaravelAuthentication/actions/workflows/ci.yml/badge.svg)](https://github.com/mixudev/package_LaravelAuthentication/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PHP Version](https://img.shields.io/badge/php-%5E8.1%20%7C%20%5E8.2%20%7C%20%5E8.3%20%7C%20%5E8.4%20%7C%20%5E8.5-8892BF.svg)](https://php.net)
-[![Laravel Version](https://img.shields.io/badge/laravel-10.x%20%7C%2011.x%20%7C%2012.x-FF2D20.svg)](https://laravel.com)
+[![Laravel Version](https://img.shields.io/badge/laravel-10.x%20%7C%2011.x%20%7C%2012.x%20%7C%2013.x-FF2D20.svg)](https://laravel.com)
 
 A production-grade, modular, portable, secure-by-default, and extensible authentication library for Laravel applications. Designed to be reused across dozens of diverse client applications via standard Composer workflows without duplicating or modifying core code.
 
@@ -49,8 +49,8 @@ A production-grade, modular, portable, secure-by-default, and extensible authent
 
 | Package Version | PHP Versions Supported | Laravel Target Versions | Status |
 | :--- | :--- | :--- | :--- |
-| **1.0.x** | `8.1`, `8.2`, `8.3`, `8.4`, `8.5` | `10.x`, `11.x`, `12.x` | **Active / Supported** |
-| **2.0.x** *(Planned)* | `8.3`, `8.4`, `8.5` | `12.x`, `13.x` | *Future Roadmap* |
+| **1.0.x** / **main** | `8.1`, `8.2`, `8.3`, `8.4`, `8.5` | `10.x`, `11.x`, `12.x`, `13.x` | **Active / Supported** |
+| **2.0.x** *(Planned)* | `8.3`, `8.4`, `8.5` | `12.x`, `13.x`, `14.x` | *Future Roadmap* |
 
 ---
 

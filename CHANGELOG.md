@@ -5,6 +5,14 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-25
+
+### Added
+- Official support for **Laravel 13.x** and `illuminate/*: ^13.0`.
+- Modern Eloquent `casts(): array` method compatibility in models (`AuthenticationAttempt`, `LoginHistory`, `PasswordHistory`).
+- Enhanced translation fallback in `LoginController`.
+- Orchestra Testbench `^11.0` and PHPUnit `^12.0` support.
+
 ## [1.0.0] - 2026-08-25
 
 ### Added

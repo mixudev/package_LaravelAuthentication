@@ -55,8 +55,9 @@ class LoginController extends Controller
                 'identifier' => [$e->getMessage()],
             ]);
         } catch (InvalidCredentialsException $e) {
+            $message = __('auth.failed');
             throw ValidationException::withMessages([
-                'identifier' => [trans('auth.failed', [], 'These credentials do not match our records.')],
+                'identifier' => [is_string($message) && $message !== 'auth.failed' ? $message : 'These credentials do not match our records.'],
             ]);
         }
     }
