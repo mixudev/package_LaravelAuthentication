@@ -9,11 +9,22 @@ use Vendor\LaravelAuthentication\Http\Controllers\LogoutController;
 use Vendor\LaravelAuthentication\Http\Controllers\OtpController;
 use Vendor\LaravelAuthentication\Http\Controllers\PasswordResetController;
 use Vendor\LaravelAuthentication\Http\Controllers\RegisterController;
+use Vendor\LaravelAuthentication\Http\Controllers\SetupWarningController;
 use Vendor\LaravelAuthentication\Http\Controllers\SocialAuthController;
 
+// ─── Setup Warning Route ───────────────────────────────────────────────────
+// This route must be registered OUTSIDE the setup-check middleware to prevent
+// redirect loops. Accessible in any environment but only reached via the
+// middleware redirect in non-production environments.
 Route::group(['middleware' => config('authentication.routes.web.middleware', ['web'])], function () {
-    // Guest Routes
-    Route::middleware('guest')->group(function () {
+    Route::get('/auth-setup-warning', [SetupWarningController::class, 'index'])
+        ->name('authentication.setup.warning');
+});
+
+// ─── Authentication Routes ────────────────────────────────────────────────
+Route::group(['middleware' => config('authentication.routes.web.middleware', ['web'])], function () {
+    // Guest Routes — guarded by configuration health check middleware
+    Route::middleware(['guest', 'auth.setup.check'])->group(function () {
         // Standard Login
         Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [LoginController::class, 'login'])->name('login.perform');
