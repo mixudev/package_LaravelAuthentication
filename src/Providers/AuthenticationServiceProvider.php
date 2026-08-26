@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\Providers;
 
-use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
@@ -16,7 +15,6 @@ use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
 use Vendor\LaravelAuthentication\Contracts\RegistrationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\SocialAuthServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
-use Vendor\LaravelAuthentication\Http\Middleware\CheckAuthenticationSetup;
 use Vendor\LaravelAuthentication\Repositories\PasswordHistoryRepository;
 use Vendor\LaravelAuthentication\Services\AuthenticationAuditService;
 use Vendor\LaravelAuthentication\Services\AuthenticationService;
@@ -29,7 +27,6 @@ use Vendor\LaravelAuthentication\Services\SocialAuthService;
 use Vendor\LaravelAuthentication\Services\TokenService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
-use Vendor\LaravelAuthentication\Support\SetupHealthChecker;
 
 /**
  * Main package Service Provider responsible for DI registrations,
@@ -79,11 +76,6 @@ class AuthenticationServiceProvider extends ServiceProvider
 
         // Alias main package entrypoint
         $this->app->alias(AuthenticationServiceInterface::class, 'laravel-authentication');
-
-        // 5. Register Setup Health Checker as a singleton (cached per request)
-        $this->app->singleton(SetupHealthChecker::class, function ($app) {
-            return new SetupHealthChecker($app, $app['config']);
-        });
     }
 
     /**
@@ -159,11 +151,6 @@ class AuthenticationServiceProvider extends ServiceProvider
         // Load Views & Translations namespace
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'authentication');
         $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', 'authentication');
-
-        // Register the setup-check middleware alias so routes can reference it by name
-        /** @var Router $router */
-        $router = $this->app['router'];
-        $router->aliasMiddleware('auth.setup.check', CheckAuthenticationSetup::class);
 
         // Register package routes
         $this->registerRoutes();
