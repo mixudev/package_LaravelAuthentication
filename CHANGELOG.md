@@ -5,6 +5,17 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-26
+
+### Added
+- **Modular Component-Driven UI Architecture**: Refactored monolithic views into reusable Laravel Blade components (`<x-authentication::input>`, `<x-authentication::button>`, `<x-authentication::checkbox>`, `<x-authentication::alert>`, `<x-authentication::social-buttons>`, `<x-authentication::otp-input>`, `<x-authentication::brand-panel>`, `<x-authentication::divider>`, `<x-authentication::header>`).
+- **Multi-Template Layout Engine**: Added 2 out-of-the-box layout templates switchable via `config('authentication.ui.layout')` or dynamic component resolution:
+  - `split`: 2-column enterprise console layout (Brand graphic sidebar + auth stage).
+  - `card`: Minimalist centered single-card layout with ambient backdrop glow.
+- **Pure Tailwind CSS & Vite Integration**: Replaced heavy inline CSS blocks with modern, responsive utility classes supporting Vite asset bundling and safe standalone CDN fallbacks.
+- **Accessible & Safe Form Elements**: Built-in client-side toggle password visibility, segmented OTP auto-focus & clipboard paste handler, automated error-binding (`@error` / `ViewErrorBag`), and strict XSS/tabnabbing mitigations.
+- **Professional Indonesian Code Annotations**: Added comprehensive documentation and docblocks across all layout and component files.
+
 ## [1.2.0] - 2026-08-25
 
 ### Added

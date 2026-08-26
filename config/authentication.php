@@ -282,4 +282,33 @@ return [
         'otp_email'       => env('AUTH_VIEW_OTP_EMAIL', 'authentication::emails.otp'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | UI & Layout Configuration (Modular Views)
+    |--------------------------------------------------------------------------
+    |
+    | Konfigurasi tampilan antarmuka modular:
+    | - layout : Pilihan template layout utama ('split' = 2-kolom console, 'card' = centered card terpusat)
+    | - theme  : Skema warna ('dark', 'light', 'system')
+    | - brand  : Informasi nama sistem, deskripsi, dan logo yang ditampilkan di view
+    |
+    */
+    'ui' => [
+        // Pilihan template bawaan: 'split' (2-kolom modern) atau 'card' (kartu tengah minimalis)
+        'layout' => env('AUTH_UI_LAYOUT', 'split'),
+
+        // Mode tema bawaan: 'dark', 'light', atau 'auto'
+        'theme' => env('AUTH_UI_THEME', 'dark'),
+
+        // Informasi Branding yang muncul pada panel & header
+        'brand_name'    => env('AUTH_UI_BRAND_NAME', 'Console Auth'),
+        'brand_tagline' => env('AUTH_UI_BRAND_TAGLINE', 'Enterprise Security & Identity Gateway'),
+        'brand_badge'   => env('AUTH_UI_BRAND_BADGE', 'SYSTEM LIVE // TLS 1.3'),
+        'logo_url'      => env('AUTH_UI_LOGO_URL', null),
+
+        // Penggunaan aset Vite host vs CDN Fallback
+        'use_vite'      => env('AUTH_UI_USE_VITE', true),
+    ],
+
 ];
+

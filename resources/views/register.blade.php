@@ -1,676 +1,196 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Daftar Akun — Console</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --ink:#12181F;
-    --panel-dark:#131C24;
-    --panel-dark-2:#1B2732;
-    --accent:#E8A33D;
-    --accent-soft:#F2C57C;
-    --ok:#10B981;
-    --danger:#EF4444;
-    --paper:#FAF9F6;
-    --card:#FFFFFF;
-    --line:#E7E3DA;
-    --muted:#8D97A5;
-    --muted-2:#6B7684;
-    --text:#171B20;
-    --radius:14px;
-    --shadow: 0 20px 60px -20px rgba(18,24,31,0.25);
-  }
-  *{box-sizing:border-box;}
-  html,body{height:100%;}
-  body{
-    margin:0;
-    font-family:'Inter',sans-serif;
-    background:var(--paper);
-    color:var(--text);
-    -webkit-font-smoothing:antialiased;
-  }
-  a{color:inherit; text-decoration:none;}
+{{-- 
+=============================================================================
+HALAMAN VIEW: REGISTER (PENDAFTARAN AKUN)
+Package: mixudev/laravel-authentication
+Deskripsi: Halaman registrasi akun baru yang sepenuhnya modular dengan Blade components,
+           validasi live password policy, serta dukungan multi-template (split / card).
+=============================================================================
+--}}
+@php
+    $activeLayout = config('authentication.ui.layout', 'split') === 'card' 
+        ? 'authentication::layouts.card' 
+        : 'authentication::layouts.split';
 
-  .wrap{
-    min-height:100vh;
-    display:grid;
-    grid-template-columns: 44% 56%;
-  }
+    $registerRoute = Route::has('authentication.register') 
+        ? route('authentication.register') 
+        : (Route::has('register.perform') ? route('register.perform') : url('/register'));
 
-  .brand{
-    position:relative;
-    background:
-      radial-gradient(120% 140% at 15% 0%, #1E2A36 0%, var(--panel-dark) 45%, #0E141A 100%);
-    color:#EDEFF2;
-    padding: 56px 56px 40px;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    overflow:hidden;
-  }
-  .brand::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size: 34px 34px;
-    mask-image: radial-gradient(circle at 20% 10%, black, transparent 70%);
-    pointer-events:none;
-  }
+    $loginRoute = Route::has('authentication.login') 
+        ? route('authentication.login') 
+        : (Route::has('login') ? route('login') : url('/login'));
 
-  .brand-top{position:relative; z-index:1;}
+    $policy = config('authentication.password.validation_rules', [
+        'min_length' => 8,
+        'require_uppercase' => true,
+        'require_lowercase' => true,
+        'require_numbers' => true,
+        'require_symbols' => true,
+    ]);
+@endphp
 
-  .logo{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    font-family:'Space Grotesk',sans-serif;
-    font-weight:700;
-    font-size:18px;
-    letter-spacing:0.2px;
-  }
-  .logo-mark{
-    width:30px;height:30px;
-    border-radius:8px;
-    background:linear-gradient(135deg, var(--accent-soft), var(--accent));
-    display:flex;align-items:center;justify-content:center;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
-  }
-  .logo-mark svg{width:16px;height:16px;}
+<x-dynamic-component :component="$activeLayout" :title="__('Daftar Akun Baru')">
+    
+    <div class="space-y-6">
+        
+        {{-- Header Formulir --}}
+        <x-authentication::header 
+            :title="__('Buat Akun Baru')"
+            :subtitle="__('Mulai gunakan sistem dengan mendaftarkan identitas akun terverifikasi Anda.')"
+            :badge="__('REGISTRATION PORTAL')"
+        />
 
-  .status-badge{
-    margin-top:44px;
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding:7px 12px 7px 10px;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.09);
-    border-radius:999px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    color:#C7D0DA;
-    width:fit-content;
-  }
-  .dot{
-    width:7px;height:7px;border-radius:50%;
-    background:var(--ok);
-    box-shadow:0 0 0 0 rgba(16,185,129,0.6);
-    animation:pulse 2.2s infinite;
-    flex-shrink:0;
-  }
-  @keyframes pulse{
-    0%{box-shadow:0 0 0 0 rgba(16,185,129,0.55);}
-    70%{box-shadow:0 0 0 8px rgba(16,185,129,0);}
-    100%{box-shadow:0 0 0 0 rgba(16,185,129,0);}
-  }
+        {{-- Notifikasi Status & Error --}}
+        @if (session('status'))
+            <x-authentication::alert type="success" :message="session('status')" />
+        @endif
 
-  .brand h1{
-    font-family:'Space Grotesk',sans-serif;
-    font-weight:600;
-    font-size:clamp(28px,3vw,38px);
-    line-height:1.18;
-    margin: 26px 0 14px;
-    max-width: 380px;
-    letter-spacing:-0.3px;
-  }
-  .brand p{
-    font-size:15px;
-    line-height:1.6;
-    color:#A6B0BC;
-    max-width:340px;
-    margin:0;
-  }
+        @if (session('error'))
+            <x-authentication::alert type="error" :message="session('error')" />
+        @endif
 
-  .pulse-wrap{
-    position:relative;
-    z-index:1;
-    margin-top:36px;
-  }
-  .pulse-line{width:100%; height:64px; display:block;}
-  .pulse-caption{
-    display:flex;
-    justify-content:space-between;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px;
-    color:#5C6773;
-    margin-top:6px;
-  }
+        {{-- Tombol Social OAuth (Jika Aktif) --}}
+        <x-authentication::social-buttons />
 
-  .brand-foot{
-    position:relative; z-index:1;
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11.5px;
-    color:#5C6773;
-    padding-top:28px;
-    border-top:1px solid rgba(255,255,255,0.08);
-    margin-top:28px;
-  }
-  .brand-foot b{color:#98A3AF; font-weight:500;}
+        @if (config('authentication.features.social.enabled', false))
+            <x-authentication::divider :label="__('ATAU DAFTAR DENGAN EMAIL')" />
+        @endif
 
-  /* ===== Right form panel ===== */
-  .stage{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding: 40px 28px;
-  }
-  .card{
-    width:100%;
-    max-width:440px;
-  }
-  .card-head{margin-bottom:20px;}
-  .card-head h2{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:25px;
-    font-weight:600;
-    margin:0 0 8px;
-    letter-spacing:-0.2px;
-  }
-  .card-head p{
-    margin:0;
-    font-size:14.5px;
-    color:var(--muted-2);
-  }
-  .card-head p a{
-    color:var(--ink);
-    font-weight:600;
-    border-bottom:1.5px solid var(--accent);
-    padding-bottom:1px;
-  }
+        {{-- Formulir Registrasi --}}
+        <form method="POST" action="{{ $registerRoute }}" class="space-y-4" novalidate>
+            @csrf
 
-  /* Animated Interactive Alerts */
-  .alert-container{
-    margin-bottom: 18px;
-    animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .alert{
-    display:flex;
-    align-items:flex-start;
-    gap:10px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    font-size: 13.5px;
-    line-height: 1.45;
-  }
-  .alert-danger{
-    background: #FEF2F2;
-    border: 1px solid #FECACA;
-    color: #991B1B;
-  }
-  .alert-success{
-    background: #ECFDF5;
-    border: 1px solid #A7F3D0;
-    color: #065F46;
-  }
-  .alert svg{
-    width:18px; height:18px; flex-shrink:0; margin-top:1px;
-  }
+            {{-- Input Nama Lengkap --}}
+            <x-authentication::input 
+                name="name"
+                :label="__('Nama Lengkap')"
+                :placeholder="__('Contoh: John Doe')"
+                :required="true"
+                autocomplete="name"
+                :autofocus="true"
+            >
+                <x-slot:icon>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </x-slot:icon>
+            </x-authentication::input>
 
-  form{display:flex; flex-direction:column; gap:14px;}
+            {{-- Input Alamat Email --}}
+            <x-authentication::input 
+                name="email"
+                type="email"
+                :label="__('Alamat Email')"
+                :placeholder="__('nama@domain.com')"
+                :required="true"
+                autocomplete="email"
+            >
+                <x-slot:icon>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </x-slot:icon>
+            </x-authentication::input>
 
-  .field label{
-    display:block;
-    font-size:13px;
-    font-weight:600;
-    margin-bottom:6px;
-    color:var(--text);
-  }
-  .field .input-shell{
-    position:relative;
-    display:flex;
-    align-items:center;
-  }
-  .field input{
-    width:100%;
-    padding:11px 14px;
-    font-size:14px;
-    font-family:'Inter',sans-serif;
-    color:var(--text);
-    background:var(--card);
-    border:1.5px solid var(--line);
-    border-radius:10px;
-    outline:none;
-    transition: border-color .15s ease, box-shadow .15s ease;
-  }
-  .field input::placeholder{color:#B7BFC8;}
-  .field input:focus{
-    border-color:var(--accent);
-    box-shadow:0 0 0 4px rgba(232,163,61,0.16);
-  }
-  .field input.is-invalid{
-    border-color: var(--danger) !important;
-    background: #FFFBFB;
-  }
-  .field-error{
-    color: var(--danger);
-    font-size: 12px;
-    margin-top: 4px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
+            {{-- Input Kata Sandi --}}
+            <div class="space-y-2">
+                <x-authentication::input 
+                    name="password"
+                    type="password"
+                    :label="__('Kata Sandi')"
+                    :placeholder="__('Minimal ' . ($policy['min_length'] ?? 8) . ' karakter kuat')"
+                    :required="true"
+                    autocomplete="new-password"
+                >
+                    <x-slot:icon>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </x-slot:icon>
+                </x-authentication::input>
 
-  /* Live Password Criteria Checklist */
-  .pwd-checklist{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 12px;
-    background: #F4F3EE;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-top: 6px;
-    font-size: 11.5px;
-    color: var(--muted-2);
-  }
-  .pwd-rule{
-    display:flex;
-    align-items:center;
-    gap: 6px;
-    transition: color 0.15s ease;
-  }
-  .pwd-rule.valid{
-    color: var(--ok);
-    font-weight: 600;
-  }
-  .pwd-rule .icon-dot{
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--muted);
-  }
-  .pwd-rule.valid .icon-dot{
-    background: var(--ok);
-    box-shadow: 0 0 0 2px rgba(16,185,129,0.25);
-  }
-
-  .toggle-pass{
-    position:absolute;
-    right:12px;
-    background:none;
-    border:none;
-    cursor:pointer;
-    padding:4px;
-    color:var(--muted);
-    display:flex;
-  }
-  .toggle-pass:hover{color:var(--text);}
-  .toggle-pass svg{width:18px;height:18px;}
-
-  .btn-primary{
-    margin-top:8px;
-    width:100%;
-    padding:12px 14px;
-    background:var(--ink);
-    color:#fff;
-    border:none;
-    border-radius:10px;
-    font-size:14.5px;
-    font-weight:600;
-    font-family:'Inter',sans-serif;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
-  }
-  .btn-primary:hover:not(:disabled){background:#232D38;}
-  .btn-primary:active:not(:disabled){transform:translateY(1px);}
-  .btn-primary:disabled{
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-  .btn-primary:focus-visible{
-    outline:none;
-    box-shadow:0 0 0 4px rgba(18,24,31,0.22);
-  }
-  .btn-primary svg{width:15px;height:15px; transition: transform .15s ease;}
-  .btn-primary:hover svg{transform:translateX(2px);}
-
-  .spinner{
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  .divider{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin:18px 0 14px;
-    color:var(--muted);
-    font-size:12.5px;
-  }
-  .divider::before, .divider::after{
-    content:"";
-    flex:1;
-    height:1px;
-    background:var(--line);
-  }
-
-  .oauth-row{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-  }
-  .btn-oauth{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:9px;
-    padding:10px 10px;
-    border:1.5px solid var(--line);
-    border-radius:10px;
-    background:var(--card);
-    font-size:13.5px;
-    font-weight:600;
-    color:var(--text);
-    cursor:pointer;
-    transition: border-color .15s ease, background .15s ease;
-  }
-  .btn-oauth:hover{border-color:#C9C2B2; background:#FBFAF7;}
-  .btn-oauth svg{width:16px;height:16px;}
-
-  .legal{
-    margin-top:22px;
-    font-size:12px;
-    line-height:1.6;
-    color:var(--muted);
-    text-align:center;
-  }
-
-  @media (max-width: 980px){
-    .wrap{grid-template-columns:1fr;}
-    .brand{padding:34px 28px 26px; min-height:auto;}
-    .brand h1{font-size:24px; max-width:100%;}
-    .brand p{max-width:100%;}
-    .pulse-wrap{margin-top:24px;}
-    .brand-foot{margin-top:22px; padding-top:18px;}
-    .stage{padding:34px 22px 48px;}
-  }
-  @media (max-width: 480px){
-    .brand{padding:28px 20px 22px;}
-    .brand-foot{flex-direction:column; align-items:flex-start; gap:6px;}
-    .oauth-row{grid-template-columns:1fr;}
-    .card-head h2{font-size:22px;}
-  }
-</style>
-</head>
-<body>
-
-<div class="wrap">
-
-  <aside class="brand">
-    <div class="brand-top">
-      <div class="logo">
-        <span class="logo-mark">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4z" fill="#131C24"/></svg>
-        </span>
-        Sentra
-      </div>
-
-      <span class="status-badge"><span class="dot"></span> Pendaftaran Pengguna Baru</span>
-
-      <h1>Mulai bangun bersama tim Anda.</h1>
-      <p>Buat akun baru untuk mengakses dasbor, menghubungkan integrasi, dan mengelola keamanan organisasi Anda.</p>
-    </div>
-
-    <div>
-      <div class="pulse-wrap">
-        <svg class="pulse-line" viewBox="0 0 400 64" preserveAspectRatio="none">
-          <path d="M0,32 L60,32 L75,10 L90,54 L105,32 L400,32" fill="none" stroke="#2A3540" stroke-width="1.5"/>
-          <path class="pulse-path" d="M0,32 L60,32 L75,10 L90,54 L105,32 L400,32" fill="none" stroke="#E8A33D" stroke-width="1.5" stroke-dasharray="60 340" stroke-dashoffset="0">
-            <animate attributeName="stroke-dashoffset" from="400" to="0" dur="3.2s" repeatCount="indefinite"/>
-          </path>
-        </svg>
-        <div class="pulse-caption"><span>PENDAFTARAN CEPAT</span><span>ENKRIPSI DATA END-TO-END</span></div>
-      </div>
-
-      <div class="brand-foot">
-        <span>© {{ date('Y') }} Sentra Console</span>
-        <span><b>Keamanan</b> Terverifikasi</span>
-      </div>
-    </div>
-  </aside>
-
-  <main class="stage">
-    <div class="card">
-      <div class="card-head">
-        <h2>Buat akun baru</h2>
-        <p>Sudah memiliki akun? <a href="{{ route('login') }}">Masuk di sini</a></p>
-      </div>
-
-      @if (session('status'))
-        <div class="alert-container">
-          <div class="alert alert-success">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-            <div>{{ session('status') }}</div>
-          </div>
-        </div>
-      @endif
-
-      @if ($errors->any())
-        <div class="alert-container">
-          <div class="alert alert-danger">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-            <div>
-              <strong>Terjadi kesalahan:</strong>
-              <ul style="margin: 4px 0 0 0; padding-left: 18px;">
-                @foreach ($errors->all() as $error)
-                  <li>{{ $error }}</li>
-                @endforeach
-              </ul>
+                {{-- Kebijakan Password --}}
+                <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] font-mono-code text-slate-400 space-y-1">
+                    <span class="text-slate-500 font-semibold uppercase tracking-wider block text-[10px]">KEBIJAKAN KATA SANDI:</span>
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-slate-300">
+                        <li class="flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                            Min. {{ $policy['min_length'] ?? 8 }} Karakter
+                        </li>
+                        @if (!empty($policy['require_uppercase']) && !empty($policy['require_lowercase']))
+                            <li class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                Huruf Besar &amp; Kecil
+                            </li>
+                        @endif
+                        @if (!empty($policy['require_numbers']))
+                            <li class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                Minimal 1 Angka
+                            </li>
+                        @endif
+                        @if (!empty($policy['require_symbols']))
+                            <li class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                Karakter Simbol
+                            </li>
+                        @endif
+                    </ul>
+                </div>
             </div>
-          </div>
-        </div>
-      @endif
 
-      <form method="POST" action="{{ route('register.perform') }}" id="registerForm" novalidate>
-        @csrf
+            {{-- Input Konfirmasi Kata Sandi --}}
+            <x-authentication::input 
+                name="password_confirmation"
+                type="password"
+                :label="__('Konfirmasi Kata Sandi')"
+                :placeholder="__('Ulangi kata sandi')"
+                :required="true"
+                autocomplete="new-password"
+            >
+                <x-slot:icon>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </x-slot:icon>
+            </x-authentication::input>
 
-        <div class="field">
-          <label for="name">Nama Lengkap</label>
-          <div class="input-shell">
-            <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="Contoh: John Doe" autocomplete="name" required autofocus class="@error('name') is-invalid @enderror">
-          </div>
-          @error('name')
-            <div class="field-error">{{ $message }}</div>
-          @enderror
-        </div>
+            {{-- Persetujuan Syarat & Privasi --}}
+            <div class="pt-1">
+                <x-authentication::checkbox 
+                    name="terms"
+                    :required="true"
+                >
+                    <span class="text-slate-400">
+                        {{ __('Saya menyetujui') }} 
+                        <a href="#" class="text-amber-400 hover:underline">{{ __('Syarat & Ketentuan') }}</a> 
+                        {{ __('serta') }} 
+                        <a href="#" class="text-amber-400 hover:underline">{{ __('Kebijakan Privasi') }}</a>.
+                    </span>
+                </x-authentication::checkbox>
+            </div>
 
-        <div class="field">
-          <label for="email">Alamat Email</label>
-          <div class="input-shell">
-            <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="nama@perusahaan.com" autocomplete="email" required class="@error('email') is-invalid @enderror">
-          </div>
-          @error('email')
-            <div class="field-error">{{ $message }}</div>
-          @enderror
-        </div>
+            {{-- Tombol Submit Daftar --}}
+            <x-authentication::button type="submit" variant="primary" class="mt-2">
+                <x-slot:icon>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                </x-slot:icon>
+                {{ __('Daftar Akun Sekarang') }}
+            </x-authentication::button>
 
-        <div class="field">
-          <label for="password">Kata Sandi</label>
-          <div class="input-shell">
-            <input type="password" id="password" name="password" placeholder="Buat kata sandi yang kuat" autocomplete="new-password" required class="@error('password') is-invalid @enderror">
-            <button type="button" class="toggle-pass" id="togglePass" aria-label="Tampilkan kata sandi">
-              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          
-          <!-- Live Interactive Password Checklist — driven by config/authentication.php -->
-          @php
-            $policy = $passwordPolicy ?? [
-              'min_length'        => 8,
-              'require_uppercase' => true,
-              'require_lowercase' => true,
-              'require_numbers'   => true,
-              'require_symbols'   => true,
-              'symbols_charset'   => '@$!%*#?&',
-            ];
-          @endphp
-          <div class="pwd-checklist" id="pwdChecklist">
-            <div class="pwd-rule" id="ruleLen"><span class="icon-dot"></span> Minimal {{ $policy['min_length'] }} karakter</div>
-            @if ($policy['require_uppercase'] && $policy['require_lowercase'])
-              <div class="pwd-rule" id="ruleCase"><span class="icon-dot"></span> Huruf besar &amp; kecil</div>
-            @elseif ($policy['require_uppercase'])
-              <div class="pwd-rule" id="ruleUpper"><span class="icon-dot"></span> Huruf kapital (A-Z)</div>
-            @elseif ($policy['require_lowercase'])
-              <div class="pwd-rule" id="ruleLower"><span class="icon-dot"></span> Huruf kecil (a-z)</div>
-            @endif
-            @if ($policy['require_numbers'])
-              <div class="pwd-rule" id="ruleNum"><span class="icon-dot"></span> Minimal 1 angka</div>
-            @endif
-            @if ($policy['require_symbols'])
-              <div class="pwd-rule" id="ruleSym"><span class="icon-dot"></span> Karakter spesial ({{ $policy['symbols_charset'] }})</div>
-            @endif
-          </div>
+        </form>
 
-          @error('password')
-            <div class="field-error">{{ $message }}</div>
-          @enderror
+        {{-- Navigasi ke Halaman Login --}}
+        <div class="pt-3 border-t border-slate-850 text-center text-xs text-slate-400">
+            <p>
+                {{ __('Sudah memiliki akun?') }}
+                <a href="{{ $loginRoute }}" class="text-amber-400 hover:text-amber-300 font-medium ml-1">
+                    {{ __('Masuk ke sistem') }} &rarr;
+                </a>
+            </p>
         </div>
 
-        <div class="field">
-          <label for="password_confirmation">Konfirmasi Kata Sandi</label>
-          <div class="input-shell">
-            <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Ketik ulang kata sandi" autocomplete="new-password" required class="@error('password_confirmation') is-invalid @enderror">
-          </div>
-          <div class="field-error" id="confirmError" style="display:none;">Kata sandi konfirmasi tidak cocok.</div>
-          @error('password_confirmation')
-            <div class="field-error">{{ $message }}</div>
-          @enderror
-        </div>
-
-        <button type="submit" class="btn-primary" id="btnSubmit">
-          <span id="btnText">Daftar Sekarang</span>
-          <svg id="btnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </button>
-      </form>
-
-      @php
-        $hasGoogle = config('authentication.features.social.enabled', true) && config('authentication.features.social.providers.google.enabled', true);
-        $hasGithub = config('authentication.features.social.enabled', true) && config('authentication.features.social.providers.github.enabled', true);
-      @endphp
-
-      @if ($hasGoogle || $hasGithub)
-        <div class="divider">atau daftar dengan</div>
-
-        <div class="oauth-row">
-          @if ($hasGoogle)
-            <a href="{{ route('social.redirect', 'google') }}" class="btn-oauth">
-              <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.27c0-.82-.07-1.6-.2-2.36H12v4.47h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.87c2.27-2.09 3.56-5.17 3.56-8.74z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.08 7.94-2.92l-3.87-3c-1.08.72-2.46 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.28v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54v-3.1H1.28a12 12 0 0 0 0 10.74l3.99-3.1z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.28 6.63l3.99 3.1C6.22 6.88 8.87 4.77 12 4.77z"/></svg>
-              Google
-            </a>
-          @endif
-          @if ($hasGithub)
-            <a href="{{ route('social.redirect', 'github') }}" class="btn-oauth">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2.02c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.8 1.3 3.49 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .3z"/></svg>
-              GitHub
-            </a>
-          @endif
-        </div>
-      @endif
-
-      <p class="legal">Dengan mendaftar, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami.</p>
     </div>
-  </main>
 
-</div>
-
-<script>
-  const toggleBtn = document.getElementById('togglePass');
-  const passInput = document.getElementById('password');
-  const passConfirm = document.getElementById('password_confirmation');
-  const eyeIcon = document.getElementById('eyeIcon');
-  const registerForm = document.getElementById('registerForm');
-  const btnSubmit = document.getElementById('btnSubmit');
-  const btnText = document.getElementById('btnText');
-
-  // Password toggle
-  if (toggleBtn && passInput && eyeIcon) {
-    toggleBtn.addEventListener('click', () => {
-      const isPassword = passInput.type === 'password';
-      passInput.type = isPassword ? 'text' : 'password';
-      toggleBtn.setAttribute('aria-label', isPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
-      eyeIcon.innerHTML = isPassword
-        ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.7 21.7 0 0 1 5.06-5.94M9.9 4.24A10.6 10.6 0 0 1 12 4c7 0 11 7 11 7a21.7 21.7 0 0 1-2.68 3.68M14.12 14.12a3 3 0 1 1-4.24-4.24" stroke-linecap="round" stroke-linejoin="round"/><line x1="1" y1="1" x2="23" y2="23"/>'
-        : '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
-    });
-  }
-
-  // Live Password Criteria Checker — values injected from config/authentication.php via Blade
-  const PASSWORD_POLICY = {
-    minLength:       {{ $policy['min_length'] }},
-    requireUpper:    {{ $policy['require_uppercase'] ? 'true' : 'false' }},
-    requireLower:    {{ $policy['require_lowercase'] ? 'true' : 'false' }},
-    requireNumbers:  {{ $policy['require_numbers'] ? 'true' : 'false' }},
-    requireSymbols:  {{ $policy['require_symbols'] ? 'true' : 'false' }},
-    symbolsCharset:  {{ json_encode($policy['symbols_charset']) }},
-  };
-
-  function check(elId, condition) {
-    const el = document.getElementById(elId);
-    if (!el) return;
-    condition ? el.classList.add('valid') : el.classList.remove('valid');
-  }
-
-  if (passInput) {
-    passInput.addEventListener('input', () => {
-      const val = passInput.value;
-      const symbolPattern = new RegExp('[' + PASSWORD_POLICY.symbolsCharset.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + ']');
-
-      check('ruleLen',   val.length >= PASSWORD_POLICY.minLength);
-      check('ruleCase',  PASSWORD_POLICY.requireUpper && PASSWORD_POLICY.requireLower ? /[a-z]/.test(val) && /[A-Z]/.test(val) : true);
-      check('ruleUpper', PASSWORD_POLICY.requireUpper  ? /[A-Z]/.test(val) : true);
-      check('ruleLower', PASSWORD_POLICY.requireLower  ? /[a-z]/.test(val) : true);
-      check('ruleNum',   PASSWORD_POLICY.requireNumbers ? /[0-9]/.test(val) : true);
-      check('ruleSym',   PASSWORD_POLICY.requireSymbols ? symbolPattern.test(val) : true);
-    });
-  }
-
-  // Live Confirmation Checker
-  if (passConfirm && passInput) {
-    const confirmError = document.getElementById('confirmError');
-    passConfirm.addEventListener('input', () => {
-      if (passConfirm.value && passConfirm.value !== passInput.value) {
-        confirmError.style.display = 'block';
-        passConfirm.classList.add('is-invalid');
-      } else {
-        confirmError.style.display = 'none';
-        passConfirm.classList.remove('is-invalid');
-      }
-    });
-  }
-
-  // Instant Feedback on Form Submission
-  if (registerForm) {
-    registerForm.addEventListener('submit', () => {
-      btnSubmit.disabled = true;
-      btnText.innerHTML = '<span class="spinner"></span> Mendaftarkan...';
-    });
-  }
-</script>
-
-</body>
-</html>
+</x-dynamic-component>

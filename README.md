@@ -161,11 +161,22 @@ The live frontend registration checklist and backend validation automatically sy
 
 ---
 
-## 🎨 Bring Your Own UI (Custom Views)
+## 🎨 UI Layouts & Custom Views
 
-To replace the built-in dark theme with your own custom Blade templates (e.g. Tailwind, Bootstrap, Filament):
+### 1. Pilihan Template Layout Bawaan (`split` & `card`)
+Package menyertakan 2 pilihan layout modern berbasis Tailwind CSS:
+- **`split` (Default)**: Tampilan 2-kolom console (Brand sidebar di kiri, formulir interaktif di kanan).
+- **`card`**: Tampilan kartu minimalis terpusat dengan efek ambient glow.
 
-In `config/authentication.php` or `.env`:
+Ganti template dengan satu baris konfigurasi di `.env`:
+```env
+AUTH_UI_LAYOUT=card # atau 'split'
+```
+
+### 2. Bring Your Own UI (Custom Views)
+Untuk mengganti tampilan view bawaan dengan template Blade kustom Anda sendiri (misal Tailwind, Bootstrap, React):
+
+Di `config/authentication.php` atau `.env`:
 ```env
 AUTH_VIEW_LOGIN=auth.login
 AUTH_VIEW_REGISTER=auth.register
@@ -175,7 +186,9 @@ AUTH_VIEW_OTP_REQUEST=auth.otp-request
 AUTH_VIEW_OTP_VERIFY=auth.otp-verify
 ```
 
-Check the [Custom Views Guide](docs/views-customization.md) for complete field specifications, route helpers, and copy-paste starter templates.
+Lihat panduan lengkap:
+- 🇮🇩 [Panduan Kustomisasi View Bahasa Indonesia](docs/panduan-kustomisasi-view.md)
+- 🇬🇧 [Custom Views Technical Guide (English)](docs/views-customization.md)
 
 ---
 
