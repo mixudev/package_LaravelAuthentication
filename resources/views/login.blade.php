@@ -37,13 +37,31 @@ Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
             :subtitle="__('Silakan masukkan kredensial Anda untuk melanjutkan.')"
         />
 
-        {{-- Flash Alerts --}}
+        {{-- Flash Alerts & Credential Error --}}
         @if (session('status'))
             <x-authentication::alert type="success" :message="session('status')" />
         @endif
 
-        @if (session('error'))
-            <x-authentication::alert type="error" :message="session('error')" />
+        @if ($errors->has('identifier') || $errors->has('password') || $errors->has('credentials') || session('error'))
+            <x-authentication::alert type="error">
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {{ $errors->first('credentials') ?: $errors->first('identifier') ?: $errors->first('password') ?: session('error') }}
+                </span>
+            </x-authentication::alert>
+        @endif
+
+        @if ($errors->any() && !$errors->has('identifier') && !$errors->has('password') && !$errors->has('credentials') && !session('error'))
+            <x-authentication::alert type="error">
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {{ $errors->first() }}
+                </span>
+            </x-authentication::alert>
         @endif
 
         {{-- Social Login (Google / GitHub) --}}

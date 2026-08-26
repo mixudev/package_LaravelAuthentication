@@ -130,6 +130,24 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark mode,
         html.light .auth-checkbox-label, html:not(.dark) .auth-checkbox-label {
             color: #334155 !important;
         }
+        html.light .auth-otp-input, html:not(.dark) .auth-otp-input {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        html.light .auth-otp-input:focus, html:not(.dark) .auth-otp-input:focus {
+            border-color: #0f172a !important;
+            box-shadow: 0 0 0 1px #0f172a !important;
+        }
+        html.light .auth-eye-btn, html:not(.dark) .auth-eye-btn {
+            color: #94a3b8 !important;
+        }
+        html.light .auth-eye-btn:hover, html:not(.dark) .auth-eye-btn:hover {
+            color: #475569 !important;
+        }
+        html.light .auth-field-error, html:not(.dark) .auth-field-error {
+            color: #dc2626 !important;
+        }
         html.light .auth-alert-success, html:not(.dark) .auth-alert-success {
             background-color: #f0fdf4 !important;
             border-color: #bbf7d0 !important;
@@ -175,6 +193,24 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark mode,
             background-color: #172554 !important;
             border-color: #1d4ed8 !important;
             color: #93c5fd !important;
+        }
+        html.dark .auth-otp-input {
+            background-color: #09090b !important;
+            border-color: #27272a !important;
+            color: #f8fafc !important;
+        }
+        html.dark .auth-otp-input:focus {
+            border-color: #a1a1aa !important;
+            box-shadow: 0 0 0 1px #a1a1aa !important;
+        }
+        html.dark .auth-eye-btn {
+            color: #52525b !important;
+        }
+        html.dark .auth-eye-btn:hover {
+            color: #a1a1aa !important;
+        }
+        html.dark .auth-field-error {
+            color: #f87171 !important;
         }
         html.dark .auth-card {
             background-color: #121215 !important;

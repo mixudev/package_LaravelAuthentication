@@ -1,8 +1,9 @@
 {{-- 
 =============================================================================
-KOMPONEN: SEGMENTED OTP INPUT (MODERN ZINC)
+KOMPONEN: SEGMENTED OTP INPUT (FULL AUTH SCOPED - NO DARK: CLASSES)
 Package: mixudev/laravel-authentication
 Deskripsi: Input 6 digit OTP bersegmen yang bersih, modern, dan responsif.
+           Menggunakan .auth-otp-input scoped CSS untuk penegakan light/dark murni.
 =============================================================================
 --}}
 @props([
@@ -90,14 +91,17 @@ Deskripsi: Input 6 digit OTP bersegmen yang bersih, modern, dan responsif.
                 x-model="digits[{{ $i }}]"
                 @input="handleInput($event, {{ $i }})"
                 @keydown="handleKeydown($event, {{ $i }})"
-                class="w-10 h-12 text-center text-lg font-semibold rounded-lg border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 shadow-xs outline-none transition"
+                class="auth-otp-input w-10 h-12 text-center text-lg font-semibold rounded-lg border outline-none transition shadow-xs"
             />
         @endfor
     </div>
 
     @if (isset($errors) && $errors->has($name))
-        <p class="text-xs text-red-600 dark:text-red-400 mt-1 text-center font-medium">
-            {{ $errors->first($name) }}
+        <p class="auth-field-error text-xs mt-1 text-center font-medium flex items-center justify-center gap-1">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>{{ $errors->first($name) }}</span>
         </p>
     @endif
 </div>
