@@ -40,6 +40,7 @@ class TwoFactorSetupController extends Controller
         return response()->view($viewName, [
             'secret'        => $setupData['secret'],
             'otpauthUrl'    => $setupData['otpauth_url'],
+            'qrCodeUrl'     => $setupData['qr_code_url'],
             'recoveryCodes' => $setupData['recovery_codes'],
             'brandName'     => config('authentication.ui.brand_name', config('app.name', 'Laravel')),
             'brandTagline'  => config('authentication.ui.brand_tagline', 'Pengaturan Autentikasi Dua Langkah'),

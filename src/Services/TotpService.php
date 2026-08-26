@@ -97,6 +97,14 @@ class TotpService
     }
 
     /**
+     * Generate a reliable scannable QR Code image URL for Google Authenticator / Authy.
+     */
+    public function getQrCodeUrl(string $otpAuthUrl, int $size = 200): string
+    {
+        return 'https://api.qrserver.com/v1/create-qr-code/?size=' . $size . 'x' . $size . '&margin=8&data=' . rawurlencode($otpAuthUrl);
+    }
+
+    /**
      * Base32 decoding helper compliant with RFC 4648.
      */
     protected function base32Decode(#[\SensitiveParameter] string $base32): string

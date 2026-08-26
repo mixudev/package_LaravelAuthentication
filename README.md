@@ -22,7 +22,8 @@ In-depth technical guides are available in the [`docs/`](docs/index.md) director
 - 🧩 [5. Strategies & Extending the Package](docs/strategies-and-extending.md)
 - 🔌 [6. REST API Reference](docs/api-reference.md)
 - 🛡️ [7. Security & Threat Mitigations](docs/security-and-best-practices.md)
-- 🚢 [8. Publishing & Releases Guide](docs/publishing-guide.md)
+- 📋 [8. Prerequisites, API Keys & Complete Sitemap](docs/prerequisites-and-checklist.md)
+- 🚢 [9. Publishing & Releases Guide](docs/publishing-guide.md)
 
 ---
 

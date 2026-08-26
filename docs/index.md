@@ -59,3 +59,8 @@ Package ini menyediakan arsitektur autentikasi modular, portable, enterprise-gra
 8. [**Panduan Rilis & Publikasi (Publishing Guide)**](publishing-guide.md)
    - Standar Git commit & Semantic Versioning
    - Publikasi ke GitHub & Packagist.org
+
+9. [**Checklist Prasyarat & Peta URL (Prerequisites & Sitemap)**](prerequisites-and-checklist.md)
+   - Matriks kebutuhan layanan & kunci API (mana yang butuh daftar vs mandiri)
+   - Panduan langkah mendapatkan API keys (Cloudflare Turnstile, Google & GitHub OAuth)
+   - Peta lengkap 49 Rute Web & REST API beserta hak aksesnya

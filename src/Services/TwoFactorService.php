@@ -67,9 +67,12 @@ class TwoFactorService
             $this->config->getTwoFactorPeriod()
         );
 
+        $qrCodeUrl = $this->totp->getQrCodeUrl($otpAuthUrl, 220);
+
         return [
             'secret'         => $secret,
             'otpauth_url'    => $otpAuthUrl,
+            'qr_code_url'    => $qrCodeUrl,
             'recovery_codes' => $recoveryCodes,
         ];
     }
