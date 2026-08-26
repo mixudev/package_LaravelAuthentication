@@ -130,11 +130,51 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark mode,
         html.light .auth-checkbox-label, html:not(.dark) .auth-checkbox-label {
             color: #334155 !important;
         }
+        html.light .auth-alert-success, html:not(.dark) .auth-alert-success {
+            background-color: #f0fdf4 !important;
+            border-color: #bbf7d0 !important;
+            color: #166534 !important;
+        }
+        html.light .auth-alert-error, html:not(.dark) .auth-alert-error {
+            background-color: #fef2f2 !important;
+            border-color: #fecaca !important;
+            color: #991b1b !important;
+        }
+        html.light .auth-alert-warning, html:not(.dark) .auth-alert-warning {
+            background-color: #fffbeb !important;
+            border-color: #fde68a !important;
+            color: #92400e !important;
+        }
+        html.light .auth-alert-info, html:not(.dark) .auth-alert-info {
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+            color: #1e40af !important;
+        }
 
         /* Penegakan Gaya Dark Mode Pekat */
         html.dark body {
             background-color: #09090b !important;
             color: #f8fafc !important;
+        }
+        html.dark .auth-alert-success {
+            background-color: #052e16 !important;
+            border-color: #166534 !important;
+            color: #86efac !important;
+        }
+        html.dark .auth-alert-error {
+            background-color: #450a0a !important;
+            border-color: #991b1b !important;
+            color: #fca5a5 !important;
+        }
+        html.dark .auth-alert-warning {
+            background-color: #451a03 !important;
+            border-color: #b45309 !important;
+            color: #fcd34d !important;
+        }
+        html.dark .auth-alert-info {
+            background-color: #172554 !important;
+            border-color: #1d4ed8 !important;
+            color: #93c5fd !important;
         }
         html.dark .auth-card {
             background-color: #121215 !important;
