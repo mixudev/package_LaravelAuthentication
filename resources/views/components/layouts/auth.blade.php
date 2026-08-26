@@ -3,7 +3,7 @@
 LAYOUT UTAMA: BASE AUTHENTICATION
 Package: mixudev/laravel-authentication
 Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark mode,
-           penegakan tema konsisten, dan deteksi logo otomatis.
+           kontras tinggi pada layar IPS, dan deteksi logo otomatis.
 =============================================================================
 --}}
 @props([
@@ -67,16 +67,16 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark mode,
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Penegakan Gaya Light Mode (Mencegah override preferensi dark mode dari browser pengguna) */
+        /* Penegakan Gaya Light Mode (Kontras Kuat di Layar IPS) */
         html.light body, html:not(.dark) body {
-            background-color: #f8fafc !important;
+            background-color: #f1f5f9 !important; /* Slate-100 kontras jelas */
             color: #0f172a !important;
         }
         html.light .auth-card, html:not(.dark) .auth-card {
             background-color: #ffffff !important;
-            border-color: #e2e8f0 !important;
+            border-color: #cbd5e1 !important; /* Border tebal & tegas */
             color: #0f172a !important;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08) !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07) !important;
         }
         html.light .auth-heading, html:not(.dark) .auth-heading {
             color: #0f172a !important;
@@ -85,7 +85,7 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark mode,
             color: #64748b !important;
         }
         html.light .auth-label, html:not(.dark) .auth-label {
-            color: #334155 !important;
+            color: #1e293b !important;
         }
         html.light .auth-input, html:not(.dark) .auth-input {
             background-color: #ffffff !important;
@@ -108,27 +108,27 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark mode,
         }
         html.light .auth-btn-secondary, html:not(.dark) .auth-btn-secondary {
             background-color: #ffffff !important;
-            border-color: #e2e8f0 !important;
+            border-color: #cbd5e1 !important;
             color: #0f172a !important;
         }
         html.light .auth-btn-secondary:hover, html:not(.dark) .auth-btn-secondary:hover {
-            background-color: #f1f5f9 !important;
+            background-color: #f8fafc !important;
         }
         html.light .auth-link, html:not(.dark) .auth-link {
-            color: #475569 !important;
+            color: #334155 !important;
         }
         html.light .auth-link:hover, html:not(.dark) .auth-link:hover {
             color: #0f172a !important;
         }
         html.light .auth-divider, html:not(.dark) .auth-divider {
-            border-color: #e2e8f0 !important;
+            border-color: #cbd5e1 !important;
         }
         html.light .auth-divider-text, html:not(.dark) .auth-divider-text {
             background-color: #ffffff !important;
-            color: #94a3b8 !important;
+            color: #64748b !important;
         }
         html.light .auth-checkbox-label, html:not(.dark) .auth-checkbox-label {
-            color: #475569 !important;
+            color: #334155 !important;
         }
 
         /* Penegakan Gaya Dark Mode Pekat */
