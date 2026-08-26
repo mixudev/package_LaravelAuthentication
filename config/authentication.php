@@ -3,53 +3,38 @@
 declare(strict_types=1);
 
 /**
- * Laravel Authentication Package Configuration.
+ * Konfigurasi Package Autentikasi Laravel.
  *
- * This configuration serves as the central policy declaration for the package.
- * All settings are fail-closed: unrecognized or unsafe values will halt execution safely.
+ * Semua opsi didefinisikan langsung di sini (tidak lewat env) supaya
+ * konfigurasi mudah dibaca, di-review, dan konsisten di semua environment.
+ * env() hanya dipakai untuk kredensial rahasia yang memang wajib berbeda
+ * per environment (OAuth client id/secret).
  */
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Master Package Enable Switch
-    |--------------------------------------------------------------------------
-    |
-    | When disabled, the authentication routes, middleware guards, and services
-    | will reject all incoming login attempts and throw a fail-closed exception.
-    |
-    */
-    'enabled' => env('AUTH_PACKAGE_ENABLED', true),
+    // Saklar utama package. Kalau false, semua route & guard auth ditolak.
+    'enabled' => true,
+
+    // Guard default Laravel yang dipakai (web, api, sanctum, dst).
+    'guard' => 'web',
+
+    // Model user yang dipakai untuk autentikasi.
+    'user_model' => \App\Models\User::class,
 
     /*
     |--------------------------------------------------------------------------
-    | Default Guard & User Model
+    | Strategi Login
     |--------------------------------------------------------------------------
-    |
-    | The default authentication guard to authenticate against (e.g. 'web', 'api', 'sanctum').
-    | The user model class can be overridden to any Eloquent model implementing
-    | Illuminate\Contracts\Auth\Authenticatable.
-    |
-    */
-    'guard' => env('AUTH_PACKAGE_GUARD', 'web'),
-
-    'user_model' => env('AUTH_PACKAGE_USER_MODEL', 'App\\Models\\User'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Login Strategy & Identifier Resolution
-    |--------------------------------------------------------------------------
-    |
-    | Supported default methods:
-    | - 'username_or_email' : Autodetects format and authenticates via username or email
-    | - 'email_password'    : Strictly expects standard email format
-    | - 'username_password' : Strictly matches against the username column
-    | - 'custom_identifier' : Matches against custom configured column (e.g. employee_id)
-    |
+    | Pilihan strategi yang tersedia:
+    | - username_or_email : deteksi otomatis, login pakai username ATAU email
+    | - email_password    : wajib format email
+    | - username_password : hanya cocokkan kolom username
+    | - custom_identifier : cocokkan kolom custom (mis. employee_id)
     */
     'login' => [
-        'default_strategy' => env('AUTH_DEFAULT_STRATEGY', 'username_or_email'),
+        // Strategi yang aktif secara default
+        'default_strategy' => 'username_or_email',
 
         'strategies' => [
             'username_or_email' => \Vendor\LaravelAuthentication\Strategies\UsernameOrEmailStrategy::class,
@@ -58,7 +43,7 @@ return [
             'custom_identifier' => \Vendor\LaravelAuthentication\Strategies\CustomIdentifierStrategy::class,
         ],
 
-        // Column mapping for database lookups
+        // Mapping nama kolom di database
         'identifiers' => [
             'username_column' => 'username',
             'email_column'    => 'email',
@@ -66,195 +51,162 @@ return [
             'password_column' => 'password',
         ],
 
-        // Normalize identifier casing and whitespace
+        // Normalisasi huruf besar/kecil & spasi pada identifier saat login
         'normalize_identifiers' => true,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Password Security Policies
+    | Kebijakan Password
     |--------------------------------------------------------------------------
-    |
-    | Configure password strength, automatic rehashing with modern algorithms
-    | (Argon2id/Bcrypt), and historical password reuse prevention.
-    |
+    | Aturan kekuatan password, rehash otomatis, dan pencegahan pemakaian
+    | ulang password lama.
     */
     'password' => [
+        // Rehash otomatis ke algoritma terbaru (Argon2id/Bcrypt) saat login
         'rehash' => true,
 
         'validation_rules' => [
-            /*
-            |----------------------------------------------------------
-            | Password Strength Policy
-            |----------------------------------------------------------
-            | Each rule can be toggled via environment variables so
-            | you can adjust the policy per environment (staging vs production).
-            |
-            | AUTH_PASSWORD_MIN_LENGTH        — Minimum character count (default: 8)
-            | AUTH_PASSWORD_REQUIRE_UPPERCASE — Must contain at least 1 uppercase letter
-            | AUTH_PASSWORD_REQUIRE_LOWERCASE — Must contain at least 1 lowercase letter
-            | AUTH_PASSWORD_REQUIRE_NUMBERS   — Must contain at least 1 digit
-            | AUTH_PASSWORD_REQUIRE_SYMBOLS   — Must contain at least 1 special char
-            | AUTH_PASSWORD_SYMBOLS_CHARSET   — Custom allowed symbol set (e.g. "@#$!%*")
-            | AUTH_PASSWORD_UNCOMPROMISED     — Check against HaveIBeenPwned (requires internet)
-            */
-            'min_length'         => (int) env('AUTH_PASSWORD_MIN_LENGTH', 8),
-            'require_uppercase'  => (bool) env('AUTH_PASSWORD_REQUIRE_UPPERCASE', true),
-            'require_lowercase'  => (bool) env('AUTH_PASSWORD_REQUIRE_LOWERCASE', true),
-            'require_mixed_case' => (bool) env('AUTH_PASSWORD_REQUIRE_UPPERCASE', true) && (bool) env('AUTH_PASSWORD_REQUIRE_LOWERCASE', true),
-            'require_numbers'    => (bool) env('AUTH_PASSWORD_REQUIRE_NUMBERS', true),
-            'require_symbols'    => (bool) env('AUTH_PASSWORD_REQUIRE_SYMBOLS', true),
-            'symbols_charset'    => env('AUTH_PASSWORD_SYMBOLS_CHARSET', '@$!%*#?&_-+=[]{}|;:,.<>'),
-            'uncompromised'      => (bool) env('AUTH_PASSWORD_UNCOMPROMISED', false),
+            'min_length'         => 8,     // Minimal jumlah karakter
+            'require_uppercase'  => true,  // Wajib ada huruf besar
+            'require_lowercase'  => true,  // Wajib ada huruf kecil
+            'require_mixed_case' => true,  // Wajib kombinasi besar & kecil
+            'require_numbers'    => true,  // Wajib ada angka
+            'require_symbols'    => true,  // Wajib ada karakter spesial
+            'symbols_charset'    => '@$!%*#?&_-+=[]{}|;:,.<>', // Karakter spesial yang diizinkan
+            'uncompromised'      => false, // Cek ke HaveIBeenPwned (butuh koneksi internet)
         ],
 
         'history' => [
-            'enabled'  => env('AUTH_PASSWORD_HISTORY_ENABLED', false),
-            'remember' => 5, // Prevent reusing the last N passwords
+            'enabled'  => false, // Aktifkan pengecekan riwayat password
+            'remember' => 5,     // Jumlah password lama yang tidak boleh dipakai ulang
         ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Security & Abuse Protections
+    | Keamanan & Proteksi Abuse
     |--------------------------------------------------------------------------
-    |
-    | Rate limiting, account lockouts, user enumeration mitigations,
-    | and strict session invalidation controls.
-    |
+    | Rate limiting, lockout akun, proteksi enumerasi user, dan sesi.
     */
     'security' => [
-        // Protect against account discovery by always returning identical error messages and timings
+        // Selalu balas pesan & waktu error yang sama agar user/email tidak bisa ditebak
         'user_enumeration_protection' => true,
 
         'rate_limit' => [
             'enabled'       => true,
-            'max_attempts'  => (int) env('AUTH_RATE_LIMIT_MAX', 5),
-            'decay_minutes' => (int) env('AUTH_RATE_LIMIT_DECAY', 1),
-            'strategy'      => 'composite', // 'ip', 'identifier', 'composite' (ip + identifier)
+            'max_attempts'  => 5,          // Maksimal percobaan login
+            'decay_minutes' => 1,          // Reset hitungan setelah sekian menit
+            'strategy'      => 'composite', // 'ip', 'identifier', atau 'composite' (ip + identifier)
         ],
 
         'account_lockout' => [
-            'enabled'                => env('AUTH_LOCKOUT_ENABLED', false),
-            'max_failed_attempts'    => 5,
-            'lockout_duration_mins'  => 15,
-            'auto_unlock'            => true,
+            'enabled'               => false, // Kunci akun setelah gagal berkali-kali
+            'max_failed_attempts'   => 5,
+            'lockout_duration_mins' => 15,
+            'auto_unlock'           => true,  // Buka kunci otomatis setelah durasi habis
         ],
 
         'session' => [
-            'regenerate_on_login'  => true,
-            'invalidate_on_logout' => true,
+            'regenerate_on_login'         => true, // Ganti session ID tiap login (cegah fixation)
+            'invalidate_on_logout'        => true, // Hapus session saat logout
             'session_fixation_protection' => true,
         ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Modular Authentication Feature Switches
+    | Fitur Autentikasi
     |--------------------------------------------------------------------------
-    |
-    | Enable or disable high-level authentication features with a single flag.
-    | Unused routes and controllers are fail-closed when a feature is disabled.
-    |
+    | Nyala/matikan fitur besar dengan satu flag. Route & controller yang
+    | tidak dipakai otomatis ditolak saat fiturnya nonaktif.
     */
     'features' => [
-        // User registration (Web & API)
+
+        // Registrasi user baru (Web & API)
         'registration' => [
-            'enabled'               => env('AUTH_REGISTRATION_ENABLED', true),
-            'auto_login_on_register'=> env('AUTH_AUTO_LOGIN_ON_REGISTER', true),
-            'require_email_verify'  => env('AUTH_REQUIRE_EMAIL_VERIFY', false),
+            'enabled'                => true,
+            'auto_login_on_register' => true,  // Langsung login setelah daftar
+            'require_email_verify'   => false, // Wajib verifikasi email dulu
         ],
 
-        // Self-service password reset & recovery (Web & API)
+        // Lupa & reset password (Web & API)
         'forgot_password' => [
-            'enabled' => env('AUTH_FORGOT_PASSWORD_ENABLED', true),
+            'enabled' => true,
         ],
 
-        // One-Time Password (OTP) / Passwordless Login (Web & API)
+        // Login via OTP / tanpa password (Web & API)
         'otp' => [
-            'enabled'          => env('AUTH_OTP_ENABLED', true),
-            'length'           => (int) env('AUTH_OTP_LENGTH', 6),
-            'expiry_minutes'   => (int) env('AUTH_OTP_EXPIRY_MINUTES', 10),
-            'max_attempts'     => (int) env('AUTH_OTP_MAX_ATTEMPTS', 3),
-            'throttle_seconds' => (int) env('AUTH_OTP_THROTTLE_SECONDS', 60),
-            'type'             => env('AUTH_OTP_TYPE', 'numeric'), // 'numeric' or 'alphanumeric'
+            'enabled'          => true,
+            'length'           => 6,        // Jumlah digit/karakter OTP
+            'expiry_minutes'   => 10,       // Masa berlaku OTP
+            'max_attempts'     => 3,        // Maksimal percobaan verifikasi
+            'throttle_seconds' => 60,       // Jeda minimal sebelum kirim ulang OTP
+            'type'             => 'numeric', // 'numeric' atau 'alphanumeric'
 
-            // Automated Email Dispatching
-            'send_email'       => env('AUTH_OTP_SEND_EMAIL', true),
-            'email_subject'    => env('AUTH_OTP_EMAIL_SUBJECT', null), // null = default: '{App Name} — Kode Verifikasi Masuk (OTP)'
-            'email_view'       => env('AUTH_OTP_EMAIL_VIEW', 'authentication::emails.otp'),
+            // Pengiriman email OTP otomatis
+            'send_email'    => true,
+            'email_subject' => null, // null = pakai default: '{Nama App} — Kode Verifikasi Masuk (OTP)'
+            'email_view'    => 'authentication::emails.otp',
         ],
 
-        // Social / OAuth Login via Laravel Socialite (Web & API)
+        // Login sosial / OAuth via Laravel Socialite (Web & API)
         'social' => [
-            'enabled'       => env('AUTH_SOCIAL_ENABLED', true),
-            'auto_register' => env('AUTH_SOCIAL_AUTO_REGISTER', true), // Auto create user if doesn't exist
-            'providers'     => [
+            'enabled'       => true,
+            'auto_register' => true, // Buat user baru otomatis jika belum terdaftar
+
+            'providers' => [
                 'google' => [
-                    'enabled'       => env('AUTH_GOOGLE_ENABLED', true),
+                    'enabled' => true,
+                    // Kredensial rahasia — WAJIB lewat env, jangan hardcode
                     'client_id'     => env('GOOGLE_CLIENT_ID'),
                     'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-                    'redirect'      => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
+                    'redirect'      => env('APP_URL') . '/auth/google/callback',
                     'scopes'        => ['openid', 'profile', 'email'],
                 ],
                 'github' => [
-                    'enabled'       => env('AUTH_GITHUB_ENABLED', true),
+                    'enabled' => true,
+                    // Kredensial rahasia — WAJIB lewat env, jangan hardcode
                     'client_id'     => env('GITHUB_CLIENT_ID'),
                     'client_secret' => env('GITHUB_CLIENT_SECRET'),
-                    'redirect'      => env('GITHUB_REDIRECT_URI', env('APP_URL') . '/auth/github/callback'),
+                    'redirect'      => env('APP_URL') . '/auth/github/callback',
                     'scopes'        => ['user:email', 'read:user'],
                 ],
             ],
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Redirect Routes / Paths
-    |--------------------------------------------------------------------------
-    |
-    | Default redirection destinations after successful authentication events.
-    |
-    */
+    // Tujuan redirect setelah aksi autentikasi berhasil
     'redirects' => [
-        'login'          => env('AUTH_REDIRECT_LOGIN', '/dashboard'),
-        'register'       => env('AUTH_REDIRECT_REGISTER', '/dashboard'),
-        'logout'         => env('AUTH_REDIRECT_LOGOUT', '/login'),
-        'password_reset' => env('AUTH_REDIRECT_PASSWORD_RESET', '/login'),
+        'login'          => '/dashboard',
+        'register'       => '/dashboard',
+        'logout'         => '/login',
+        'password_reset' => '/login',
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Audit Logging System
+    | Audit Log
     |--------------------------------------------------------------------------
-    |
-    | Configure storage of authentication events (success, failure, lockout).
-    | Sensitive payload fields (passwords, tokens) are redacted automatically.
-    |
+    | Mencatat event autentikasi (sukses, gagal, lockout). Field sensitif
+    | seperti password/token otomatis disamarkan.
     */
     'audit' => [
-        'enabled'       => env('AUTH_AUDIT_ENABLED', true),
-        'driver'        => 'database', // 'database', 'log', 'null'
-        'log_channel'   => 'stack',
-        'retention_days'=> 90,
+        'enabled'        => true,
+        'driver'         => 'database', // 'database', 'log', atau 'null'
+        'log_channel'    => 'stack',
+        'retention_days' => 90,
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Route & HTTP Integration
-    |--------------------------------------------------------------------------
-    |
-    | Enable or disable built-in package routes for Web sessions or API auth.
-    |
-    */
+    // Route bawaan package untuk Web (session) dan API (token)
     'routes' => [
         'web' => [
-            'enabled'    => env('AUTH_WEB_ROUTES_ENABLED', true),
+            'enabled'    => true,
             'prefix'     => '',
             'middleware' => ['web'],
         ],
         'api' => [
-            'enabled'    => env('AUTH_API_ROUTES_ENABLED', true),
+            'enabled'    => true,
             'prefix'     => 'api/v1/auth',
             'middleware' => ['api'],
         ],
@@ -262,53 +214,40 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | UI Views Configuration (Custom / Bring-Your-Own-UI)
+    | View Kustom (Bring-Your-Own-UI)
     |--------------------------------------------------------------------------
-    |
-    | Define custom Blade views if you prefer using your own UI templates
-    | instead of the package's built-in Sentra Console dark theme.
-    |
-    | You can point these to any Blade view in your application, e.g.:
-    | 'login' => 'auth.login' (points to resources/views/auth/login.blade.php)
-    |
+    | Arahkan ke view Blade sendiri jika tidak mau pakai tampilan bawaan
+    | package, mis. 'login' => 'auth.login'.
     */
     'views' => [
-        'login'           => env('AUTH_VIEW_LOGIN', 'authentication::login'),
-        'register'        => env('AUTH_VIEW_REGISTER', 'authentication::register'),
-        'forgot_password' => env('AUTH_VIEW_FORGOT_PASSWORD', 'authentication::forgot-password'),
-        'reset_password'  => env('AUTH_VIEW_RESET_PASSWORD', 'authentication::reset-password'),
-        'otp_request'     => env('AUTH_VIEW_OTP_REQUEST', 'authentication::otp-request'),
-        'otp_verify'      => env('AUTH_VIEW_OTP_VERIFY', 'authentication::otp-verify'),
-        'otp_email'       => env('AUTH_VIEW_OTP_EMAIL', 'authentication::emails.otp'),
+        'login'           => 'authentication::login',
+        'register'        => 'authentication::register',
+        'forgot_password' => 'authentication::forgot-password',
+        'reset_password'  => 'authentication::reset-password',
+        'otp_request'     => 'authentication::otp-request',
+        'otp_verify'      => 'authentication::otp-verify',
+        'otp_email'       => 'authentication::emails.otp',
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | UI & Layout Configuration (Modular Views)
+    | Tampilan & Layout
     |--------------------------------------------------------------------------
-    |
-    | Konfigurasi tampilan antarmuka modular:
-    | - layout : Pilihan template layout utama ('split' = 2-kolom console, 'card' = centered card terpusat)
-    | - theme  : Skema warna ('dark', 'light', 'system')
-    | - brand  : Informasi nama sistem, deskripsi, dan logo yang ditampilkan di view
-    |
+    | layout : 'card' (kartu tengah minimalis) atau 'split' (2-kolom)
+    | theme  : 'light', 'dark', atau 'auto'
+    | brand  : nama, tagline, dan logo yang tampil di halaman auth
     */
     'ui' => [
-        // Pilihan template bawaan: 'card' (kartu tengah minimalis) atau 'split' (2-kolom modern)
-        'layout' => env('AUTH_UI_LAYOUT', 'card'),
+        'layout' => 'card',
+        'theme'  => 'light',
 
-        // Mode tema bawaan: 'dark', 'light', atau 'auto'
-        'theme' => env('AUTH_UI_THEME', 'light'),
+        'brand_name'    => env('APP_NAME', 'Laravel'), // Ikut nama aplikasi host
+        'brand_tagline' => 'Portal Autentikasi & Masuk Akun',
+        'brand_badge'   => null,
+        'logo_url'      => null,
 
-        // Informasi Branding yang muncul pada panel & header (Otomatis nama aplikasi host)
-        'brand_name'    => env('AUTH_UI_BRAND_NAME', env('APP_NAME', 'Laravel')),
-        'brand_tagline' => env('AUTH_UI_BRAND_TAGLINE', 'Portal Autentikasi & Masuk Akun'),
-        'brand_badge'   => env('AUTH_UI_BRAND_BADGE', null),
-        'logo_url'      => env('AUTH_UI_LOGO_URL', null),
-
-        // Penggunaan aset Vite host vs CDN Fallback
-        'use_vite'      => env('AUTH_UI_USE_VITE', true),
+        // Pakai aset Vite dari aplikasi host (false = pakai CDN fallback)
+        'use_vite' => true,
     ],
 
 ];
-
