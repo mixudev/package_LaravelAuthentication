@@ -1,10 +1,9 @@
 {{-- 
 =============================================================================
-LAYOUT UTAMA: BASE AUTHENTICATION (DEEP DARK & CRISP LIGHT)
+LAYOUT UTAMA: BASE AUTHENTICATION
 Package: mixudev/laravel-authentication
-Deskripsi: Kerangka dasar HTML5 bersih, pekat, modern, dan elegan.
-           Mendukung deteksi favicon aplikasi otomatis, tema zinc pekat, dan
-           penegakan tema eksplisit (mengatasi override dark browser).
+Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark mode,
+           penegakan tema konsisten, dan deteksi logo otomatis.
 =============================================================================
 --}}
 @props([
@@ -13,9 +12,9 @@ Deskripsi: Kerangka dasar HTML5 bersih, pekat, modern, dan elegan.
 ])
 
 @php
-    $brandName = config('authentication.ui.brand_name', config('app.name', 'Laravel'));
+    $brandName = config('authentication.ui.brand_name') ?: config('app.name', 'Laravel');
     $appTitle = $title ? "{$title} — {$brandName}" : $brandName;
-    $themeConfig = config('authentication.ui.theme', 'dark');
+    $themeConfig = config('authentication.ui.theme', 'light');
     $isDark = ($themeConfig === 'dark');
 @endphp
 
@@ -38,7 +37,7 @@ Deskripsi: Kerangka dasar HTML5 bersih, pekat, modern, dan elegan.
         <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     @endif
 
-    {{-- Typography Modern & Bersih --}}
+    {{-- Font Bersih & Standar Laravel --}}
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
@@ -54,22 +53,6 @@ Deskripsi: Kerangka dasar HTML5 bersih, pekat, modern, dan elegan.
                     extend: {
                         fontFamily: {
                             sans: ['Figtree', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-                        },
-                        colors: {
-                            zinc: {
-                                950: '#09090b',
-                                900: '#18181b',
-                                850: '#202024',
-                                800: '#27272a',
-                                700: '#3f3f46',
-                                600: '#52525b',
-                                500: '#71717a',
-                                400: '#a1a1aa',
-                                300: '#d4d4d8',
-                                200: '#e4e4e7',
-                                100: '#f4f4f5',
-                                50: '#fafafa',
-                            }
                         }
                     }
                 }
@@ -84,66 +67,104 @@ Deskripsi: Kerangka dasar HTML5 bersih, pekat, modern, dan elegan.
             -moz-osx-font-smoothing: grayscale;
         }
 
-        {{-- Penegakan Tema: Memastikan Light Mode tetap aktif meskipun browser user diset Dark Mode --}}
-        @if (!$isDark)
-        html:not(.dark), html.light {
-            color-scheme: light !important;
+        /* Penegakan Gaya Light Mode (Mencegah override preferensi dark mode dari browser pengguna) */
+        html.light body, html:not(.dark) body {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
         }
-        html:not(.dark) body {
-            background-color: #fafafa !important;
-            color: #09090b !important;
-        }
-        html:not(.dark) .auth-card {
+        html.light .auth-card, html:not(.dark) .auth-card {
             background-color: #ffffff !important;
-            border-color: #e4e4e7 !important;
-            color: #09090b !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08) !important;
         }
-        html:not(.dark) .auth-input {
+        html.light .auth-heading, html:not(.dark) .auth-heading {
+            color: #0f172a !important;
+        }
+        html.light .auth-subtext, html:not(.dark) .auth-subtext {
+            color: #64748b !important;
+        }
+        html.light .auth-label, html:not(.dark) .auth-label {
+            color: #334155 !important;
+        }
+        html.light .auth-input, html:not(.dark) .auth-input {
             background-color: #ffffff !important;
-            border-color: #d4d4d8 !important;
-            color: #09090b !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
         }
-        html:not(.dark) .auth-input:focus {
-            border-color: #18181b !important;
-            --tw-ring-color: #18181b !important;
+        html.light .auth-input::placeholder, html:not(.dark) .auth-input::placeholder {
+            color: #94a3b8 !important;
         }
-        html:not(.dark) .auth-btn-primary {
-            background-color: #18181b !important;
+        html.light .auth-input:focus, html:not(.dark) .auth-input:focus {
+            border-color: #0f172a !important;
+            box-shadow: 0 0 0 1px #0f172a !important;
+        }
+        html.light .auth-btn-primary, html:not(.dark) .auth-btn-primary {
+            background-color: #0f172a !important;
             color: #ffffff !important;
         }
-        html:not(.dark) .auth-btn-primary:hover {
-            background-color: #27272a !important;
+        html.light .auth-btn-primary:hover, html:not(.dark) .auth-btn-primary:hover {
+            background-color: #1e293b !important;
         }
-        html:not(.dark) .auth-btn-secondary {
+        html.light .auth-btn-secondary, html:not(.dark) .auth-btn-secondary {
             background-color: #ffffff !important;
-            border-color: #e4e4e7 !important;
-            color: #18181b !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
         }
-        html:not(.dark) .auth-btn-secondary:hover {
-            background-color: #f4f4f5 !important;
+        html.light .auth-btn-secondary:hover, html:not(.dark) .auth-btn-secondary:hover {
+            background-color: #f1f5f9 !important;
         }
-        @else
-        {{-- Penegakan Tema Pekat untuk Dark Mode --}}
+        html.light .auth-link, html:not(.dark) .auth-link {
+            color: #475569 !important;
+        }
+        html.light .auth-link:hover, html:not(.dark) .auth-link:hover {
+            color: #0f172a !important;
+        }
+        html.light .auth-divider, html:not(.dark) .auth-divider {
+            border-color: #e2e8f0 !important;
+        }
+        html.light .auth-divider-text, html:not(.dark) .auth-divider-text {
+            background-color: #ffffff !important;
+            color: #94a3b8 !important;
+        }
+        html.light .auth-checkbox-label, html:not(.dark) .auth-checkbox-label {
+            color: #475569 !important;
+        }
+
+        /* Penegakan Gaya Dark Mode Pekat */
         html.dark body {
             background-color: #09090b !important;
-            color: #f4f4f5 !important;
+            color: #f8fafc !important;
         }
         html.dark .auth-card {
             background-color: #121215 !important;
             border-color: #27272a !important;
-            color: #f4f4f5 !important;
+            color: #f8fafc !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5) !important;
+        }
+        html.dark .auth-heading {
+            color: #f8fafc !important;
+        }
+        html.dark .auth-subtext {
+            color: #a1a1aa !important;
+        }
+        html.dark .auth-label {
+            color: #d4d4d8 !important;
         }
         html.dark .auth-input {
             background-color: #09090b !important;
             border-color: #27272a !important;
-            color: #f4f4f5 !important;
+            color: #f8fafc !important;
+        }
+        html.dark .auth-input::placeholder {
+            color: #52525b !important;
         }
         html.dark .auth-input:focus {
-            border-color: #52525b !important;
-            --tw-ring-color: #52525b !important;
+            border-color: #a1a1aa !important;
+            box-shadow: 0 0 0 1px #a1a1aa !important;
         }
         html.dark .auth-btn-primary {
-            background-color: #f4f4f5 !important;
+            background-color: #f8fafc !important;
             color: #09090b !important;
         }
         html.dark .auth-btn-primary:hover {
@@ -152,17 +173,32 @@ Deskripsi: Kerangka dasar HTML5 bersih, pekat, modern, dan elegan.
         html.dark .auth-btn-secondary {
             background-color: #18181b !important;
             border-color: #27272a !important;
-            color: #f4f4f5 !important;
+            color: #f8fafc !important;
         }
         html.dark .auth-btn-secondary:hover {
             background-color: #27272a !important;
         }
-        @endif
+        html.dark .auth-link {
+            color: #a1a1aa !important;
+        }
+        html.dark .auth-link:hover {
+            color: #f8fafc !important;
+        }
+        html.dark .auth-divider {
+            border-color: #27272a !important;
+        }
+        html.dark .auth-divider-text {
+            background-color: #121215 !important;
+            color: #71717a !important;
+        }
+        html.dark .auth-checkbox-label {
+            color: #a1a1aa !important;
+        }
     </style>
 
     @stack('styles')
 </head>
-<body class="font-sans antialiased text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-zinc-950 min-h-screen transition-colors duration-150">
+<body class="font-sans antialiased min-h-screen">
     
     {{ $slot ?? '' }}
     @yield('content')

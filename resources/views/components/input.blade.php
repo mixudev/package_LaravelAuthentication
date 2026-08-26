@@ -1,6 +1,6 @@
 {{-- 
 =============================================================================
-KOMPONEN: FORM INPUT (MODERN ZINC & BREEZE STYLE)
+KOMPONEN: FORM INPUT (MODERN ZINC)
 Package: mixudev/laravel-authentication
 Deskripsi: Input form standar dengan label, error binding, dan toggle password.
 =============================================================================
@@ -30,7 +30,7 @@ Deskripsi: Input form standar dengan label, error binding, dan toggle password.
     {{-- Label Input --}}
     @if ($label)
         <div class="flex items-center justify-between">
-            <label for="{{ $inputId }}" class="block font-medium text-xs text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+            <label for="{{ $inputId }}" class="auth-label block font-medium text-xs uppercase tracking-wider">
                 {{ $label }}
                 @if ($required)
                     <span class="text-red-500">*</span>
@@ -61,12 +61,8 @@ Deskripsi: Input form standar dengan label, error binding, dan toggle password.
                 :type="showPass ? 'text' : 'password'"
             @endif
             class="auth-input block w-full border rounded-lg shadow-xs text-sm px-3.5 py-2.5 outline-none transition duration-150
-                bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600
                 {{ $isPassword ? 'pr-10' : '' }}
-                {{ $hasError 
-                    ? 'border-red-500 dark:border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500' 
-                    : 'border-zinc-300 dark:border-zinc-800 focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700' 
-                }}"
+                {{ $hasError ? 'border-red-500! focus:border-red-500! focus:ring-red-500!' : '' }}"
         />
 
         {{-- Toggle Password Button --}}
@@ -100,7 +96,7 @@ Deskripsi: Input form standar dengan label, error binding, dan toggle password.
 
     {{-- Hint --}}
     @if ($hint && !$hasError)
-        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{{ $hint }}</p>
+        <p class="auth-subtext text-xs mt-1">{{ $hint }}</p>
     @endif
 
     {{-- Error --}}

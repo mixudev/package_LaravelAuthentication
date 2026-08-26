@@ -294,16 +294,16 @@ return [
     |
     */
     'ui' => [
-        // Pilihan template bawaan: 'split' (2-kolom modern) atau 'card' (kartu tengah minimalis)
-        'layout' => env('AUTH_UI_LAYOUT', 'split'),
+        // Pilihan template bawaan: 'card' (kartu tengah minimalis) atau 'split' (2-kolom modern)
+        'layout' => env('AUTH_UI_LAYOUT', 'card'),
 
         // Mode tema bawaan: 'dark', 'light', atau 'auto'
-        'theme' => env('AUTH_UI_THEME', 'dark'),
+        'theme' => env('AUTH_UI_THEME', 'light'),
 
-        // Informasi Branding yang muncul pada panel & header
-        'brand_name'    => env('AUTH_UI_BRAND_NAME', 'Console Auth'),
-        'brand_tagline' => env('AUTH_UI_BRAND_TAGLINE', 'Enterprise Security & Identity Gateway'),
-        'brand_badge'   => env('AUTH_UI_BRAND_BADGE', 'SYSTEM LIVE // TLS 1.3'),
+        // Informasi Branding yang muncul pada panel & header (Otomatis nama aplikasi host)
+        'brand_name'    => env('AUTH_UI_BRAND_NAME', env('APP_NAME', 'Laravel')),
+        'brand_tagline' => env('AUTH_UI_BRAND_TAGLINE', 'Portal Autentikasi & Masuk Akun'),
+        'brand_badge'   => env('AUTH_UI_BRAND_BADGE', null),
         'logo_url'      => env('AUTH_UI_LOGO_URL', null),
 
         // Penggunaan aset Vite host vs CDN Fallback

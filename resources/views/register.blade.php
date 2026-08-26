@@ -106,9 +106,9 @@ Deskripsi: Halaman registrasi bersih, modern, dan pekat standar Laravel.
                     name="terms"
                     :required="true"
                 >
-                    <span class="text-xs text-zinc-600 dark:text-zinc-400">
+                    <span class="auth-subtext text-xs">
                         {{ __('Saya menyetujui') }} 
-                        <a href="#" class="underline text-zinc-900 dark:text-zinc-100 hover:opacity-80">{{ __('Syarat & Ketentuan') }}</a>.
+                        <a href="#" class="auth-link underline">{{ __('Syarat & Ketentuan') }}</a>.
                     </span>
                 </x-authentication::checkbox>
             </div>
@@ -123,10 +123,10 @@ Deskripsi: Halaman registrasi bersih, modern, dan pekat standar Laravel.
         </form>
 
         {{-- Link ke Login --}}
-        <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs text-zinc-600 dark:text-zinc-400">
-            <p>
+        <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
+            <p class="auth-subtext">
                 {{ __('Sudah memiliki akun?') }}
-                <a href="{{ $loginRoute }}" class="font-medium text-zinc-900 dark:text-zinc-100 hover:underline ml-1">
+                <a href="{{ $loginRoute }}" class="auth-link font-medium hover:underline ml-1">
                     {{ __('Masuk ke sistem') }} &rarr;
                 </a>
             </p>

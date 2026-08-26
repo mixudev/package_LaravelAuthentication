@@ -80,7 +80,7 @@ Deskripsi: Halaman reset password bersih dan pekat standar Laravel.
         </form>
 
         <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
-            <a href="{{ $loginRoute }}" class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline">
+            <a href="{{ $loginRoute }}" class="auth-link hover:underline">
                 &larr; {{ __('Kembali ke halaman masuk') }}
             </a>
         </div>

@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-KOMPONEN: BRAND PANEL (SIDEBAR KIRI MINIMALIS DEEP DARK)
+KOMPONEN: BRAND PANEL (SIDEBAR KIRI MINIMALIS)
 Package: mixudev/laravel-authentication
-Deskripsi: Panel kiri simpel, bersih, dan elegan menampilkan identitas aplikasi & favicon.
+Deskripsi: Panel kiri simpel, bersih, dan elegan menampilkan identitas aplikasi.
 =============================================================================
 --}}
 @props([
@@ -12,24 +12,21 @@ Deskripsi: Panel kiri simpel, bersih, dan elegan menampilkan identitas aplikasi 
 ])
 
 @php
-    $brandName = config('authentication.ui.brand_name', config('app.name', 'Laravel'));
+    $brandName = config('authentication.ui.brand_name') ?: config('app.name', 'Laravel');
     $logoUrl = config('authentication.ui.logo_url');
     $hasFaviconSvg = file_exists(public_path('favicon.svg'));
-    $hasFaviconIco = file_exists(public_path('favicon.ico'));
 @endphp
 
 <div class="flex flex-col justify-between h-full space-y-8">
     
     {{-- Bagian Atas: Logo & Headline --}}
     <div class="space-y-4">
-        {{-- Logo Brand via Favicon --}}
+        {{-- Logo Brand --}}
         <div class="flex items-center space-x-3">
             @if ($logoUrl)
                 <img src="{{ $logoUrl }}" alt="{{ $brandName }}" class="w-9 h-9 object-contain rounded-lg">
             @elseif ($hasFaviconSvg)
                 <img src="{{ asset('favicon.svg') }}" alt="{{ $brandName }}" class="w-9 h-9 object-contain">
-            @elseif ($hasFaviconIco)
-                <img src="{{ asset('favicon.ico') }}" alt="{{ $brandName }}" class="w-9 h-9 object-contain">
             @else
                 <div class="w-9 h-9 rounded-lg bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold shadow-xs">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,7 +43,7 @@ Deskripsi: Panel kiri simpel, bersih, dan elegan menampilkan identitas aplikasi 
         {{-- Headline & Deskripsi Simpel --}}
         <div class="space-y-2 pt-6">
             <h2 class="font-semibold text-2xl text-white tracking-tight leading-snug">
-                {{ $title ?? config('authentication.ui.brand_tagline', 'Secure Authentication & Access') }}
+                {{ $title ?? (config('authentication.ui.brand_tagline') ?: 'Portal Autentikasi Akun') }}
             </h2>
             <p class="text-zinc-400 text-sm leading-relaxed">
                 {{ $subtitle ?? 'Portal autentikasi aman, cepat, dan terpercaya untuk seluruh kebutuhan akun Anda.' }}

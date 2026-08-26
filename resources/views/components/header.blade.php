@@ -12,12 +12,12 @@ Deskripsi: Judul dan deskripsi singkat formulir bergaya bersih & modern.
 ])
 
 <div class="mb-5 text-left">
-    <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
+    <h2 class="auth-heading text-lg font-semibold tracking-tight">
         {{ $title }}
     </h2>
 
     @if ($subtitle)
-        <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+        <p class="auth-subtext text-sm mt-1">
             {{ $subtitle }}
         </p>
     @endif

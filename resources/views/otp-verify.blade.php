@@ -78,18 +78,18 @@ Deskripsi: Halaman verifikasi kode OTP bersih dan pekat standar Laravel.
         </form>
 
         {{-- Kirim Ulang & Kembali --}}
-        <div class="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs text-zinc-600 dark:text-zinc-400">
+        <div class="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
             <form method="POST" action="{{ $sendRoute }}" class="inline-block">
                 @csrf
                 <input type="hidden" name="identifier" value="{{ $identifier }}">
-                <span>{{ __('Tidak menerima kode?') }}</span>
-                <button type="submit" class="font-medium text-zinc-900 dark:text-zinc-100 hover:underline ml-1 cursor-pointer bg-transparent border-0 p-0">
+                <span class="auth-subtext">{{ __('Tidak menerima kode?') }}</span>
+                <button type="submit" class="auth-link font-medium hover:underline ml-1 cursor-pointer bg-transparent border-0 p-0">
                     {{ __('Kirim ulang') }}
                 </button>
             </form>
 
             <div>
-                <a href="{{ $loginRoute }}" class="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:underline block pt-1">
+                <a href="{{ $loginRoute }}" class="auth-link hover:underline block pt-1">
                     &larr; {{ __('Kembali ke login biasa') }}
                 </a>
             </div>

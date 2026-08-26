@@ -1,6 +1,6 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: LOGIN (MODERN DEEP ZINC)
+HALAMAN VIEW: LOGIN (MODERN ZINC)
 Package: mixudev/laravel-authentication
 Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
 =============================================================================
@@ -78,7 +78,7 @@ Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
             >
                 @if (config('authentication.features.forgot_password.enabled', true))
                     <x-slot:labelRight>
-                        <a href="{{ $forgotPasswordRoute }}" class="text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:underline">
+                        <a href="{{ $forgotPasswordRoute }}" class="auth-link text-xs hover:underline">
                             {{ __('Lupa password?') }}
                         </a>
                     </x-slot:labelRight>
@@ -103,20 +103,20 @@ Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
         </form>
 
         {{-- Link Alternatif (OTP & Registrasi) --}}
-        <div class="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs text-zinc-600 dark:text-zinc-400">
+        <div class="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
             @if (config('authentication.features.otp.enabled', true))
                 <div>
-                    <a href="{{ $otpRequestRoute }}" class="hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline">
+                    <a href="{{ $otpRequestRoute }}" class="auth-link hover:underline">
                         {{ __('Masuk tanpa password via Kode OTP') }}
                     </a>
                 </div>
             @endif
 
             @if (config('authentication.features.registration.enabled', true))
-                <div>
+                <div class="auth-subtext">
                     <p>
                         {{ __('Belum memiliki akun?') }}
-                        <a href="{{ $registerRoute }}" class="font-medium text-zinc-900 dark:text-zinc-100 hover:underline ml-1">
+                        <a href="{{ $registerRoute }}" class="auth-link font-medium hover:underline ml-1">
                             {{ __('Daftar sekarang') }} &rarr;
                         </a>
                     </p>

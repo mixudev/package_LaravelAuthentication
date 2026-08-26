@@ -27,11 +27,11 @@ Deskripsi: Checkbox bersih dan modern untuk 'Ingat Saya' atau 'Syarat Ketentuan'
             'required' => $required,
             'checked' => (bool) $isChecked,
         ]) }}
-        class="w-4 h-4 rounded bg-white dark:bg-zinc-950 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 dark:focus:ring-offset-zinc-950 cursor-pointer"
+        class="w-4 h-4 rounded border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 cursor-pointer"
     />
     
     @if ($label || !$slot->isEmpty())
-        <label for="{{ $checkboxId }}" class="ms-2 text-sm text-zinc-600 dark:text-zinc-400 select-none cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200">
+        <label for="{{ $checkboxId }}" class="auth-checkbox-label ms-2 text-sm select-none cursor-pointer">
             {{ $label ?? $slot }}
         </label>
     @endif
