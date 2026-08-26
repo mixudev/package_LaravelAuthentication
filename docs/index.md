@@ -1,43 +1,52 @@
 # Laravel Authentication Package Documentation
 
-Welcome to the comprehensive documentation for **`mixudev/laravel-authentication`** (`Vendor\LaravelAuthentication\`).
+Selamat datang di dokumentasi resmi **`mixudev/laravel-authentication`** (`Vendor\LaravelAuthentication\`).
 
-This package provides an enterprise-grade, modular, portable, and secure authentication architecture for Laravel 10.x, 11.x, 12.x, and 13.x applications.
+Package ini menyediakan arsitektur autentikasi modular, portable, enterprise-grade, dan aman untuk aplikasi **Laravel 10.x, 11.x, 12.x, dan 13.x**.
 
 ---
 
-## 📚 Table of Contents
+## 📚 Daftar Isi Dokumentasi
 
-- [1. Getting Started](getting-started.md)
-  - Installation via Packagist, VCS, or Path Repository
-  - Publishing configuration, migrations, and views
-  - Database schema & migrations
-- [2. Unified Single-Folder Module Mode](modular-installation.md)
-  - One-command export into `modules/Authentication/`
-  - Zero-clutter project structure
-  - Step-by-step activation guide
-- [3. Features & Modules](features.md)
-  - Modular feature switches (`config/authentication.php`)
-  - User Registration Engine
-  - Passwordless OTP Authentication
-  - OAuth Social Login (Google & GitHub via Socialite)
-  - Self-Service Password Recovery & Reset
-  - Dynamic Password Strength Policies (.env)
-- [4. Views & Custom UI Guide](views-customization.md)
-  - Dark Console UI Theme & Styling Tokens
-  - Bring-Your-Own-UI / Custom Blade Templates mapping
-  - Technical field specifications for custom pages
-  - Copy-paste Tailwind CSS minimal starter template
-- [5. Strategies & Extending](strategies-and-extending.md)
-  - Built-in strategies (`username_or_email`, `email_password`, `username_password`, `custom_identifier`)
-  - Writing custom authentication strategies (e.g. Employee ID, Phone Number)
-  - Event Dispatching & Custom Listeners
-- [6. REST API Reference](api-reference.md)
-  - Full API endpoint catalog (`/api/v1/auth/*`)
-  - Request & response JSON schemas
-  - Token management with Laravel Sanctum
-- [7. Security & Best Practices](security-and-best-practices.md)
-  - Composite rate limiting & brute-force defense
-  - User enumeration mitigations
-  - Password rehashing & historical reuse prevention
-  - Session fixation defense & audit trail logging
+1. [**Panduan Memulai (Getting Started)**](getting-started.md)
+   - Cara instalasi via Composer & Path repository
+   - Publikasi konfigurasi, migrasi, dan view
+   - Struktur database & migrasi otomatis
+
+2. [**Mode Modul Tunggal (Single-Folder Module Mode)**](modular-installation.md)
+   - Perintah instan `php artisan authentication:install-module`
+   - Struktur modul rapi di `modules/Authentication/`
+
+3. [**Fitur & Modul Utama (Features & Modules)**](features.md)
+   - Modular feature toggles (`config/authentication.php`)
+   - Modul registrasi akun & auto-login
+   - Modul autentikasi tanpa password via Kode OTP
+   - Modul OAuth Social Login (Google & GitHub)
+   - Modul pemulihan & reset kata sandi
+   - Kebijakan kekuatan password dinamis
+
+4. [**Kustomisasi Tampilan & Template UI**](panduan-kustomisasi-view.md) / [🇬🇧 English](views-customization.md)
+   - Penggunaan 2 template layout bawaan: `split` (2-kolom) & `card` (kartu tengah)
+   - Cara memodifikasi komponen Blade bawaan (`vendor:publish`)
+   - Cara membuat tampilan sendiri dari nol (*Bring Your Own UI*)
+   - Spesifikasi form, nama input wajib, route actions, dan token CSRF
+
+5. [**Strategi Autentikasi & Ekstensi Kustom**](strategies-and-extending.md)
+   - Strategi bawaan (`username_or_email`, `email_password`, `username_password`, `custom_identifier`)
+   - Cara membuat strategi autentikasi kustom (NIP, Nomor HP, RFID, SSO)
+   - Event listening & penanganan payload
+
+6. [**Referensi REST API (API Reference)**](api-reference.md)
+   - Katalog lengkap endpoint API JSON (`/api/v1/auth/*`)
+   - Skema payload request & response
+   - Manajemen token Bearer dengan Laravel Sanctum
+
+7. [**Keamanan & Praktik Terbaik (Security & Best Practices)**](security-and-best-practices.md)
+   - Mitigasi User Enumeration & timing normalization
+   - Rate limiting komposit (`sha1(ip + identifier)`) & account lockout
+   - Proteksi session fixation & rehash password otomatis
+   - Audit logging & penyamaran data sensitif (`#[\SensitiveParameter]`)
+
+8. [**Panduan Rilis & Publikasi (Publishing Guide)**](publishing-guide.md)
+   - Standar Git commit & Semantic Versioning
+   - Publikasi ke GitHub & Packagist.org

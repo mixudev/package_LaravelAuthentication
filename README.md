@@ -46,6 +46,21 @@ In-depth technical guides are available in the [`docs/`](docs/index.md) director
 
 ---
 
+## 📚 Documentation
+
+| Guide | Description |
+| :--- | :--- |
+| [🚀 **Getting Started**](docs/getting-started.md) | Installation, initial publishing, and database setup. |
+| [📦 **Single-Folder Module**](docs/modular-installation.md) | Export package into a clean `modules/Authentication/` directory. |
+| [⚙️ **Features & Modules**](docs/features.md) | Registration, OTP, OAuth Socialite, and password reset policies. |
+| [🎨 **Custom Views (ID)**](docs/panduan-kustomisasi-view.md) / [**(EN)**](docs/views-customization.md) | Multi-template layouts (`split`/`card`), Blade components, & Bring Your Own UI. |
+| [🔌 **REST API Reference**](docs/api-reference.md) | Complete JSON API endpoints and request/response schemas. |
+| [🧩 **Strategies & Extending**](docs/strategies-and-extending.md) | Custom login identifiers (NIP, Employee ID, RFID) and strategy registries. |
+| [🛡️ **Security & Best Practices**](docs/security-and-best-practices.md) | Enumeration defense, rate limiting, lockout decay, and session security. |
+| [🚢 **Publishing & Releases**](docs/publishing-guide.md) | Git tagging, SemVer protocols, and Packagist synchronization. |
+
+---
+
 ## 📦 Installation
 
 ### Option 1: Standard Composer Require
