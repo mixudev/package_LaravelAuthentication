@@ -1,9 +1,8 @@
 {{-- 
 =============================================================================
-KOMPONEN: FORM INPUT BERSTANDAR KEAMANAN TINGGI
+KOMPONEN: FORM INPUT (CLEAN BREEZE STYLE)
 Package: mixudev/laravel-authentication
-Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@error),
-           toggle visibilitas password (show/hide), integrasi icon, dan styling Tailwind CSS (Light/Dark).
+Deskripsi: Input form standar Laravel Breeze dengan label, error binding, dan toggle password.
 =============================================================================
 --}}
 @props([
@@ -27,35 +26,26 @@ Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@
     $isPassword = ($type === 'password');
 @endphp
 
-<div class="space-y-1.5" x-data="{ showPass: false }">
+<div class="space-y-1" x-data="{ showPass: false }">
     {{-- Label Input --}}
     @if ($label)
         <div class="flex items-center justify-between">
-            <label for="{{ $inputId }}" class="block text-xs font-semibold font-mono-code uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            <label for="{{ $inputId }}" class="block font-medium text-sm text-gray-700 dark:text-gray-300">
                 {{ $label }}
                 @if ($required)
-                    <span class="text-amber-600 dark:text-amber-400 font-bold" title="Wajib diisi">*</span>
+                    <span class="text-red-500">*</span>
                 @endif
             </label>
 
-            {{-- Slot untuk link samping label (misal: 'Lupa Password?') --}}
+            {{-- Link samping label (misal: Lupa Password) --}}
             @if (isset($labelRight))
                 <div>{{ $labelRight }}</div>
             @endif
         </div>
     @endif
 
-    {{-- Container Input & Icon / Action --}}
-    <div class="relative rounded-xl shadow-xs">
-        
-        {{-- Slot Icon Kiri (Optional) --}}
-        @if (isset($icon))
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-                {{ $icon }}
-            </div>
-        @endif
-
-        {{-- Elemen Input Utama --}}
+    {{-- Container Input --}}
+    <div class="relative">
         <input 
             {{ $attributes->merge([
                 'id' => $inputId,
@@ -70,18 +60,12 @@ Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@
             @if ($isPassword)
                 :type="showPass ? 'text' : 'password'"
             @endif
-            class="block w-full rounded-xl bg-white dark:bg-slate-900/90 border text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm transition-all duration-150
-                {{ isset($icon) ? 'pl-10' : 'pl-3.5' }}
-                {{ $isPassword ? 'pr-11' : 'pr-3.5' }}
-                py-2.5 sm:py-2.5
-                {{ $hasError 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-rose-900 dark:text-rose-100 bg-rose-50/50 dark:bg-rose-950/10' 
-                    : 'border-slate-300 dark:border-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 hover:border-slate-400 dark:hover:border-slate-700' 
-                }}
-                outline-none"
+            class="block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm text-sm px-3 py-2
+                {{ $isPassword ? 'pr-10' : '' }}
+                {{ $hasError ? 'border-red-500 dark:border-red-500 focus:border-red-500 focus:ring-red-500' : '' }}"
         />
 
-        {{-- Tombol Toggle Password (Hanya muncul jika type="password") --}}
+        {{-- Toggle Password Button --}}
         @if ($isPassword && $showTogglePassword)
             <button 
                 type="button" 
@@ -95,36 +79,30 @@ Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@
                         this.querySelector('.eye-closed').classList.toggle('hidden', !isText);
                     }
                 "
-                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none"
                 tabindex="-1"
                 aria-label="Tampilkan atau sembunyikan kata sandi"
             >
-                {{-- Icon Mata Terbuka --}}
-                <svg class="eye-open w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="eye-open w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
-                {{-- Icon Mata Tertutup --}}
-                <svg class="eye-closed w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="eye-closed w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>
                 </svg>
             </button>
         @endif
-
     </div>
 
-    {{-- Pesan Hint Tambahan --}}
+    {{-- Hint --}}
     @if ($hint && !$hasError)
-        <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ $hint }}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $hint }}</p>
     @endif
 
-    {{-- Pesan Validasi Error Otomatis (@error) --}}
+    {{-- Error --}}
     @if (isset($errors) && $errors->has($name))
-        <p class="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1 mt-1 font-medium">
-            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span>{{ $errors->first($name) }}</span>
+        <p class="text-sm text-red-600 dark:text-red-400 mt-1">
+            {{ $errors->first($name) }}
         </p>
     @endif
 </div>

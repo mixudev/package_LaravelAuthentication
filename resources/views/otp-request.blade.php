@@ -1,14 +1,14 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: OTP REQUEST (PERMINTAAN KODE OTP)
+HALAMAN VIEW: OTP REQUEST (CLEAN BREEZE STYLE)
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman pengajuan pengiriman kode OTP sekali pakai ke email/identifier pengguna.
+Deskripsi: Halaman permintaan OTP bersih standar Laravel Breeze.
 =============================================================================
 --}}
 @php
-    $activeLayout = config('authentication.ui.layout', 'split') === 'card' 
-        ? 'authentication::layouts.card' 
-        : 'authentication::layouts.split';
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
+        ? 'authentication::layouts.split' 
+        : 'authentication::layouts.card';
 
     $sendRoute = Route::has('authentication.otp.send') 
         ? route('authentication.otp.send') 
@@ -19,18 +19,16 @@ Deskripsi: Halaman pengajuan pengiriman kode OTP sekali pakai ke email/identifie
         : (Route::has('login') ? route('login') : url('/login'));
 @endphp
 
-<x-dynamic-component :component="$activeLayout" :title="__('Masuk Tanpa Kata Sandi (OTP)')">
+<x-dynamic-component :component="$activeLayout" :title="__('Masuk via OTP')">
     
-    <div class="space-y-6">
+    <div class="space-y-4">
         
-        {{-- Header Formulir --}}
         <x-authentication::header 
-            :title="__('Masuk via Kode OTP')"
-            :subtitle="__('Masukkan email atau identifier akun Anda. Kami akan mengirimkan kode verifikasi numerik sekali pakai.')"
-            :badge="__('PASSWORDLESS AUTHENTICATION')"
+            :title="__('Masuk dengan Kode OTP')"
+            :subtitle="__('Masukkan email Anda untuk menerima kode verifikasi sekali pakai.')"
         />
 
-        {{-- Notifikasi Status / Error --}}
+        {{-- Flash Alerts --}}
         @if (session('status'))
             <x-authentication::alert type="success" :message="session('status')" />
         @endif
@@ -39,46 +37,30 @@ Deskripsi: Halaman pengajuan pengiriman kode OTP sekali pakai ke email/identifie
             <x-authentication::alert type="error" :message="session('error')" />
         @endif
 
-        {{-- Formulir Kirim OTP --}}
-        <form method="POST" action="{{ $sendRoute }}" class="space-y-5" novalidate>
+        {{-- Form --}}
+        <form method="POST" action="{{ $sendRoute }}" class="space-y-4" novalidate>
             @csrf
 
-            {{-- Input Identifier / Email --}}
             <x-authentication::input 
                 name="identifier"
-                :label="__('Email atau Username')"
-                :placeholder="__('nama@domain.com atau username')"
+                :label="__('Email / Username')"
                 :required="true"
                 autocomplete="username"
                 :autofocus="true"
-            >
-                <x-slot:icon>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </x-slot:icon>
-            </x-authentication::input>
+            />
 
-            {{-- Tombol Kirim Kode --}}
-            <x-authentication::button type="submit" variant="primary" class="mt-2">
-                <x-slot:icon>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
-                </x-slot:icon>
-                {{ __('Kirim Kode Verifikasi OTP') }}
-            </x-authentication::button>
+            <div class="pt-2">
+                <x-authentication::button type="submit" variant="primary">
+                    {{ __('Kirim Kode OTP') }}
+                </x-authentication::button>
+            </div>
 
         </form>
 
-        {{-- Navigasi ke Login Password --}}
-        <div class="pt-3 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-600 dark:text-slate-400">
-            <p>
-                {{ __('Ingin masuk menggunakan kata sandi?') }}
-                <a href="{{ $loginRoute }}" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-medium ml-1">
-                    &larr; {{ __('Masuk dengan password biasa') }}
-                </a>
-            </p>
+        <div class="pt-4 border-t border-gray-100 dark:border-gray-700 text-center text-sm">
+            <a href="{{ $loginRoute }}" class="underline text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+                &larr; {{ __('Masuk dengan kata sandi') }}
+            </a>
         </div>
 
     </div>

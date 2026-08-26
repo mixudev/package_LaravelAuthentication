@@ -1,9 +1,8 @@
 {{-- 
 =============================================================================
-KOMPONEN: CUSTOM CHECKBOX
+KOMPONEN: CUSTOM CHECKBOX (CLEAN BREEZE STYLE)
 Package: mixudev/laravel-authentication
-Deskripsi: Komponen checkbox modern dengan styling Tailwind, state checked,
-           serta label interaktif untuk fitur 'Ingat Saya' atau 'Syarat & Ketentuan'.
+Deskripsi: Checkbox standar Laravel Breeze untuk 'Ingat Saya' atau 'Syarat Ketentuan'.
 =============================================================================
 --}}
 @props([
@@ -19,7 +18,7 @@ Deskripsi: Komponen checkbox modern dengan styling Tailwind, state checked,
     $isChecked = old($name, $checked);
 @endphp
 
-<div class="flex items-center space-x-2.5">
+<div class="flex items-center">
     <input 
         {{ $attributes->merge([
             'id' => $checkboxId,
@@ -28,11 +27,11 @@ Deskripsi: Komponen checkbox modern dengan styling Tailwind, state checked,
             'required' => $required,
             'checked' => (bool) $isChecked,
         ]) }}
-        class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-amber-500 focus:ring-amber-500/30 focus:ring-offset-0 focus:ring-2 cursor-pointer transition-all"
+        class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800 cursor-pointer"
     />
     
     @if ($label || !$slot->isEmpty())
-        <label for="{{ $checkboxId }}" class="text-xs text-slate-600 dark:text-slate-400 select-none cursor-pointer hover:text-slate-900 dark:hover:text-slate-300">
+        <label for="{{ $checkboxId }}" class="ms-2 text-sm text-gray-600 dark:text-gray-400 select-none cursor-pointer">
             {{ $label ?? $slot }}
         </label>
     @endif

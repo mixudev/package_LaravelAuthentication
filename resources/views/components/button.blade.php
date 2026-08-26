@@ -1,9 +1,8 @@
 {{-- 
 =============================================================================
-KOMPONEN: TOMBOL INTERAKTIF (BUTTON)
+KOMPONEN: TOMBOL INTERAKTIF (CLEAN BREEZE STYLE)
 Package: mixudev/laravel-authentication
-Deskripsi: Komponen tombol serbaguna dengan berbagai varian tema (primary, secondary,
-           outline, danger), dukungan transisi Tailwind, focus-ring, dan Light/Dark mode.
+Deskripsi: Tombol standar Laravel Breeze (Primary, Secondary, Outline, Danger).
 =============================================================================
 --}}
 @props([
@@ -14,26 +13,26 @@ Deskripsi: Komponen tombol serbaguna dengan berbagai varian tema (primary, secon
 ])
 
 @php
-    $baseClasses = 'inline-flex items-center justify-center font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none rounded-xl';
+    $baseClasses = 'inline-flex items-center justify-center rounded-md font-semibold tracking-wide transition ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 cursor-pointer';
 
     $variants = [
-        // Varian Primary: Amber/Gold Accent khas Console Auth
-        'primary' => 'bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-semibold shadow-sm focus:ring-amber-500 border border-amber-400/30',
+        // Varian Primary: Standar Laravel Breeze Dark / Light
+        'primary' => 'bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800 hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 shadow-sm',
         
-        // Varian Secondary: Kontras halus Light & Dark
-        'secondary' => 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-750 focus:ring-slate-400',
+        // Varian Secondary: Abu-abu netral
+        'secondary' => 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-indigo-500 dark:focus:ring-offset-gray-800',
         
-        // Varian Outline: Border transparan dengan efek hover
-        'outline' => 'bg-transparent text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 focus:ring-slate-500',
+        // Varian Outline
+        'outline' => 'bg-transparent border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:ring-indigo-500',
         
-        // Varian Danger: Untuk aksi destruktif atau pembatalan kritis
-        'danger' => 'bg-rose-600 text-white shadow-sm hover:bg-rose-500 active:bg-rose-700 focus:ring-rose-500 border border-rose-500/30',
+        // Varian Danger
+        'danger' => 'bg-red-600 text-white hover:bg-red-500 active:bg-red-700 focus:ring-red-500 shadow-sm',
     ];
 
     $sizes = [
         'sm' => 'px-3 py-1.5 text-xs',
-        'md' => 'px-4 py-2.5 sm:py-2.5 text-sm',
-        'lg' => 'px-5 py-3 text-base',
+        'md' => 'px-4 py-2 text-sm',
+        'lg' => 'px-5 py-2.5 text-base',
     ];
 
     $classes = $baseClasses . ' ' 
@@ -48,15 +47,12 @@ Deskripsi: Komponen tombol serbaguna dengan berbagai varian tema (primary, secon
         'class' => $classes,
     ]) }}
 >
-    {{-- Slot Icon / Prefix --}}
     @if (isset($icon))
         <span class="mr-2 -ml-1 flex items-center">{{ $icon }}</span>
     @endif
 
-    {{-- Konten Teks Tombol --}}
     <span>{{ $slot }}</span>
 
-    {{-- Slot Suffix (misal: panah arrow-right) --}}
     @if (isset($suffix))
         <span class="ml-2 -mr-1 flex items-center">{{ $suffix }}</span>
     @endif
