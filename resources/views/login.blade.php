@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: LOGIN (CLEAN BREEZE STYLE)
+HALAMAN VIEW: LOGIN (MODERN DEEP ZINC)
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman login bersih, simpel, dan elegan standar Laravel Breeze.
+Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
 =============================================================================
 --}}
 @php
@@ -34,6 +34,7 @@ Deskripsi: Halaman login bersih, simpel, dan elegan standar Laravel Breeze.
         {{-- Header Singkat --}}
         <x-authentication::header 
             :title="__('Masuk ke Akun')"
+            :subtitle="__('Silakan masukkan kredensial Anda untuk melanjutkan.')"
         />
 
         {{-- Flash Alerts --}}
@@ -59,7 +60,8 @@ Deskripsi: Halaman login bersih, simpel, dan elegan standar Laravel Breeze.
             {{-- Identifier (Email / Username) --}}
             <x-authentication::input 
                 name="identifier"
-                :label="__('Email / Username')"
+                :label="__('Email atau Username')"
+                :placeholder="__('nama@domain.com atau username')"
                 :required="true"
                 autocomplete="username"
                 :autofocus="true"
@@ -70,12 +72,13 @@ Deskripsi: Halaman login bersih, simpel, dan elegan standar Laravel Breeze.
                 name="password"
                 type="password"
                 :label="__('Kata Sandi')"
+                :placeholder="__('Masukkan kata sandi')"
                 :required="true"
                 autocomplete="current-password"
             >
                 @if (config('authentication.features.forgot_password.enabled', true))
                     <x-slot:labelRight>
-                        <a href="{{ $forgotPasswordRoute }}" class="underline text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <a href="{{ $forgotPasswordRoute }}" class="text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:underline">
                             {{ __('Lupa password?') }}
                         </a>
                     </x-slot:labelRight>
@@ -83,10 +86,10 @@ Deskripsi: Halaman login bersih, simpel, dan elegan standar Laravel Breeze.
             </x-authentication::input>
 
             {{-- Ingat Saya --}}
-            <div class="block">
+            <div class="block pt-1">
                 <x-authentication::checkbox 
                     name="remember"
-                    :label="__('Ingat saya')"
+                    :label="__('Ingat sesi saya')"
                 />
             </div>
 
@@ -100,10 +103,10 @@ Deskripsi: Halaman login bersih, simpel, dan elegan standar Laravel Breeze.
         </form>
 
         {{-- Link Alternatif (OTP & Registrasi) --}}
-        <div class="space-y-2 pt-4 border-t border-gray-100 dark:border-gray-700 text-center text-sm text-gray-600 dark:text-gray-400">
+        <div class="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs text-zinc-600 dark:text-zinc-400">
             @if (config('authentication.features.otp.enabled', true))
                 <div>
-                    <a href="{{ $otpRequestRoute }}" class="underline hover:text-gray-900 dark:hover:text-gray-100 text-xs">
+                    <a href="{{ $otpRequestRoute }}" class="hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline">
                         {{ __('Masuk tanpa password via Kode OTP') }}
                     </a>
                 </div>
@@ -111,10 +114,10 @@ Deskripsi: Halaman login bersih, simpel, dan elegan standar Laravel Breeze.
 
             @if (config('authentication.features.registration.enabled', true))
                 <div>
-                    <p class="text-xs">
-                        {{ __('Belum punya akun?') }}
-                        <a href="{{ $registerRoute }}" class="underline font-medium text-gray-900 dark:text-gray-100 ml-1">
-                            {{ __('Daftar') }}
+                    <p>
+                        {{ __('Belum memiliki akun?') }}
+                        <a href="{{ $registerRoute }}" class="font-medium text-zinc-900 dark:text-zinc-100 hover:underline ml-1">
+                            {{ __('Daftar sekarang') }} &rarr;
                         </a>
                     </p>
                 </div>

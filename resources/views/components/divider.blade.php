@@ -1,6 +1,6 @@
 {{-- 
 =============================================================================
-KOMPONEN: PEMISAH / DIVIDER (CLEAN BREEZE STYLE)
+KOMPONEN: PEMISAH / DIVIDER (MODERN ZINC)
 Package: mixudev/laravel-authentication
 Deskripsi: Garis pemisah horizontal bersih dengan teks di tengah.
 =============================================================================
@@ -11,10 +11,10 @@ Deskripsi: Garis pemisah horizontal bersih dengan teks di tengah.
 
 <div class="relative my-4">
     <div class="absolute inset-0 flex items-center" aria-hidden="true">
-        <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
+        <div class="w-full border-t border-zinc-200 dark:border-zinc-800"></div>
     </div>
-    <div class="relative flex justify-center text-xs uppercase">
-        <span class="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">
+    <div class="relative flex justify-center text-xs uppercase tracking-wider">
+        <span class="bg-white dark:bg-zinc-900 px-2.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
             {{ $label }}
         </span>
     </div>

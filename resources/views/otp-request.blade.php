@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: OTP REQUEST (CLEAN BREEZE STYLE)
+HALAMAN VIEW: OTP REQUEST (MODERN DEEP ZINC)
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman permintaan OTP bersih standar Laravel Breeze.
+Deskripsi: Halaman permintaan OTP bersih dan pekat standar Laravel.
 =============================================================================
 --}}
 @php
@@ -24,8 +24,8 @@ Deskripsi: Halaman permintaan OTP bersih standar Laravel Breeze.
     <div class="space-y-4">
         
         <x-authentication::header 
-            :title="__('Masuk dengan Kode OTP')"
-            :subtitle="__('Masukkan email Anda untuk menerima kode verifikasi sekali pakai.')"
+            :title="__('Masuk Tanpa Kata Sandi')"
+            :subtitle="__('Masukkan email Anda untuk menerima kode OTP verifikasi sekali pakai.')"
         />
 
         {{-- Flash Alerts --}}
@@ -43,7 +43,8 @@ Deskripsi: Halaman permintaan OTP bersih standar Laravel Breeze.
 
             <x-authentication::input 
                 name="identifier"
-                :label="__('Email / Username')"
+                :label="__('Email atau Username')"
+                :placeholder="__('nama@domain.com atau username')"
                 :required="true"
                 autocomplete="username"
                 :autofocus="true"
@@ -51,15 +52,15 @@ Deskripsi: Halaman permintaan OTP bersih standar Laravel Breeze.
 
             <div class="pt-2">
                 <x-authentication::button type="submit" variant="primary">
-                    {{ __('Kirim Kode OTP') }}
+                    {{ __('Kirim Kode Verifikasi') }}
                 </x-authentication::button>
             </div>
 
         </form>
 
-        <div class="pt-4 border-t border-gray-100 dark:border-gray-700 text-center text-sm">
-            <a href="{{ $loginRoute }}" class="underline text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
-                &larr; {{ __('Masuk dengan kata sandi') }}
+        <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
+            <a href="{{ $loginRoute }}" class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline">
+                &larr; {{ __('Masuk dengan kata sandi biasa') }}
             </a>
         </div>
 

@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-KOMPONEN: FORM INPUT (CLEAN BREEZE STYLE)
+KOMPONEN: FORM INPUT (MODERN ZINC & BREEZE STYLE)
 Package: mixudev/laravel-authentication
-Deskripsi: Input form standar Laravel Breeze dengan label, error binding, dan toggle password.
+Deskripsi: Input form standar dengan label, error binding, dan toggle password.
 =============================================================================
 --}}
 @props([
@@ -26,11 +26,11 @@ Deskripsi: Input form standar Laravel Breeze dengan label, error binding, dan to
     $isPassword = ($type === 'password');
 @endphp
 
-<div class="space-y-1" x-data="{ showPass: false }">
+<div class="space-y-1.5" x-data="{ showPass: false }">
     {{-- Label Input --}}
     @if ($label)
         <div class="flex items-center justify-between">
-            <label for="{{ $inputId }}" class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+            <label for="{{ $inputId }}" class="block font-medium text-xs text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
                 {{ $label }}
                 @if ($required)
                     <span class="text-red-500">*</span>
@@ -60,9 +60,13 @@ Deskripsi: Input form standar Laravel Breeze dengan label, error binding, dan to
             @if ($isPassword)
                 :type="showPass ? 'text' : 'password'"
             @endif
-            class="block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm text-sm px-3 py-2
+            class="auth-input block w-full border rounded-lg shadow-xs text-sm px-3.5 py-2.5 outline-none transition duration-150
+                bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600
                 {{ $isPassword ? 'pr-10' : '' }}
-                {{ $hasError ? 'border-red-500 dark:border-red-500 focus:border-red-500 focus:ring-red-500' : '' }}"
+                {{ $hasError 
+                    ? 'border-red-500 dark:border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500' 
+                    : 'border-zinc-300 dark:border-zinc-800 focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700' 
+                }}"
         />
 
         {{-- Toggle Password Button --}}
@@ -79,7 +83,7 @@ Deskripsi: Input form standar Laravel Breeze dengan label, error binding, dan to
                         this.querySelector('.eye-closed').classList.toggle('hidden', !isText);
                     }
                 "
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors focus:outline-none cursor-pointer"
                 tabindex="-1"
                 aria-label="Tampilkan atau sembunyikan kata sandi"
             >
@@ -96,13 +100,16 @@ Deskripsi: Input form standar Laravel Breeze dengan label, error binding, dan to
 
     {{-- Hint --}}
     @if ($hint && !$hasError)
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $hint }}</p>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{{ $hint }}</p>
     @endif
 
     {{-- Error --}}
     @if (isset($errors) && $errors->has($name))
-        <p class="text-sm text-red-600 dark:text-red-400 mt-1">
-            {{ $errors->first($name) }}
+        <p class="text-xs text-red-600 dark:text-red-400 mt-1 font-medium flex items-center gap-1">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>{{ $errors->first($name) }}</span>
         </p>
     @endif
 </div>

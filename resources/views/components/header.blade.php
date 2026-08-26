@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-KOMPONEN: FORM HEADER (MINIMALIS BREEZE)
+KOMPONEN: FORM HEADER (MODERN ZINC)
 Package: mixudev/laravel-authentication
-Deskripsi: Judul dan deskripsi singkat formulir bergaya bersih ala Laravel Breeze.
+Deskripsi: Judul dan deskripsi singkat formulir bergaya bersih & modern.
 =============================================================================
 --}}
 @props([
@@ -12,12 +12,12 @@ Deskripsi: Judul dan deskripsi singkat formulir bergaya bersih ala Laravel Breez
 ])
 
 <div class="mb-5 text-left">
-    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+    <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
         {{ $title }}
     </h2>
 
     @if ($subtitle)
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
             {{ $subtitle }}
         </p>
     @endif

@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: REGISTER (CLEAN BREEZE STYLE)
+HALAMAN VIEW: REGISTER (MODERN DEEP ZINC)
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman registrasi bersih, simpel, dan elegan standar Laravel Breeze.
+Deskripsi: Halaman registrasi bersih, modern, dan pekat standar Laravel.
 =============================================================================
 --}}
 @php
@@ -26,6 +26,7 @@ Deskripsi: Halaman registrasi bersih, simpel, dan elegan standar Laravel Breeze.
         {{-- Header Singkat --}}
         <x-authentication::header 
             :title="__('Buat Akun Baru')"
+            :subtitle="__('Lengkapi informasi di bawah untuk mendaftarkan akun.')"
         />
 
         {{-- Flash Alerts --}}
@@ -52,6 +53,7 @@ Deskripsi: Halaman registrasi bersih, simpel, dan elegan standar Laravel Breeze.
             <x-authentication::input 
                 name="name"
                 :label="__('Nama Lengkap')"
+                :placeholder="__('Nama lengkap Anda')"
                 :required="true"
                 autocomplete="name"
                 :autofocus="true"
@@ -62,6 +64,7 @@ Deskripsi: Halaman registrasi bersih, simpel, dan elegan standar Laravel Breeze.
                 name="email"
                 type="email"
                 :label="__('Alamat Email')"
+                :placeholder="__('nama@domain.com')"
                 :required="true"
                 autocomplete="email"
             />
@@ -71,6 +74,7 @@ Deskripsi: Halaman registrasi bersih, simpel, dan elegan standar Laravel Breeze.
                 <x-authentication::input 
                     name="username"
                     :label="__('Username')"
+                    :placeholder="__('Pilih username unik')"
                     :required="false"
                     autocomplete="username"
                 />
@@ -81,6 +85,7 @@ Deskripsi: Halaman registrasi bersih, simpel, dan elegan standar Laravel Breeze.
                 name="password"
                 type="password"
                 :label="__('Kata Sandi')"
+                :placeholder="__('Minimal 8 karakter')"
                 :required="true"
                 autocomplete="new-password"
             />
@@ -90,19 +95,20 @@ Deskripsi: Halaman registrasi bersih, simpel, dan elegan standar Laravel Breeze.
                 name="password_confirmation"
                 type="password"
                 :label="__('Konfirmasi Kata Sandi')"
+                :placeholder="__('Ulangi kata sandi')"
                 :required="true"
                 autocomplete="new-password"
             />
 
             {{-- Persetujuan Syarat & Ketentuan --}}
-            <div class="block">
+            <div class="block pt-1">
                 <x-authentication::checkbox 
                     name="terms"
                     :required="true"
                 >
-                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                    <span class="text-xs text-zinc-600 dark:text-zinc-400">
                         {{ __('Saya menyetujui') }} 
-                        <a href="#" class="underline hover:text-gray-900 dark:hover:text-gray-100">{{ __('Syarat & Ketentuan') }}</a>.
+                        <a href="#" class="underline text-zinc-900 dark:text-zinc-100 hover:opacity-80">{{ __('Syarat & Ketentuan') }}</a>.
                     </span>
                 </x-authentication::checkbox>
             </div>
@@ -110,18 +116,18 @@ Deskripsi: Halaman registrasi bersih, simpel, dan elegan standar Laravel Breeze.
             {{-- Tombol Submit --}}
             <div class="pt-2">
                 <x-authentication::button type="submit" variant="primary">
-                    {{ __('Daftar') }}
+                    {{ __('Daftar Akun') }}
                 </x-authentication::button>
             </div>
 
         </form>
 
         {{-- Link ke Login --}}
-        <div class="pt-4 border-t border-gray-100 dark:border-gray-700 text-center text-sm text-gray-600 dark:text-gray-400">
-            <p class="text-xs">
+        <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs text-zinc-600 dark:text-zinc-400">
+            <p>
                 {{ __('Sudah memiliki akun?') }}
-                <a href="{{ $loginRoute }}" class="underline font-medium text-gray-900 dark:text-gray-100 ml-1">
-                    {{ __('Masuk') }}
+                <a href="{{ $loginRoute }}" class="font-medium text-zinc-900 dark:text-zinc-100 hover:underline ml-1">
+                    {{ __('Masuk ke sistem') }} &rarr;
                 </a>
             </p>
         </div>

@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: OTP VERIFY (CLEAN BREEZE STYLE)
+HALAMAN VIEW: OTP VERIFY (MODERN DEEP ZINC)
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman verifikasi kode OTP bersih standar Laravel Breeze.
+Deskripsi: Halaman verifikasi kode OTP bersih dan pekat standar Laravel.
 =============================================================================
 --}}
 @php
@@ -31,8 +31,8 @@ Deskripsi: Halaman verifikasi kode OTP bersih standar Laravel Breeze.
     <div class="space-y-4">
         
         <x-authentication::header 
-            :title="__('Verifikasi Kode OTP')"
-            :subtitle="__('Masukkan 6 digit kode yang telah dikirimkan ke email Anda.')"
+            :title="__('Verifikasi Kode Masuk')"
+            :subtitle="__('Masukkan 6 digit kode keamanan yang telah dikirimkan ke email Anda.')"
         />
 
         {{-- Flash Alerts --}}
@@ -60,11 +60,11 @@ Deskripsi: Halaman verifikasi kode OTP bersih standar Laravel Breeze.
             </div>
 
             {{-- Ingat Sesi --}}
-            <div class="block">
+            <div class="block pt-1">
                 <x-authentication::checkbox 
                     name="remember"
                     :checked="true"
-                    :label="__('Ingat sesi saya')"
+                    :label="__('Ingat sesi saya pada perangkat ini')"
                 />
             </div>
 
@@ -78,18 +78,18 @@ Deskripsi: Halaman verifikasi kode OTP bersih standar Laravel Breeze.
         </form>
 
         {{-- Kirim Ulang & Kembali --}}
-        <div class="space-y-2 pt-4 border-t border-gray-100 dark:border-gray-700 text-center text-xs text-gray-600 dark:text-gray-400">
+        <div class="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs text-zinc-600 dark:text-zinc-400">
             <form method="POST" action="{{ $sendRoute }}" class="inline-block">
                 @csrf
                 <input type="hidden" name="identifier" value="{{ $identifier }}">
                 <span>{{ __('Tidak menerima kode?') }}</span>
-                <button type="submit" class="underline hover:text-gray-900 dark:hover:text-gray-100 font-medium ml-1 cursor-pointer bg-transparent border-0 p-0">
+                <button type="submit" class="font-medium text-zinc-900 dark:text-zinc-100 hover:underline ml-1 cursor-pointer bg-transparent border-0 p-0">
                     {{ __('Kirim ulang') }}
                 </button>
             </form>
 
             <div>
-                <a href="{{ $loginRoute }}" class="underline hover:text-gray-900 dark:hover:text-gray-100 block pt-1">
+                <a href="{{ $loginRoute }}" class="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:underline block pt-1">
                     &larr; {{ __('Kembali ke login biasa') }}
                 </a>
             </div>

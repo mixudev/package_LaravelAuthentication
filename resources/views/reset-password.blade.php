@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: RESET PASSWORD (CLEAN BREEZE STYLE)
+HALAMAN VIEW: RESET PASSWORD (MODERN DEEP ZINC)
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman reset password bersih standar Laravel Breeze.
+Deskripsi: Halaman reset password bersih dan pekat standar Laravel.
 =============================================================================
 --}}
 @php
@@ -25,6 +25,7 @@ Deskripsi: Halaman reset password bersih standar Laravel Breeze.
         
         <x-authentication::header 
             :title="__('Atur Ulang Kata Sandi')"
+            :subtitle="__('Silakan masukkan kata sandi baru untuk akun Anda.')"
         />
 
         {{-- Flash Alerts --}}
@@ -55,6 +56,7 @@ Deskripsi: Halaman reset password bersih standar Laravel Breeze.
                 name="password"
                 type="password"
                 :label="__('Kata Sandi Baru')"
+                :placeholder="__('Minimal 8 karakter baru')"
                 :required="true"
                 autocomplete="new-password"
                 :autofocus="true"
@@ -63,7 +65,8 @@ Deskripsi: Halaman reset password bersih standar Laravel Breeze.
             <x-authentication::input 
                 name="password_confirmation"
                 type="password"
-                :label="__('Konfirmasi Kata Sandi')"
+                :label="__('Konfirmasi Kata Sandi Baru')"
+                :placeholder="__('Ulangi kata sandi baru')"
                 :required="true"
                 autocomplete="new-password"
             />
@@ -76,8 +79,8 @@ Deskripsi: Halaman reset password bersih standar Laravel Breeze.
 
         </form>
 
-        <div class="pt-4 border-t border-gray-100 dark:border-gray-700 text-center text-sm">
-            <a href="{{ $loginRoute }}" class="underline text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+        <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
+            <a href="{{ $loginRoute }}" class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline">
                 &larr; {{ __('Kembali ke halaman masuk') }}
             </a>
         </div>

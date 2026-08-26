@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-KOMPONEN: CUSTOM CHECKBOX (CLEAN BREEZE STYLE)
+KOMPONEN: CUSTOM CHECKBOX (MODERN ZINC)
 Package: mixudev/laravel-authentication
-Deskripsi: Checkbox standar Laravel Breeze untuk 'Ingat Saya' atau 'Syarat Ketentuan'.
+Deskripsi: Checkbox bersih dan modern untuk 'Ingat Saya' atau 'Syarat Ketentuan'.
 =============================================================================
 --}}
 @props([
@@ -27,11 +27,11 @@ Deskripsi: Checkbox standar Laravel Breeze untuk 'Ingat Saya' atau 'Syarat Keten
             'required' => $required,
             'checked' => (bool) $isChecked,
         ]) }}
-        class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800 cursor-pointer"
+        class="w-4 h-4 rounded bg-white dark:bg-zinc-950 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 dark:focus:ring-offset-zinc-950 cursor-pointer"
     />
     
     @if ($label || !$slot->isEmpty())
-        <label for="{{ $checkboxId }}" class="ms-2 text-sm text-gray-600 dark:text-gray-400 select-none cursor-pointer">
+        <label for="{{ $checkboxId }}" class="ms-2 text-sm text-zinc-600 dark:text-zinc-400 select-none cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200">
             {{ $label ?? $slot }}
         </label>
     @endif

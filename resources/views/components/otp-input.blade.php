@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-KOMPONEN: SEGMENTED OTP INPUT (CLEAN BREEZE STYLE)
+KOMPONEN: SEGMENTED OTP INPUT (MODERN ZINC)
 Package: mixudev/laravel-authentication
-Deskripsi: Input 6 digit OTP bersegmen yang bersih dan mudah digunakan.
+Deskripsi: Input 6 digit OTP bersegmen yang bersih, modern, dan responsif.
 =============================================================================
 --}}
 @props([
@@ -78,7 +78,7 @@ Deskripsi: Input 6 digit OTP bersegmen yang bersih dan mudah digunakan.
         required
     />
 
-    <div class="flex items-center justify-center gap-2" @paste="handlePaste($event)">
+    <div class="flex items-center justify-center gap-2 sm:gap-2.5" @paste="handlePaste($event)">
         @for ($i = 0; $i < $length; $i++)
             <input 
                 type="text"
@@ -90,13 +90,13 @@ Deskripsi: Input 6 digit OTP bersegmen yang bersih dan mudah digunakan.
                 x-model="digits[{{ $i }}]"
                 @input="handleInput($event, {{ $i }})"
                 @keydown="handleKeydown($event, {{ $i }})"
-                class="w-10 h-12 text-center text-lg font-semibold rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 shadow-sm outline-none transition"
+                class="w-10 h-12 text-center text-lg font-semibold rounded-lg border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 shadow-xs outline-none transition"
             />
         @endfor
     </div>
 
     @if (isset($errors) && $errors->has($name))
-        <p class="text-sm text-red-600 dark:text-red-400 mt-1 text-center">
+        <p class="text-xs text-red-600 dark:text-red-400 mt-1 text-center font-medium">
             {{ $errors->first($name) }}
         </p>
     @endif

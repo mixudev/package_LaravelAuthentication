@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: FORGOT PASSWORD (CLEAN BREEZE STYLE)
+HALAMAN VIEW: FORGOT PASSWORD (MODERN DEEP ZINC)
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman lupa password bersih standar Laravel Breeze.
+Deskripsi: Halaman lupa password bersih dan pekat standar Laravel.
 =============================================================================
 --}}
 @php
@@ -23,9 +23,10 @@ Deskripsi: Halaman lupa password bersih standar Laravel Breeze.
     
     <div class="space-y-4">
         
-        <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('Lupa kata sandi? Masukkan alamat email Anda dan kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda.') }}
-        </div>
+        <x-authentication::header 
+            :title="__('Pemulihan Kata Sandi')"
+            :subtitle="__('Masukkan email terdaftar Anda dan kami akan mengirimkan tautan untuk mengatur ulang kata sandi.')"
+        />
 
         {{-- Flash Alerts --}}
         @if (session('status'))
@@ -44,6 +45,7 @@ Deskripsi: Halaman lupa password bersih standar Laravel Breeze.
                 name="email"
                 type="email"
                 :label="__('Email')"
+                :placeholder="__('nama@domain.com')"
                 :required="true"
                 autocomplete="email"
                 :autofocus="true"
@@ -51,14 +53,14 @@ Deskripsi: Halaman lupa password bersih standar Laravel Breeze.
 
             <div class="pt-2">
                 <x-authentication::button type="submit" variant="primary">
-                    {{ __('Kirim Tautan Reset Password') }}
+                    {{ __('Kirim Tautan Reset') }}
                 </x-authentication::button>
             </div>
 
         </form>
 
-        <div class="pt-4 border-t border-gray-100 dark:border-gray-700 text-center text-sm">
-            <a href="{{ $loginRoute }}" class="underline text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+        <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
+            <a href="{{ $loginRoute }}" class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline">
                 &larr; {{ __('Kembali ke halaman masuk') }}
             </a>
         </div>
