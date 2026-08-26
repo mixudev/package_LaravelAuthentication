@@ -1,15 +1,16 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: LOGIN (MODERN ZINC)
+HALAMAN VIEW: LOGIN
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
+Deskripsi: Halaman login bersih dengan alert di bawah field dan dukungan 2 bahasa.
 =============================================================================
 --}}
 @php
     $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
         ? 'authentication::layouts.split' 
         : 'authentication::layouts.card';
-        
+
+    /* Resolusi rute secara fleksibel agar kompatibel dengan berbagai konfigurasi host */
     $loginPerformRoute = Route::has('login.perform') 
         ? route('login.perform') 
         : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
@@ -27,48 +28,26 @@ Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
         : (Route::has('authentication.register') ? route('authentication.register') : url('/register'));
 @endphp
 
-<x-dynamic-component :component="$activeLayout" :title="__('Masuk')">
+<x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.sign_in')">
     
     <div class="space-y-4">
         
-        {{-- Header Singkat --}}
+        {{-- Header Halaman --}}
         <x-authentication::header 
-            :title="__('Masuk ke Akun')"
-            :subtitle="__('Silakan masukkan kredensial Anda untuk melanjutkan.')"
+            :title="__('authentication::messages.sign_in')"
+            :subtitle="__('authentication::messages.sign_in_subtitle')"
         />
 
-        {{-- Flash Alerts & Credential Error --}}
+        {{-- Notifikasi Status Sukses (misal: setelah logout) --}}
         @if (session('status'))
             <x-authentication::alert type="success" :message="session('status')" />
         @endif
 
-        @if ($errors->has('identifier') || $errors->has('password') || $errors->has('credentials') || session('error'))
-            <x-authentication::alert type="error">
-                <span class="flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    {{ $errors->first('credentials') ?: $errors->first('identifier') ?: $errors->first('password') ?: session('error') }}
-                </span>
-            </x-authentication::alert>
-        @endif
-
-        @if ($errors->any() && !$errors->has('identifier') && !$errors->has('password') && !$errors->has('credentials') && !session('error'))
-            <x-authentication::alert type="error">
-                <span class="flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    {{ $errors->first() }}
-                </span>
-            </x-authentication::alert>
-        @endif
-
-        {{-- Social Login (Google / GitHub) --}}
+        {{-- Tombol Social Login (Google / GitHub) --}}
         <x-authentication::social-buttons />
 
         @if (config('authentication.features.social.enabled', false))
-            <x-authentication::divider :label="__('ATAU')" />
+            <x-authentication::divider :label="__('authentication::messages.divider')" />
         @endif
 
         {{-- Formulir Login Utama --}}
@@ -78,43 +57,70 @@ Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
             {{-- Identifier (Email / Username) --}}
             <x-authentication::input 
                 name="identifier"
-                :label="__('Email atau Username')"
-                :placeholder="__('nama@domain.com atau username')"
+                :label="__('authentication::messages.identifier_label')"
+                :placeholder="__('authentication::messages.identifier_placeholder')"
                 :required="true"
                 autocomplete="username"
                 :autofocus="true"
             />
 
-            {{-- Password --}}
+            {{-- Password dengan link lupa password --}}
             <x-authentication::input 
                 name="password"
                 type="password"
-                :label="__('Kata Sandi')"
-                :placeholder="__('Masukkan kata sandi')"
+                :label="__('authentication::messages.password_label')"
+                :placeholder="__('authentication::messages.password_placeholder')"
                 :required="true"
                 autocomplete="current-password"
             >
                 @if (config('authentication.features.forgot_password.enabled', true))
                     <x-slot:labelRight>
                         <a href="{{ $forgotPasswordRoute }}" class="auth-link text-xs hover:underline">
-                            {{ __('Lupa password?') }}
+                            {{ __('authentication::messages.forgot_password') }}
                         </a>
                     </x-slot:labelRight>
                 @endif
             </x-authentication::input>
 
-            {{-- Ingat Saya --}}
+            {{-- Alert Error Kredensial — Tampil di bawah field password, bukan di atas form --}}
+            @php
+                $credentialError = $errors->first('credentials') 
+                    ?: $errors->first('identifier')
+                    ?: $errors->first('password')
+                    ?: session('error');
+            @endphp
+            @if ($credentialError)
+                <x-authentication::alert type="error">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {{ $credentialError }}
+                    </span>
+                </x-authentication::alert>
+            @elseif ($errors->any())
+                <x-authentication::alert type="error">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {{ $errors->first() }}
+                    </span>
+                </x-authentication::alert>
+            @endif
+
+            {{-- Checkbox Ingat Saya --}}
             <div class="block pt-1">
                 <x-authentication::checkbox 
                     name="remember"
-                    :label="__('Ingat sesi saya')"
+                    :label="__('authentication::messages.remember_me')"
                 />
             </div>
 
-            {{-- Tombol Submit Masuk --}}
+            {{-- Tombol Submit --}}
             <div class="pt-2">
                 <x-authentication::button type="submit" variant="primary">
-                    {{ __('Masuk') }}
+                    {{ __('authentication::messages.sign_in_btn') }}
                 </x-authentication::button>
             </div>
 
@@ -125,7 +131,7 @@ Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
             @if (config('authentication.features.otp.enabled', true))
                 <div>
                     <a href="{{ $otpRequestRoute }}" class="auth-link hover:underline">
-                        {{ __('Masuk tanpa password via Kode OTP') }}
+                        {{ __('authentication::messages.sign_in_otp') }}
                     </a>
                 </div>
             @endif
@@ -133,9 +139,9 @@ Deskripsi: Halaman login bersih, modern, dan pekat standar Laravel.
             @if (config('authentication.features.registration.enabled', true))
                 <div class="auth-subtext">
                     <p>
-                        {{ __('Belum memiliki akun?') }}
+                        {{ __('authentication::messages.no_account') }}
                         <a href="{{ $registerRoute }}" class="auth-link font-medium hover:underline ml-1">
-                            {{ __('Daftar sekarang') }} &rarr;
+                            {{ __('authentication::messages.register_now') }} &rarr;
                         </a>
                     </p>
                 </div>

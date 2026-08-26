@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: REGISTER (MODERN DEEP ZINC)
+HALAMAN VIEW: REGISTER
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman registrasi bersih, modern, dan pekat standar Laravel.
+Deskripsi: Halaman registrasi dengan dukungan 2 bahasa (Indonesia / Inggris).
 =============================================================================
 --}}
 @php
@@ -19,37 +19,31 @@ Deskripsi: Halaman registrasi bersih, modern, dan pekat standar Laravel.
         : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
 @endphp
 
-<x-dynamic-component :component="$activeLayout" :title="__('Daftar Akun')">
+<x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.register_title')">
     
     <div class="space-y-4">
         
-        {{-- Header Singkat --}}
         <x-authentication::header 
-            :title="__('Buat Akun Baru')"
-            :subtitle="__('Lengkapi informasi di bawah untuk mendaftarkan akun.')"
+            :title="__('authentication::messages.register_title')"
+            :subtitle="__('authentication::messages.register_subtitle')"
         />
 
-        {{-- Flash Alerts --}}
         @if (session('status'))
             <x-authentication::alert type="success" :message="session('status')" />
         @endif
-
         @if (session('error'))
             <x-authentication::alert type="error" :message="session('error')" />
         @endif
 
-        {{-- Social Register (Google / GitHub) --}}
         <x-authentication::social-buttons />
 
         @if (config('authentication.features.social.enabled', false))
-            <x-authentication::divider :label="__('ATAU')" />
+            <x-authentication::divider :label="__('authentication::messages.divider')" />
         @endif
 
-        {{-- Formulir Registrasi --}}
         <form method="POST" action="{{ $registerPerformRoute }}" class="space-y-4" novalidate>
             @csrf
 
-            {{-- Nama Lengkap --}}
             <x-authentication::input 
                 name="name"
                 :label="__('Nama Lengkap')"
@@ -59,7 +53,6 @@ Deskripsi: Halaman registrasi bersih, modern, dan pekat standar Laravel.
                 :autofocus="true"
             />
 
-            {{-- Alamat Email --}}
             <x-authentication::input 
                 name="email"
                 type="email"
@@ -69,28 +62,24 @@ Deskripsi: Halaman registrasi bersih, modern, dan pekat standar Laravel.
                 autocomplete="email"
             />
 
-            {{-- Username (Opsional) --}}
-            @if (config('authentication.strategies.active') === 'username_password' || config('authentication.strategies.active') === 'username_or_email')
+            @if (in_array(config('authentication.strategies.active'), ['username_password', 'username_or_email']))
                 <x-authentication::input 
                     name="username"
                     :label="__('Username')"
                     :placeholder="__('Pilih username unik')"
-                    :required="false"
                     autocomplete="username"
                 />
             @endif
 
-            {{-- Password --}}
             <x-authentication::input 
                 name="password"
                 type="password"
-                :label="__('Kata Sandi')"
+                :label="__('authentication::messages.password_label')"
                 :placeholder="__('Minimal 8 karakter')"
                 :required="true"
                 autocomplete="new-password"
             />
 
-            {{-- Konfirmasi Password --}}
             <x-authentication::input 
                 name="password_confirmation"
                 type="password"
@@ -100,34 +89,39 @@ Deskripsi: Halaman registrasi bersih, modern, dan pekat standar Laravel.
                 autocomplete="new-password"
             />
 
-            {{-- Persetujuan Syarat & Ketentuan --}}
             <div class="block pt-1">
-                <x-authentication::checkbox 
-                    name="terms"
-                    :required="true"
-                >
+                <x-authentication::checkbox name="terms" :required="true">
                     <span class="auth-subtext text-xs">
-                        {{ __('Saya menyetujui') }} 
-                        <a href="#" class="auth-link underline">{{ __('Syarat & Ketentuan') }}</a>.
+                        {{ __('authentication::messages.terms_agree') }} 
+                        <a href="#" class="auth-link underline">{{ __('authentication::messages.terms_label') }}</a>.
                     </span>
                 </x-authentication::checkbox>
             </div>
 
-            {{-- Tombol Submit --}}
+            @if ($errors->any())
+                <x-authentication::alert type="error">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {{ $errors->first() }}
+                    </span>
+                </x-authentication::alert>
+            @endif
+
             <div class="pt-2">
                 <x-authentication::button type="submit" variant="primary">
-                    {{ __('Daftar Akun') }}
+                    {{ __('authentication::messages.register_btn') }}
                 </x-authentication::button>
             </div>
 
         </form>
 
-        {{-- Link ke Login --}}
         <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
             <p class="auth-subtext">
-                {{ __('Sudah memiliki akun?') }}
+                {{ __('authentication::messages.already_account') }}
                 <a href="{{ $loginRoute }}" class="auth-link font-medium hover:underline ml-1">
-                    {{ __('Masuk ke sistem') }} &rarr;
+                    {{ __('authentication::messages.login_here') }} &rarr;
                 </a>
             </p>
         </div>

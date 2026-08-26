@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: OTP VERIFY (MODERN DEEP ZINC)
+HALAMAN VIEW: OTP VERIFY
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman verifikasi kode OTP bersih dan pekat standar Laravel.
+Deskripsi: Halaman verifikasi kode OTP dengan dukungan 2 bahasa.
 =============================================================================
 --}}
 @php
@@ -26,31 +26,28 @@ Deskripsi: Halaman verifikasi kode OTP bersih dan pekat standar Laravel.
     $otpLength = (int) config('authentication.features.otp.length', 6);
 @endphp
 
-<x-dynamic-component :component="$activeLayout" :title="__('Verifikasi OTP')">
+<x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.otp_verify_title')">
     
     <div class="space-y-4">
         
         <x-authentication::header 
-            :title="__('Verifikasi Kode Masuk')"
-            :subtitle="__('Masukkan 6 digit kode keamanan yang telah dikirimkan ke email Anda.')"
+            :title="__('authentication::messages.otp_verify_title')"
+            :subtitle="__('authentication::messages.otp_verify_subtitle')"
         />
 
-        {{-- Flash Alerts --}}
         @if (session('status'))
             <x-authentication::alert type="success" :message="session('status')" />
         @endif
-
         @if (session('error'))
             <x-authentication::alert type="error" :message="session('error')" />
         @endif
 
-        {{-- Form --}}
         <form method="POST" action="{{ $verifyRoute }}" class="space-y-4" novalidate>
             @csrf
 
             <input type="hidden" name="identifier" value="{{ $identifier }}">
 
-            {{-- 6-Digit OTP --}}
+            {{-- Kotak OTP 6 Digit --}}
             <div class="py-2">
                 <x-authentication::otp-input 
                     name="code"
@@ -59,38 +56,47 @@ Deskripsi: Halaman verifikasi kode OTP bersih dan pekat standar Laravel.
                 />
             </div>
 
-            {{-- Ingat Sesi --}}
+            {{-- Alert Error --}}
+            @if ($errors->any())
+                <x-authentication::alert type="error">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {{ $errors->first() }}
+                    </span>
+                </x-authentication::alert>
+            @endif
+
             <div class="block pt-1">
                 <x-authentication::checkbox 
                     name="remember"
                     :checked="true"
-                    :label="__('Ingat sesi saya pada perangkat ini')"
+                    :label="__('authentication::messages.remember_device')"
                 />
             </div>
 
-            {{-- Tombol Submit --}}
             <div class="pt-2">
                 <x-authentication::button type="submit" variant="primary">
-                    {{ __('Verifikasi & Masuk') }}
+                    {{ __('authentication::messages.otp_verify_btn') }}
                 </x-authentication::button>
             </div>
 
         </form>
 
-        {{-- Kirim Ulang & Kembali --}}
         <div class="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
             <form method="POST" action="{{ $sendRoute }}" class="inline-block">
                 @csrf
                 <input type="hidden" name="identifier" value="{{ $identifier }}">
-                <span class="auth-subtext">{{ __('Tidak menerima kode?') }}</span>
+                <span class="auth-subtext">{{ __('authentication::messages.otp_resend_hint') }}</span>
                 <button type="submit" class="auth-link font-medium hover:underline ml-1 cursor-pointer bg-transparent border-0 p-0">
-                    {{ __('Kirim ulang') }}
+                    {{ __('authentication::messages.otp_resend_btn') }}
                 </button>
             </form>
 
             <div>
                 <a href="{{ $loginRoute }}" class="auth-link hover:underline block pt-1">
-                    &larr; {{ __('Kembali ke login biasa') }}
+                    &larr; {{ __('authentication::messages.back_to_login') }}
                 </a>
             </div>
         </div>

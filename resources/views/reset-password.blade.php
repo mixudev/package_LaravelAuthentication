@@ -1,8 +1,8 @@
 {{-- 
 =============================================================================
-HALAMAN VIEW: RESET PASSWORD (MODERN DEEP ZINC)
+HALAMAN VIEW: RESET PASSWORD
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman reset password bersih dan pekat standar Laravel.
+Deskripsi: Halaman reset password dengan dukungan 2 bahasa.
 =============================================================================
 --}}
 @php
@@ -19,25 +19,22 @@ Deskripsi: Halaman reset password bersih dan pekat standar Laravel.
         : (Route::has('login') ? route('login') : url('/login'));
 @endphp
 
-<x-dynamic-component :component="$activeLayout" :title="__('Atur Ulang Kata Sandi')">
+<x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.reset_title')">
     
     <div class="space-y-4">
         
         <x-authentication::header 
-            :title="__('Atur Ulang Kata Sandi')"
-            :subtitle="__('Silakan masukkan kata sandi baru untuk akun Anda.')"
+            :title="__('authentication::messages.reset_title')"
+            :subtitle="__('authentication::messages.reset_subtitle')"
         />
 
-        {{-- Flash Alerts --}}
         @if (session('status'))
             <x-authentication::alert type="success" :message="session('status')" />
         @endif
-
         @if (session('error'))
             <x-authentication::alert type="error" :message="session('error')" />
         @endif
 
-        {{-- Form --}}
         <form method="POST" action="{{ $updateRoute }}" class="space-y-4" novalidate>
             @csrf
 
@@ -46,7 +43,7 @@ Deskripsi: Halaman reset password bersih dan pekat standar Laravel.
             <x-authentication::input 
                 name="email"
                 type="email"
-                :label="__('Email')"
+                :label="__('Alamat Email')"
                 :value="old('email', $email ?? request()->email)"
                 :required="true"
                 autocomplete="email"
@@ -55,8 +52,8 @@ Deskripsi: Halaman reset password bersih dan pekat standar Laravel.
             <x-authentication::input 
                 name="password"
                 type="password"
-                :label="__('Kata Sandi Baru')"
-                :placeholder="__('Minimal 8 karakter baru')"
+                :label="__('authentication::messages.new_password_label')"
+                :placeholder="__('authentication::messages.new_password_ph')"
                 :required="true"
                 autocomplete="new-password"
                 :autofocus="true"
@@ -65,15 +62,26 @@ Deskripsi: Halaman reset password bersih dan pekat standar Laravel.
             <x-authentication::input 
                 name="password_confirmation"
                 type="password"
-                :label="__('Konfirmasi Kata Sandi Baru')"
-                :placeholder="__('Ulangi kata sandi baru')"
+                :label="__('authentication::messages.confirm_password_label')"
+                :placeholder="__('authentication::messages.confirm_password_ph')"
                 :required="true"
                 autocomplete="new-password"
             />
 
+            @if ($errors->any())
+                <x-authentication::alert type="error">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {{ $errors->first() }}
+                    </span>
+                </x-authentication::alert>
+            @endif
+
             <div class="pt-2">
                 <x-authentication::button type="submit" variant="primary">
-                    {{ __('Simpan Kata Sandi Baru') }}
+                    {{ __('authentication::messages.reset_btn') }}
                 </x-authentication::button>
             </div>
 
@@ -81,7 +89,7 @@ Deskripsi: Halaman reset password bersih dan pekat standar Laravel.
 
         <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
             <a href="{{ $loginRoute }}" class="auth-link hover:underline">
-                &larr; {{ __('Kembali ke halaman masuk') }}
+                &larr; {{ __('authentication::messages.back_to_login_arrow') }}
             </a>
         </div>
 
