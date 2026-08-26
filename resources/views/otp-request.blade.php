@@ -72,10 +72,10 @@ Deskripsi: Halaman pengajuan pengiriman kode OTP sekali pakai ke email/identifie
         </form>
 
         {{-- Navigasi ke Login Password --}}
-        <div class="pt-3 border-t border-slate-850 text-center text-xs text-slate-400">
+        <div class="pt-3 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-600 dark:text-slate-400">
             <p>
                 {{ __('Ingin masuk menggunakan kata sandi?') }}
-                <a href="{{ $loginRoute }}" class="text-amber-400 hover:text-amber-300 font-medium ml-1">
+                <a href="{{ $loginRoute }}" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-medium ml-1">
                     &larr; {{ __('Masuk dengan password biasa') }}
                 </a>
             </p>

@@ -3,7 +3,7 @@
 KOMPONEN: SEGMENTED OTP INPUT
 Package: mixudev/laravel-authentication
 Deskripsi: Komponen input 6 digit OTP bersegmen dengan auto-focus otomatis ke digit berikutnya,
-           dukungan paste lengkap (clipboard), serta sinkronisasi nilai ke hidden input form.
+           dukungan paste lengkap (clipboard), serta sinkronisasi nilai ke hidden input form (Light & Dark).
 =============================================================================
 --}}
 @props([
@@ -27,7 +27,6 @@ Deskripsi: Komponen input 6 digit OTP bersegmen dengan auto-focus otomatis ke di
         },
         handleInput(e, index) {
             const val = e.target.value;
-            // Jika user memasukkan lebih dari 1 karakter (misal auto-fill)
             if (val.length > 1) {
                 this.pasteCode(val);
                 return;
@@ -82,7 +81,7 @@ Deskripsi: Komponen input 6 digit OTP bersegmen dengan auto-focus otomatis ke di
     />
 
     {{-- Kotak Digit Terpisah --}}
-    <div class="flex items-center justify-between gap-2 sm:gap-3" @paste="handlePaste($event)">
+    <div class="flex items-center justify-between gap-2 sm:gap-2.5" @paste="handlePaste($event)">
         @for ($i = 0; $i < $length; $i++)
             <input 
                 type="text"
@@ -94,14 +93,14 @@ Deskripsi: Komponen input 6 digit OTP bersegmen dengan auto-focus otomatis ke di
                 x-model="digits[{{ $i }}]"
                 @input="handleInput($event, {{ $i }})"
                 @keydown="handleKeydown($event, {{ $i }})"
-                class="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-mono-code font-bold rounded-xl bg-slate-900/90 border border-slate-800 text-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 hover:border-slate-700 outline-none transition-all"
+                class="w-11 h-13 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-mono-code font-bold rounded-xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 hover:border-slate-400 dark:hover:border-slate-700 outline-none transition-all"
             />
         @endfor
     </div>
 
     {{-- Pesan Validasi Error Otomatis (@error) --}}
     @if (isset($errors) && $errors->has($name))
-        <p class="text-xs text-rose-400 flex items-center gap-1 mt-1 font-medium">
+        <p class="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1 mt-1 font-medium">
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>

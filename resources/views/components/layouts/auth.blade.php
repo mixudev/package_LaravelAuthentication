@@ -33,7 +33,7 @@ Deskripsi: Kerangka dasar HTML5, memuat aset Vite / Tailwind CSS, meta CSRF,
 
     <title>{{ $appTitle }}</title>
 
-    {{-- Typography Modern: Inter (UI), Space Grotesk (Heading), JetBrains Mono (Badges & Code) --}}
+    {{-- Typography Modern: Inter (UI), Space Grotesk (Heading), IBM Plex Mono (Badges & Code) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -61,9 +61,6 @@ Deskripsi: Kerangka dasar HTML5, memuat aset Vite / Tailwind CSS, meta CSRF,
                                 500: '#f59e0b',
                                 600: '#d97706',
                                 accent: '#e8a33d',
-                                dark: '#0e141a',
-                                panel: '#131c24',
-                                panel2: '#1b2732',
                             }
                         }
                     }
@@ -72,8 +69,12 @@ Deskripsi: Kerangka dasar HTML5, memuat aset Vite / Tailwind CSS, meta CSRF,
         </script>
     @endif
 
-    {{-- Inline styling pelengkap untuk performa rendering font murni --}}
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -89,7 +90,7 @@ Deskripsi: Kerangka dasar HTML5, memuat aset Vite / Tailwind CSS, meta CSRF,
 
     @stack('styles')
 </head>
-<body class="min-h-full bg-slate-950 text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200">
+<body class="min-h-screen w-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-800 dark:selection:text-amber-200 overflow-x-hidden">
     
     {{-- Slot Utama untuk Rendering Halaman / Sub-Layout --}}
     {{ $slot ?? '' }}

@@ -1,9 +1,9 @@
 {{-- 
 =============================================================================
-KOMPONEN: BRAND PANEL (SIDEBAR GRAFIS CONSOLE)
+KOMPONEN: BRAND PANEL (SIDEBAR KIRI MINIMALIS)
 Package: mixudev/laravel-authentication
-Deskripsi: Komponen panel kiri yang menampilkan identitas brand, status TLS / live monitor,
-           ringkasan fitur keamanan, dan watermark sistem.
+Deskripsi: Panel kiri simpel, bersih, dan elegan menampilkan identitas brand,
+           status sistem aktif, dan ringkasan jaminan keamanan ZTA.
 =============================================================================
 --}}
 @props([
@@ -12,71 +12,75 @@ Deskripsi: Komponen panel kiri yang menampilkan identitas brand, status TLS / li
     'statusBadge' => null,
 ])
 
-<div class="relative z-10 flex flex-col justify-between h-full space-y-12">
+<div class="relative z-10 flex flex-col justify-between h-full space-y-10">
     
-    {{-- Bagian Atas: Logo & Badge Live Status --}}
-    <div class="space-y-8">
+    {{-- Bagian Atas: Logo & Headline Bersih --}}
+    <div class="space-y-6">
+        {{-- Logo Brand --}}
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 p-0.5 shadow-lg shadow-amber-500/20 flex items-center justify-center text-slate-950 font-bold">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 p-0.5 shadow-md flex items-center justify-center text-slate-950 font-bold">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
             </div>
             <div>
-                <span class="font-heading font-bold text-xl tracking-tight text-white block">
+                <span class="font-heading font-bold text-lg tracking-tight text-white block">
                     {{ config('authentication.ui.brand_name', config('app.name', 'Console Auth')) }}
-                </span>
-                <span class="text-[11px] font-mono-code text-slate-400 block tracking-wider uppercase">
-                    Security Gateway
                 </span>
             </div>
         </div>
 
-        {{-- Badge Status Operasional --}}
-        <div class="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs font-mono-code bg-slate-900/90 border border-slate-800 text-slate-300 shadow-inner">
-            <span class="relative flex h-2.5 w-2.5">
+        {{-- Badge Status Ringkas --}}
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono-code bg-slate-800/80 border border-slate-700/80 text-slate-300">
+            <span class="relative flex h-2 w-2">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span>{{ $statusBadge ?? config('authentication.ui.brand_badge', 'SYSTEM LIVE // TLS 1.3 ACTIVE') }}</span>
+            <span>{{ $statusBadge ?? config('authentication.ui.brand_badge', 'SYSTEM LIVE // TLS 1.3') }}</span>
         </div>
 
-        {{-- Headline & Penjelasan --}}
-        <div class="space-y-4 pt-2">
-            <h2 class="font-heading font-bold text-3xl xl:text-4xl text-white tracking-tight leading-tight">
-                {{ $title ?? config('authentication.ui.brand_tagline', 'Enterprise Security & Identity Access Management') }}
+        {{-- Headline & Deskripsi Ringkas --}}
+        <div class="space-y-3 pt-2">
+            <h2 class="font-heading font-bold text-2xl xl:text-3xl text-white tracking-tight leading-snug">
+                {{ $title ?? config('authentication.ui.brand_tagline', 'Enterprise Security & Identity Gateway') }}
             </h2>
-            <p class="text-slate-400 text-sm xl:text-base leading-relaxed max-w-sm">
-                {{ $subtitle ?? 'Akses portal terenkripsi berstandar Zero-Trust dengan proteksi mitigasi brute-force dan audit logging otomatis.' }}
+            <p class="text-slate-400 text-sm leading-relaxed max-w-sm">
+                {{ $subtitle ?? 'Portal autentikasi terenkripsi dengan proteksi brute-force otomatis dan standar Zero-Trust.' }}
             </p>
         </div>
     </div>
 
-    {{-- Bagian Tengah: Visual Monitor / Metrics Telemetri --}}
-    <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm space-y-3">
-        <div class="flex items-center justify-between text-xs font-mono-code text-slate-400 border-b border-slate-800/80 pb-2.5">
-            <span class="flex items-center gap-2">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                SECURITY TELEMETRY
-            </span>
-            <span class="text-emerald-400 font-semibold">ALL SYSTEMS NOMINAL</span>
+    {{-- Bagian Tengah: Fitur Keamanan Ringkas (Minimalis) --}}
+    <div class="space-y-3 pt-2">
+        <div class="flex items-center gap-3 text-xs text-slate-300 font-medium">
+            <div class="w-5 h-5 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <span>Enkripsi End-to-End &amp; Argon2id Hash</span>
         </div>
-        <div class="grid grid-cols-2 gap-3 text-xs font-mono-code pt-1">
-            <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-850">
-                <span class="text-slate-500 block text-[10px]">ENCRYPTION</span>
-                <span class="text-slate-200 font-medium">AES-256 / ARGON2</span>
+        <div class="flex items-center gap-3 text-xs text-slate-300 font-medium">
+            <div class="w-5 h-5 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
             </div>
-            <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-850">
-                <span class="text-slate-500 block text-[10px]">THROTTLE SHIELD</span>
-                <span class="text-slate-200 font-medium">COMPOSITE IP+ID</span>
+            <span>Composite Rate Limiting &amp; Anti Brute-Force</span>
+        </div>
+        <div class="flex items-center gap-3 text-xs text-slate-300 font-medium">
+            <div class="w-5 h-5 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
             </div>
+            <span>Mitigasi User Enumeration Terproteksi</span>
         </div>
     </div>
 
-    {{-- Bagian Bawah: Copyright & Versioning --}}
-    <div class="flex items-center justify-between text-xs font-mono-code text-slate-500 pt-4 border-t border-slate-800/60">
-        <span>&copy; {{ date('Y') }} {{ config('app.name', 'Laravel') }}</span>
-        <span class="text-slate-400 font-medium">v1.2.0-STABLE</span>
+    {{-- Bagian Bawah: Copyright Bersih --}}
+    <div class="text-xs font-mono-code text-slate-500 pt-4 border-t border-slate-800">
+        <span>&copy; {{ date('Y') }} {{ config('app.name', 'Laravel') }} &bull; All rights reserved.</span>
     </div>
 
 </div>

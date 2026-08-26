@@ -28,11 +28,11 @@ Deskripsi: Komponen checkbox modern dengan styling Tailwind, state checked,
             'required' => $required,
             'checked' => (bool) $isChecked,
         ]) }}
-        class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-amber-500/30 focus:ring-offset-0 focus:ring-2 cursor-pointer transition-all"
+        class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-amber-500 focus:ring-amber-500/30 focus:ring-offset-0 focus:ring-2 cursor-pointer transition-all"
     />
     
     @if ($label || !$slot->isEmpty())
-        <label for="{{ $checkboxId }}" class="text-xs text-slate-400 select-none cursor-pointer hover:text-slate-300">
+        <label for="{{ $checkboxId }}" class="text-xs text-slate-600 dark:text-slate-400 select-none cursor-pointer hover:text-slate-900 dark:hover:text-slate-300">
             {{ $label ?? $slot }}
         </label>
     @endif

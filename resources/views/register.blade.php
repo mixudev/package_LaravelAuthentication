@@ -109,28 +109,28 @@ Deskripsi: Halaman registrasi akun baru yang sepenuhnya modular dengan Blade com
                 </x-authentication::input>
 
                 {{-- Kebijakan Password --}}
-                <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] font-mono-code text-slate-400 space-y-1">
+                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-[11px] font-mono-code text-slate-600 dark:text-slate-400 space-y-1">
                     <span class="text-slate-500 font-semibold uppercase tracking-wider block text-[10px]">KEBIJAKAN KATA SANDI:</span>
-                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-slate-300">
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-slate-700 dark:text-slate-300">
                         <li class="flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             Min. {{ $policy['min_length'] ?? 8 }} Karakter
                         </li>
                         @if (!empty($policy['require_uppercase']) && !empty($policy['require_lowercase']))
                             <li class="flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                 Huruf Besar &amp; Kecil
                             </li>
                         @endif
                         @if (!empty($policy['require_numbers']))
                             <li class="flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                 Minimal 1 Angka
                             </li>
                         @endif
                         @if (!empty($policy['require_symbols']))
                             <li class="flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                 Karakter Simbol
                             </li>
                         @endif
@@ -160,11 +160,11 @@ Deskripsi: Halaman registrasi akun baru yang sepenuhnya modular dengan Blade com
                     name="terms"
                     :required="true"
                 >
-                    <span class="text-slate-400">
+                    <span class="text-slate-600 dark:text-slate-400">
                         {{ __('Saya menyetujui') }} 
-                        <a href="#" class="text-amber-400 hover:underline">{{ __('Syarat & Ketentuan') }}</a> 
+                        <a href="#" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-medium hover:underline">{{ __('Syarat & Ketentuan') }}</a> 
                         {{ __('serta') }} 
-                        <a href="#" class="text-amber-400 hover:underline">{{ __('Kebijakan Privasi') }}</a>.
+                        <a href="#" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-medium hover:underline">{{ __('Kebijakan Privasi') }}</a>.
                     </span>
                 </x-authentication::checkbox>
             </div>
@@ -182,10 +182,10 @@ Deskripsi: Halaman registrasi akun baru yang sepenuhnya modular dengan Blade com
         </form>
 
         {{-- Navigasi ke Halaman Login --}}
-        <div class="pt-3 border-t border-slate-850 text-center text-xs text-slate-400">
+        <div class="pt-3 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-600 dark:text-slate-400">
             <p>
                 {{ __('Sudah memiliki akun?') }}
-                <a href="{{ $loginRoute }}" class="text-amber-400 hover:text-amber-300 font-medium ml-1">
+                <a href="{{ $loginRoute }}" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-medium ml-1">
                     {{ __('Masuk ke sistem') }} &rarr;
                 </a>
             </p>
@@ -194,3 +194,4 @@ Deskripsi: Halaman registrasi akun baru yang sepenuhnya modular dengan Blade com
     </div>
 
 </x-dynamic-component>
+

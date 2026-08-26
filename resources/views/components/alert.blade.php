@@ -14,23 +14,23 @@ Deskripsi: Menampilkan notifikasi pesan sukses, error, peringatan, atau info
 @php
     $typeStyles = [
         'success' => [
-            'wrapper' => 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300',
-            'icon'    => 'text-emerald-400',
+            'wrapper' => 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300',
+            'icon'    => 'text-emerald-600 dark:text-emerald-400',
             'svg'     => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
         ],
         'error' => [
-            'wrapper' => 'bg-rose-950/40 border-rose-500/40 text-rose-300',
-            'icon'    => 'text-rose-400',
+            'wrapper' => 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300',
+            'icon'    => 'text-rose-600 dark:text-rose-400',
             'svg'     => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
         ],
         'warning' => [
-            'wrapper' => 'bg-amber-950/40 border-amber-500/40 text-amber-300',
-            'icon'    => 'text-amber-400',
+            'wrapper' => 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/40 text-amber-800 dark:text-amber-300',
+            'icon'    => 'text-amber-600 dark:text-amber-400',
             'svg'     => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>',
         ],
         'info' => [
-            'wrapper' => 'bg-blue-950/40 border-blue-500/40 text-blue-300',
-            'icon'    => 'text-blue-400',
+            'wrapper' => 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-500/40 text-blue-800 dark:text-blue-300',
+            'icon'    => 'text-blue-600 dark:text-blue-400',
             'svg'     => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
         ],
     ];

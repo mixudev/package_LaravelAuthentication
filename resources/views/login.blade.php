@@ -95,7 +95,7 @@ Deskripsi: Halaman autentikasi utama modular berstandar Blade & Tailwind CSS.
                 {{-- Link Lupa Password di Samping Label --}}
                 @if (config('authentication.features.forgot_password.enabled', true))
                     <x-slot:labelRight>
-                        <a href="{{ $forgotPasswordRoute }}" class="text-xs font-mono-code text-amber-400 hover:text-amber-300 transition-colors">
+                        <a href="{{ $forgotPasswordRoute }}" class="text-xs font-mono-code text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors">
                             {{ __('Lupa password?') }}
                         </a>
                     </x-slot:labelRight>
@@ -123,11 +123,11 @@ Deskripsi: Halaman autentikasi utama modular berstandar Blade & Tailwind CSS.
         </form>
 
         {{-- Opsi Alternatif Masuk (OTP & Registrasi) --}}
-        <div class="space-y-3 pt-2 text-center text-xs text-slate-400">
+        <div class="space-y-3 pt-2 text-center text-xs text-slate-600 dark:text-slate-400">
             @if (config('authentication.features.otp.enabled', true))
                 <div>
-                    <a href="{{ $otpRequestRoute }}" class="inline-flex items-center gap-1.5 text-slate-300 hover:text-amber-400 font-mono-code transition-colors">
-                        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{{ $otpRequestRoute }}" class="inline-flex items-center gap-1.5 text-slate-600 hover:text-amber-600 dark:text-slate-300 dark:hover:text-amber-400 font-mono-code transition-colors">
+                        <svg class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
                         {{ __('Masuk tanpa password via Kode OTP') }}
@@ -136,10 +136,10 @@ Deskripsi: Halaman autentikasi utama modular berstandar Blade & Tailwind CSS.
             @endif
 
             @if (config('authentication.features.registration.enabled', true))
-                <div class="pt-2 border-t border-slate-850">
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
                     <p>
                         {{ __('Belum memiliki akun?') }}
-                        <a href="{{ $registerRoute }}" class="text-amber-400 hover:text-amber-300 font-medium ml-1">
+                        <a href="{{ $registerRoute }}" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-medium ml-1">
                             {{ __('Daftar sekarang') }} &rarr;
                         </a>
                     </p>

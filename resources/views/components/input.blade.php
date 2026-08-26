@@ -3,7 +3,7 @@
 KOMPONEN: FORM INPUT BERSTANDAR KEAMANAN TINGGI
 Package: mixudev/laravel-authentication
 Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@error),
-           toggle visibilitas password (show/hide), integrasi icon, dan styling Tailwind CSS.
+           toggle visibilitas password (show/hide), integrasi icon, dan styling Tailwind CSS (Light/Dark).
 =============================================================================
 --}}
 @props([
@@ -31,10 +31,10 @@ Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@
     {{-- Label Input --}}
     @if ($label)
         <div class="flex items-center justify-between">
-            <label for="{{ $inputId }}" class="block text-xs font-medium font-mono-code uppercase tracking-wider text-slate-300">
+            <label for="{{ $inputId }}" class="block text-xs font-semibold font-mono-code uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 {{ $label }}
                 @if ($required)
-                    <span class="text-amber-400 font-bold" title="Wajib diisi">*</span>
+                    <span class="text-amber-600 dark:text-amber-400 font-bold" title="Wajib diisi">*</span>
                 @endif
             </label>
 
@@ -46,11 +46,11 @@ Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@
     @endif
 
     {{-- Container Input & Icon / Action --}}
-    <div class="relative rounded-xl shadow-sm">
+    <div class="relative rounded-xl shadow-xs">
         
         {{-- Slot Icon Kiri (Optional) --}}
         @if (isset($icon))
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                 {{ $icon }}
             </div>
         @endif
@@ -70,13 +70,13 @@ Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@
             @if ($isPassword)
                 :type="showPass ? 'text' : 'password'"
             @endif
-            class="block w-full rounded-xl bg-slate-900/90 border text-slate-100 placeholder-slate-500 text-sm transition-all duration-200
-                {{ isset($icon) ? 'pl-10' : 'pl-4' }}
-                {{ $isPassword ? 'pr-11' : 'pr-4' }}
-                py-2.5 sm:py-3
+            class="block w-full rounded-xl bg-white dark:bg-slate-900/90 border text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm transition-all duration-150
+                {{ isset($icon) ? 'pl-10' : 'pl-3.5' }}
+                {{ $isPassword ? 'pr-11' : 'pr-3.5' }}
+                py-2.5 sm:py-2.5
                 {{ $hasError 
-                    ? 'border-rose-500/80 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-rose-100 bg-rose-950/10' 
-                    : 'border-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 hover:border-slate-700' 
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-rose-900 dark:text-rose-100 bg-rose-50/50 dark:bg-rose-950/10' 
+                    : 'border-slate-300 dark:border-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 hover:border-slate-400 dark:hover:border-slate-700' 
                 }}
                 outline-none"
         />
@@ -95,7 +95,7 @@ Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@
                         this.querySelector('.eye-closed').classList.toggle('hidden', !isText);
                     }
                 "
-                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-colors focus:outline-none"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none"
                 tabindex="-1"
                 aria-label="Tampilkan atau sembunyikan kata sandi"
             >
@@ -115,12 +115,12 @@ Deskripsi: Komponen input universal dengan dukungan validasi Laravel otomatis (@
 
     {{-- Pesan Hint Tambahan --}}
     @if ($hint && !$hasError)
-        <p class="text-[11px] text-slate-400">{{ $hint }}</p>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ $hint }}</p>
     @endif
 
     {{-- Pesan Validasi Error Otomatis (@error) --}}
     @if (isset($errors) && $errors->has($name))
-        <p class="text-xs text-rose-400 flex items-center gap-1 mt-1 font-medium">
+        <p class="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1 mt-1 font-medium">
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>

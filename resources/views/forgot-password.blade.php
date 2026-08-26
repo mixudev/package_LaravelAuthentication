@@ -74,10 +74,10 @@ Deskripsi: Halaman permintaan tautan reset kata sandi dengan mitigasi proteksi
         </form>
 
         {{-- Link Navigasi Kembali ke Login --}}
-        <div class="pt-3 border-t border-slate-850 text-center text-xs text-slate-400">
+        <div class="pt-3 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-600 dark:text-slate-400">
             <p>
                 {{ __('Ingat kata sandi Anda?') }}
-                <a href="{{ $loginRoute }}" class="text-amber-400 hover:text-amber-300 font-medium ml-1">
+                <a href="{{ $loginRoute }}" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-medium ml-1">
                     &larr; {{ __('Kembali ke halaman masuk') }}
                 </a>
             </p>

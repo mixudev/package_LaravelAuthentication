@@ -59,9 +59,9 @@ Deskripsi: Halaman input 6-digit OTP bersegmen dengan fitur kirim ulang,
 
             {{-- Label & Input 6-Digit Bersegmen --}}
             <div class="space-y-2">
-                <label class="block text-xs font-medium font-mono-code uppercase tracking-wider text-slate-300">
+                <label class="block text-xs font-semibold font-mono-code uppercase tracking-wider text-slate-700 dark:text-slate-300">
                     {{ __('KODE VERIFIKASI (:length DIGIT)', ['length' => $otpLength]) }}
-                    <span class="text-amber-400 font-bold">*</span>
+                    <span class="text-amber-600 dark:text-amber-400 font-bold">*</span>
                 </label>
 
                 <x-authentication::otp-input 
@@ -93,18 +93,18 @@ Deskripsi: Halaman input 6-digit OTP bersegmen dengan fitur kirim ulang,
         </form>
 
         {{-- Kirim Ulang Kode & Kembali ke Login --}}
-        <div class="space-y-3 pt-3 border-t border-slate-850 text-center text-xs text-slate-400">
+        <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-600 dark:text-slate-400">
             <form method="POST" action="{{ $sendRoute }}" class="inline-block">
                 @csrf
                 <input type="hidden" name="identifier" value="{{ $identifier }}">
-                <span class="text-slate-400">{{ __('Tidak menerima kode?') }}</span>
-                <button type="submit" class="text-amber-400 hover:text-amber-300 font-medium ml-1 underline cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
+                <span class="text-slate-600 dark:text-slate-400">{{ __('Tidak menerima kode?') }}</span>
+                <button type="submit" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-medium ml-1 underline cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
                     {{ __('Kirim ulang kode OTP') }}
                 </button>
             </form>
 
             <div>
-                <a href="{{ $loginRoute }}" class="text-slate-400 hover:text-slate-200 font-mono-code transition-colors block pt-1">
+                <a href="{{ $loginRoute }}" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-mono-code transition-colors block pt-1">
                     &larr; {{ __('Kembali ke halaman masuk biasa') }}
                 </a>
             </div>
