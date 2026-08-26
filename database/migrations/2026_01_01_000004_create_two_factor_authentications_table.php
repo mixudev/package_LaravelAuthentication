@@ -14,14 +14,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $table = AuthenticationConfig::tableName('password_histories', 'authentication_password_histories');
+        $table = AuthenticationConfig::tableName('two_factor', 'authentication_two_factors');
 
         if (!Schema::hasTable($table)) {
             Schema::create($table, function (Blueprint $table) {
                 $table->id();
-                $table->unsignedBigInteger('user_id')->index();
-                $table->string('password_hash');
-                $table->timestamp('created_at')->useCurrent()->index();
+                $table->unsignedBigInteger('user_id')->unique()->index();
+                $table->text('secret');
+                $table->text('recovery_codes')->nullable();
+                $table->timestamp('confirmed_at')->nullable()->index();
+                $table->timestamps();
             });
         }
     }
@@ -31,7 +33,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $table = AuthenticationConfig::tableName('password_histories', 'authentication_password_histories');
+        $table = AuthenticationConfig::tableName('two_factor', 'authentication_two_factors');
         Schema::dropIfExists($table);
     }
 };

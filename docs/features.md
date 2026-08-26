@@ -1,154 +1,390 @@
-# Features & Modular Switches
+# Panduan Lengkap Fitur & Konfigurasi Modular
 
-The package architecture uses strict feature switches in `config/authentication.php`. When any feature is set to `false`, its Web routes, API endpoints, and UI buttons are automatically disabled (fail-closed).
+Package `mixudev/laravel-authentication` dibangun dengan arsitektur **Fail-Closed & Fully Config-Driven**. Setiap fitur memiliki saklar independen di dalam `config/authentication.php` sehingga route, controller, middleware, dan view yang dinonaktifkan tidak akan dieksekusi atau membebani aplikasi host.
 
 ---
 
-## 1. User Registration (`features.registration`)
+## 📑 Daftar Isi Fitur
 
-Provides streamlined user registration for both Web forms and API requests.
+1. [Multi-Factor Authentication (MFA / 2FA TOTP & Recovery Codes)](#1-multi-factor-authentication-mfa--2fa-totp--recovery-codes)
+2. [Manajemen Sesi & Perangkat Aktif (Session & Device Management)](#2-manajemen-sesi--perangkat-aktif)
+3. [Rate Limiting Granular per Fitur](#3-rate-limiting-granular-per-fitur)
+4. [Notifikasi Login dari Perangkat Baru / Mencurigakan](#4-notifikasi-login-dari-perangkat-baru)
+5. [Konfigurasi Nama Tabel Database & Migrasi Dinamis](#5-konfigurasi-nama-tabel-database--migrasi-dinamis)
+6. [CAPTCHA & Proteksi Bot Adaptif](#6-captcha--proteksi-bot-adaptif)
+7. [Konfirmasi Password untuk Aksi Sensitif (Re-Auth)](#7-konfirmasi-password-untuk-aksi-sensitif-re-auth)
+8. [Pengiriman Email & OTP Asinkron (Queue)](#8-pengiriman-email--otp-asinkron-queue)
+9. [Autentikasi OTP Tanpa Password (Passwordless OTP)](#9-autentikasi-otp-tanpa-password)
+10. [Registrasi Pengguna Baru](#10-registrasi-pengguna-baru)
+11. [Lupa & Reset Kata Sandi](#11-lupa--reset-kata-sandi)
+12. [Social / OAuth Login (Google & GitHub)](#12-social--oauth-login-google--github)
+13. [Kebijakan Password & Riwayat Password](#13-kebijakan-password--riwayat-password)
 
-### Configuration:
+---
+
+## 1. Multi-Factor Authentication (MFA / 2FA TOTP & Recovery Codes)
+
+Menyediakan autentikasi dua langkah berbasis standar RFC 6238 TOTP (kompatibel dengan Google Authenticator, Authy, Microsoft Authenticator, 1Password) dan kode pemulihan cadangan (*recovery codes*) sekali pakai.
+
+### Konfigurasi di `config/authentication.php`:
 ```php
 'features' => [
-    'registration' => [
-        'enabled'                => env('AUTH_REGISTRATION_ENABLED', true),
-        'auto_login_on_register' => env('AUTH_AUTO_LOGIN_ON_REGISTER', true),
-        'require_email_verify'   => env('AUTH_REQUIRE_EMAIL_VERIFY', false),
+    'two_factor' => [
+        'enabled'            => true,
+        'digits'             => 6,    // Jumlah digit TOTP
+        'period'             => 30,   // Durasi pembaruan kode (detik)
+        'window'             => 1,    // Toleransi clock drift (+-1 interval = +-30s)
+        'backup_codes_count' => 8,    // Jumlah kode cadangan pemulihan sekali pakai
+        'issuer'             => env('APP_NAME', 'Laravel'),
+
+        // Fitur Remember This Device untuk bypass 2FA pada perangkat tepercaya
+        'trust_device' => [
+            'enabled'       => true,
+            'duration_days' => 30,    // Masa berlaku perangkat tepercaya (hari)
+            'cookie_name'   => 'auth_trusted_device',
+        ],
     ],
 ],
 ```
 
-- **Web Endpoint**: `GET /register`, `POST /register`
-- **API Endpoint**: `POST /api/v1/auth/register`
-- **Fields**: `name`, `email`, `password`, `password_confirmation`
-- **Event Dispatched**: `Vendor\LaravelAuthentication\Events\UserRegistered`
+### Cara Kerja & Alur Pemakaian:
+1. **Aktivasi 2FA oleh Pengguna**:
+   - Web: Kunjungi rute `GET /auth/two-factor/setup` (nama rute: `two-factor.setup`).
+   - Halaman akan menampilkan Secret Key Base32, URL URI `otpauth://`, dan 8 kode cadangan pemulihan terenkripsi.
+   - Masukkan kode 6-digit dari aplikasi authenticator dan submit ke `POST /auth/two-factor/confirm` (nama rute: `two-factor.enable`).
+2. **Saat Login**:
+   - Jika user telah mengaktifkan 2FA dan perangkat belum tepercaya, alur login otomatis dialihkan ke `GET /two-factor-challenge` (Web) atau mengembalikan payload JSON `status: two_factor_required` (API).
+   - Masukkan kode TOTP 6-digit atau salah satu kode pemulihan cadangan (format `ABCD-1234`).
+   - Opsi *"Percayai perangkat ini selama 30 hari"* akan menyetel cookie terenkripsi sehingga user tidak perlu memasukkan kode 2FA lagi di perangkat tersebut selama 30 hari.
+3. **Deaktivasi 2FA**:
+   - Kirim request `DELETE /auth/two-factor/disable` dengan menyertakan parameter `password`.
 
 ---
 
-## 2. Passwordless OTP Login (`features.otp`)
+## 2. Manajemen Sesi & Perangkat Aktif
 
-Enables login via one-time verification codes sent to the user's email or identifier.
+Memungkinkan pengguna melihat daftar perangkat/browser yang sedang login ke akun mereka dan mencabut akses sesi secara selektif maupun serentak.
 
-### Configuration:
+### Konfigurasi di `config/authentication.php`:
+```php
+'features' => [
+    'session_management' => [
+        'enabled'             => true,
+        'max_active_sessions' => 5, // 0 = tidak dibatasi
+    ],
+],
+```
+
+### Cara Kerja & Alur Pemakaian:
+1. **Melihat Daftar Sesi Aktif**:
+   - Web: Buka `GET /auth/sessions` (nama rute: `auth.sessions.index`).
+   - API: `GET /api/v1/auth/sessions` (membutuhkan header `Authorization: Bearer <token>`).
+   - Data yang ditampilkan: Nama Perangkat, Browser, Sistem Operasi, IP Address, Perkiraan Lokasi, Waktu Terakhir Aktif, dan penanda *Perangkat Saat Ini*.
+2. **Mencabut Sesi Tertentu**:
+   - Web: Submit form `DELETE /auth/sessions/{id}` (nama rute: `auth.sessions.destroy`).
+   - API: `DELETE /api/v1/auth/sessions/{id}`.
+3. **Mencabut Seluruh Sesi Perangkat Lain (*Logout Other Devices*)**:
+   - Web: Submit form `POST /auth/sessions/revoke-others` dengan menyertakan password akun.
+   - API: `POST /api/v1/auth/sessions/revoke-others` dengan JSON payload `{"password": "your-password"}`.
+
+---
+
+## 3. Rate Limiting Granular per Fitur
+
+Mencegah serangan brute-force, OTP-bombing, spam reset password, dan credential stuffing dengan memisahkan penghitung (*throttle counters*) secara independen untuk tiap fitur.
+
+### Konfigurasi di `config/authentication.php`:
+```php
+'security' => [
+    'rate_limits' => [
+        'login' => [
+            'enabled'       => true,
+            'max_attempts'  => 5,
+            'decay_minutes' => 1,
+            'strategy'      => 'composite', // 'ip', 'identifier', atau 'composite'
+        ],
+        'registration' => [
+            'enabled'       => true,
+            'max_attempts'  => 5,
+            'decay_minutes' => 60,
+            'strategy'      => 'ip',
+        ],
+        'otp_request' => [
+            'enabled'       => true,
+            'max_attempts'  => 3,
+            'decay_minutes' => 5,
+            'strategy'      => 'composite',
+        ],
+        'otp_verify' => [
+            'enabled'       => true,
+            'max_attempts'  => 5,
+            'decay_minutes' => 10,
+            'strategy'      => 'composite',
+        ],
+        'forgot_password' => [
+            'enabled'       => true,
+            'max_attempts'  => 3,
+            'decay_minutes' => 60,
+            'strategy'      => 'composite',
+        ],
+        'two_factor' => [
+            'enabled'       => true,
+            'max_attempts'  => 5,
+            'decay_minutes' => 5,
+            'strategy'      => 'ip',
+        ],
+        'confirm_password' => [
+            'enabled'       => true,
+            'max_attempts'  => 5,
+            'decay_minutes' => 1,
+            'strategy'      => 'ip',
+        ],
+    ],
+],
+```
+
+---
+
+## 4. Notifikasi Login dari Perangkat Baru
+
+Mendeteksi secara otomatis ketika pengguna login dari browser, perangkat, atau subnet IP yang belum pernah tercatat sebelumnya, lalu mengirimkan email peringatan keamanan instan.
+
+### Konfigurasi di `config/authentication.php`:
+```php
+'security' => [
+    'new_device_notification' => [
+        'enabled'          => true,
+        'mail_subject'     => null, // null = '{App Name} — Deteksi Masuk dari Perangkat Baru'
+        'include_location' => true,
+    ],
+],
+```
+
+### Informasi dalam Email:
+- Sistem Operasi & Browser (mis. *Google Chrome on Windows 10/11*).
+- Alamat IP & Perkiraan Lokasi (berdasarkan Cloudflare / GeoIP headers).
+- Waktu kejadian.
+- Tombol langsung: **"Amankan Akun & Cabut Sesi"** yang mengarahkan user ke halaman manajemen sesi.
+
+---
+
+## 5. Konfigurasi Nama Tabel Database & Migrasi Dinamis
+
+Pengguna package dapat mengkustomisasi nama tabel database tanpa perlu mem-fork repository atau merusak relasi model.
+
+### Konfigurasi di `config/authentication.php`:
+```php
+'database' => [
+    'load_migrations' => true, // Set false jika mengelola migrasi aplikasi sendiri
+
+    'table_names' => [
+        'attempts'           => 'authentication_attempts',
+        'login_histories'    => 'authentication_login_histories',
+        'password_histories' => 'authentication_password_histories',
+        'two_factor'         => 'authentication_two_factors',
+        'devices'            => 'authentication_devices',
+        'sessions'           => 'authentication_sessions',
+    ],
+],
+```
+
+Seluruh model Eloquent package (`AuthenticationAttempt`, `LoginHistory`, `PasswordHistory`, `TwoFactorAuthentication`, `AuthenticationDevice`) dan file migrasi membaca nama tabel secara dinamis melalui helper `AuthenticationConfig::tableName('<key>')`.
+
+---
+
+## 6. CAPTCHA & Proteksi Bot Adaptif
+
+Mendukung proteksi bot multi-driver dengan konsep **Adaptive Threshold**: pengguna normal dapat login dengan mulus tanpa CAPTCHA, namun jika terjadi $N$ kali percobaan gagal berturut-turut dari IP/akun tersebut, CAPTCHA wajib diisi sebelum request diproses.
+
+### Konfigurasi di `config/authentication.php`:
+```php
+'security' => [
+    'captcha' => [
+        'enabled'                       => true,
+        'driver'                        => 'turnstile', // 'turnstile', 'recaptcha_v2', 'recaptcha_v3', 'hcaptcha'
+        'trigger_after_failed_attempts' => 3,           // 0 = selalu wajib, >0 = adaptif setelah N kali gagal
+        'site_key'                      => env('AUTH_CAPTCHA_SITE_KEY', ''),
+        'secret_key'                    => env('AUTH_CAPTCHA_SECRET_KEY', ''),
+    ],
+],
+```
+
+### Pemakaian di Form Blade Kustom:
+Gunakan service helper atau render langsung widget CAPTCHA:
+```blade
+@inject('captcha', 'Vendor\LaravelAuthentication\Services\CaptchaService')
+
+@if ($captcha->shouldShowCaptcha(old('identifier'), request()->ip()))
+    {!! $captcha->renderWidget() !!}
+@endif
+```
+
+---
+
+## 7. Konfirmasi Password untuk Aksi Sensitif (Re-Auth)
+
+Memproteksi halaman atau aksi sensitif (seperti mengubah email, melihat API key, mengelola 2FA, atau transfer dana) dengan mewajibkan user memasukkan ulang kata sandi jika belum dikonfirmasi dalam kurun waktu tertentu.
+
+### Konfigurasi di `config/authentication.php`:
+```php
+'features' => [
+    'confirm_password' => [
+        'enabled'         => true,
+        'timeout_seconds' => 900, // 15 menit
+    ],
+],
+```
+
+### Cara Memasang pada Rute Aplikasi Host:
+Cukup tambahkan middleware `password.confirm` atau `\Vendor\LaravelAuthentication\Http\Middleware\RequirePasswordConfirmation::class`:
+```php
+Route::middleware(['auth', 'password.confirm'])->group(function () {
+    Route::get('/settings/security', [SecurityController::class, 'index']);
+    Route::post('/settings/api-keys', [ApiKeyController::class, 'generate']);
+});
+```
+
+---
+
+## 8. Pengiriman Email & OTP Asinkron (Queue)
+
+Mencegah request login, register, atau request OTP terblokir/lambat saat koneksi SMTP mail server mengalami latensi tinggi.
+
+### Konfigurasi di `config/authentication.php`:
+```php
+'mail' => [
+    'queue'            => true, // Set true untuk dispatch email lewat background worker queue
+    'queue_connection' => null, // null = mengikuti default queue connection Laravel
+    'queue_name'       => 'auth-emails',
+],
+```
+
+Saat `mail.queue => true`, mailable `OtpMail` dan `NewDeviceLoginMail` otomatis dikirim via antrean worker `php artisan queue:work --queue=auth-emails`.
+
+---
+
+## 9. Autentikasi OTP Tanpa Password
+
+Memungkinkan login instan menggunakan kode sekali pakai 6-digit numerik yang dikirim ke email user.
+
+### Konfigurasi di `config/authentication.php`:
 ```php
 'features' => [
     'otp' => [
-        'enabled'          => env('AUTH_OTP_ENABLED', true),
-        'length'           => (int) env('AUTH_OTP_LENGTH', 6),
-        'expiry_minutes'   => (int) env('AUTH_OTP_EXPIRY_MINUTES', 10),
-        'max_attempts'     => (int) env('AUTH_OTP_MAX_ATTEMPTS', 3),
-        'throttle_seconds' => (int) env('AUTH_OTP_THROTTLE_SECONDS', 60),
-        'type'             => 'numeric', // 'numeric' or 'alphanumeric'
-
-        // Automated HTML Email Delivery
-        'send_email'       => env('AUTH_OTP_SEND_EMAIL', true),
-        'email_subject'    => env('AUTH_OTP_EMAIL_SUBJECT', null), // null = '{App Name} — Kode Verifikasi Masuk (OTP)'
-        'email_view'       => env('AUTH_OTP_EMAIL_VIEW', 'authentication::emails.otp'),
+        'enabled'          => true,
+        'length'           => 6,
+        'expiry_minutes'   => 10,
+        'max_attempts'     => 3,
+        'throttle_seconds' => 60,
+        'type'             => 'numeric', // 'numeric' atau 'alphanumeric'
+        'send_email'       => true,
+        'email_subject'    => null,
+        'email_view'       => 'authentication::emails.otp',
     ],
 ],
 ```
 
-- **Built-in HTML Email Template**: Located at `resources/views/emails/otp.blade.php` (published via `php artisan vendor:publish --tag=authentication-views`).
-- **Custom Email Template**: Set `AUTH_OTP_EMAIL_VIEW=emails.my-custom-otp` or `AUTH_VIEW_OTP_EMAIL=emails.my-custom-otp` in `.env`.
-- **Web Endpoints**:
-  - Request Code: `GET /otp/login`, `POST /otp/send`
-  - Verify Code: `GET /otp/verify?identifier=...`, `POST /otp/verify`
-- **API Endpoints**:
-  - `POST /api/v1/auth/otp/send`
-  - `POST /api/v1/auth/otp/verify`
-- **Events**:
-  - `Vendor\LaravelAuthentication\Events\OtpGenerated` (Contains unhashed code for SMS / WhatsApp / Webhook listeners)
-  - `Vendor\LaravelAuthentication\Events\OtpVerified`
+### Rute Web & API:
+- **Minta Kode OTP**: `GET /otp/login`, `POST /otp/send` (API: `POST /api/v1/auth/otp/send`)
+- **Verifikasi Kode OTP**: `GET /otp/verify`, `POST /otp/verify` (API: `POST /api/v1/auth/otp/verify`)
 
 ---
 
-## 3. Social / OAuth Login (`features.social`)
+## 10. Registrasi Pengguna Baru
 
-Provides OAuth 2.0 social login via **Laravel Socialite** with auto-provisioning.
+Menyediakan alur pendaftaran user baru baik melalui Web form maupun API JSON.
 
-### Prerequisites:
-```bash
-composer require laravel/socialite
-```
-Configure your OAuth keys in `config/services.php`:
+### Konfigurasi di `config/authentication.php`:
 ```php
-'google' => [
-    'client_id'     => env('GOOGLE_CLIENT_ID'),
-    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    'redirect'      => env('APP_URL') . '/auth/google/callback',
-],
-'github' => [
-    'client_id'     => env('GITHUB_CLIENT_ID'),
-    'client_secret' => env('GITHUB_CLIENT_SECRET'),
-    'redirect'      => env('APP_URL') . '/auth/github/callback',
+'features' => [
+    'registration' => [
+        'enabled'                => true,
+        'auto_login_on_register' => true,
+        'require_email_verify'   => false,
+    ],
 ],
 ```
 
-### Configuration:
+### Rute Web & API:
+- Web: `GET /register`, `POST /register`
+- API: `POST /api/v1/auth/register` (Payload: `name`, `email`, `password`, `password_confirmation`)
+
+---
+
+## 11. Lupa & Reset Kata Sandi
+
+Alur pemulihan kata sandi mandiri yang aman dari enumerasi akun (*user enumeration mitigation*).
+
+### Konfigurasi di `config/authentication.php`:
+```php
+'features' => [
+    'forgot_password' => [
+        'enabled' => true,
+    ],
+],
+```
+
+### Rute Web & API:
+- **Request Link Reset**: `GET /forgot-password`, `POST /forgot-password` (API: `POST /api/v1/auth/forgot-password`)
+- **Eksekusi Reset Password**: `GET /reset-password/{token}`, `POST /reset-password` (API: `POST /api/v1/auth/reset-password`)
+
+---
+
+## 12. Social / OAuth Login (Google & GitHub)
+
+Integrasi login sosial menggunakan Laravel Socialite dengan provisi user otomatis.
+
+### Konfigurasi di `config/authentication.php`:
 ```php
 'features' => [
     'social' => [
-        'enabled'       => env('AUTH_SOCIAL_ENABLED', true),
+        'enabled'       => true,
         'auto_register' => true,
         'providers'     => [
             'google' => [
-                'enabled' => env('AUTH_GOOGLE_ENABLED', true),
-                'scopes'  => ['openid', 'profile', 'email'],
+                'enabled'       => true,
+                'client_id'     => env('GOOGLE_CLIENT_ID'),
+                'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+                'redirect'      => env('APP_URL') . '/auth/google/callback',
+                'scopes'        => ['openid', 'profile', 'email'],
             ],
             'github' => [
-                'enabled' => env('AUTH_GITHUB_ENABLED', true),
-                'scopes'  => ['user:email', 'read:user'],
+                'enabled'       => true,
+                'client_id'     => env('GITHUB_CLIENT_ID'),
+                'client_secret' => env('GITHUB_CLIENT_SECRET'),
+                'redirect'      => env('APP_URL') . '/auth/github/callback',
+                'scopes'        => ['user:email', 'read:user'],
             ],
         ],
     ],
 ],
 ```
 
-- **Web Routes**:
-  - Redirect: `GET /auth/{provider}/redirect`
-  - Callback: `GET /auth/{provider}/callback`
-- **API Endpoint**:
-  - `POST /api/v1/auth/social/{provider}`
-
 ---
 
-## 4. Self-Service Password Recovery (`features.forgot_password`)
+## 13. Kebijakan Password & Riwayat Password
 
-Provides secure password reset links with user enumeration protection.
+Menetapkan standar kompleksitas password, pencegahan pemakaian ulang password lama, dan hashing otomatis ke algoritma terbaru.
 
-### Configuration:
+### Konfigurasi di `config/authentication.php`:
 ```php
-'features' => [
-    'forgot_password' => [
-        'enabled' => env('AUTH_FORGOT_PASSWORD_ENABLED', true),
+'password' => [
+    'rehash' => true, // Rehash otomatis ke Argon2id/Bcrypt terbaru saat login
+
+    'validation_rules' => [
+        'min_length'         => 8,
+        'require_uppercase'  => true,
+        'require_lowercase'  => true,
+        'require_mixed_case' => true,
+        'require_numbers'    => true,
+        'require_symbols'    => true,
+        'symbols_charset'    => '@$!%*#?&_-+=[]{}|;:,.<>',
+        'uncompromised'      => false,
+    ],
+
+    'history' => [
+        'enabled'  => true, // Cegah pemakaian ulang password lama
+        'remember' => 5,    // 5 password terakhir tidak boleh dipakai ulang
     ],
 ],
 ```
-
-- **Web Routes**:
-  - Request Form: `GET /forgot-password`, `POST /forgot-password`
-  - Reset Form: `GET /reset-password/{token}`, `POST /reset-password`
-- **API Endpoints**:
-  - `POST /api/v1/auth/forgot-password`
-  - `POST /api/v1/auth/reset-password`
-
----
-
-## 5. Dynamic Password Strength Policies (`password.validation_rules`)
-
-Customize password complexity requirements per environment via `.env`:
-
-### Configuration:
-```env
-AUTH_PASSWORD_MIN_LENGTH=8
-AUTH_PASSWORD_REQUIRE_UPPERCASE=true
-AUTH_PASSWORD_REQUIRE_LOWERCASE=true
-AUTH_PASSWORD_REQUIRE_NUMBERS=true
-AUTH_PASSWORD_REQUIRE_SYMBOLS=true
-AUTH_PASSWORD_SYMBOLS_CHARSET="@#$!%*"
-```
-
-- **Backend Validation**: Handled by `Vendor\LaravelAuthentication\Rules\PasswordRule`.
-- **Frontend Sync**: The interactive password checklist on the registration page automatically synchronizes with active `.env` configuration (hiding disabled requirements and reflecting custom symbol sets and minimum lengths).
-

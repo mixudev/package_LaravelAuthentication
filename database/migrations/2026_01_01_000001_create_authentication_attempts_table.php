@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 return new class extends Migration
 {
@@ -13,8 +14,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('authentication_attempts')) {
-            Schema::create('authentication_attempts', function (Blueprint $table) {
+        $table = AuthenticationConfig::tableName('attempts', 'authentication_attempts');
+
+        if (!Schema::hasTable($table)) {
+            Schema::create($table, function (Blueprint $table) {
                 $table->id();
                 $table->string('identifier', 255)->index();
                 $table->string('ip_address', 45)->index();
@@ -33,6 +36,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('authentication_attempts');
+        $table = AuthenticationConfig::tableName('attempts', 'authentication_attempts');
+        Schema::dropIfExists($table);
     }
 };

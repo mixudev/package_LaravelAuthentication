@@ -15,6 +15,7 @@ use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
+use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
 use Vendor\LaravelAuthentication\Http\Requests\LoginRequest;
 
 class LoginController extends Controller
@@ -48,6 +49,8 @@ class LoginController extends Controller
         try {
             $this->authService->authenticate($loginData, $context);
             return redirect()->intended(config('authentication.redirects.login', '/dashboard'));
+        } catch (TwoFactorChallengeRequiredException) {
+            return redirect()->route('two-factor.challenge');
         } catch (AuthenticationThrottledException $e) {
             throw ValidationException::withMessages([
                 'identifier' => ["Too many login attempts. Please try again in {$e->secondsRemaining} seconds."],
@@ -56,10 +59,10 @@ class LoginController extends Controller
             throw ValidationException::withMessages([
                 'identifier' => [$e->getMessage()],
             ]);
-        } catch (InvalidCredentialsException $e) {
-            $message = __('auth.failed');
+        } catch (InvalidCredentialsException) {
+            $message = __('authentication::messages.invalid_credentials');
             throw ValidationException::withMessages([
-                'identifier' => [is_string($message) && $message !== 'auth.failed' ? $message : 'These credentials do not match our records.'],
+                'identifier' => [$message ?: 'These credentials do not match our records.'],
             ]);
         }
     }
@@ -81,6 +84,13 @@ class LoginController extends Controller
                 'token'   => $result->token,
                 'user'    => $result->user,
             ]);
+        } catch (TwoFactorChallengeRequiredException $e) {
+            return response()->json([
+                'status'              => 'two_factor_required',
+                'message'             => 'Two-factor authentication code required.',
+                'user_id'             => $e->user->getAuthIdentifier(),
+                'two_factor_required' => true,
+            ], 200);
         } catch (AuthenticationThrottledException $e) {
             return response()->json([
                 'status'            => 'throttled',
@@ -92,7 +102,7 @@ class LoginController extends Controller
                 'status'  => 'locked',
                 'message' => $e->getMessage(),
             ], 423);
-        } catch (InvalidCredentialsException $e) {
+        } catch (InvalidCredentialsException) {
             return response()->json([
                 'status'  => 'invalid_credentials',
                 'message' => 'Invalid credentials.',

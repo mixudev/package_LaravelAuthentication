@@ -17,47 +17,33 @@ In-depth technical guides are available in the [`docs/`](docs/index.md) director
 
 - 🚀 [1. Getting Started Guide](docs/getting-started.md)
 - 📁 [2. Unified Single-Folder Module Mode](docs/modular-installation.md)
-- ⚙️ [3. Features & Modular Switches](docs/features.md)
-- 🎨 [4. Views & Custom UI Guide](docs/views-customization.md)
+- ⚙️ [3. Features & Modular Switches (MFA, Sessions, Rate Limits, CAPTCHA)](docs/features.md)
+- 🎨 [4. Views & Custom UI Guide](docs/views-customization.md) / [🇮🇩 Panduan Kustomisasi View](docs/panduan-kustomisasi-view.md)
 - 🧩 [5. Strategies & Extending the Package](docs/strategies-and-extending.md)
 - 🔌 [6. REST API Reference](docs/api-reference.md)
 - 🛡️ [7. Security & Threat Mitigations](docs/security-and-best-practices.md)
+- 🚢 [8. Publishing & Releases Guide](docs/publishing-guide.md)
 
 ---
 
-## ✨ Core Highlights
+## ✨ Core Highlights & Enterprise Features
 
-- **Modular Subsystem Switches**: Toggle User Registration, Password Recovery, Passwordless OTP, and Socialite OAuth via simple boolean config flags.
-- **Decoupled Architecture**: Zero hardcoded application coupling (`App\Models\User`). Easily maps to any custom Authenticatable model.
-- **Dual UI Support**:
-  - Ready-to-use **Sentra Console** dark theme with real-time client validation, animated spinners, and live password checklist.
-  - **Bring-Your-Own-UI**: Point the package to your own custom Blade templates (`AUTH_VIEW_LOGIN=auth.login`) in seconds.
-- **Unified Single-Folder Module Exporter**: Package all config, migrations, views, and routes into a self-contained `modules/Authentication/` folder via `php artisan authentication:install-module`.
-- **Passwordless OTP Login**: Single-use, cryptographically secure OTP codes with configurable expiry, rate-limiting, and timing-safe verification.
+- **Multi-Factor Authentication (MFA / 2FA)**: Pure PHP RFC 6238 TOTP engine (compatible with Google Authenticator, Authy, Microsoft Authenticator, 1Password), single-use encrypted recovery backup codes, and "Trust This Device" (30-day cookie bypass).
+- **Active Session & Device Management**: Track active devices with OS, browser, IP, and location hints (`DeviceDetector`). Remote session revocation and *Logout All Other Devices* with password confirmation.
+- **Granular Rate Limiting**: Dedicated, isolated throttle counters for `login`, `registration`, `otp_request`, `otp_verify`, `forgot_password`, `two_factor`, and `confirm_password` preventing cross-feature denial-of-service.
+- **Suspicious & New Device Login Alerts**: Automated device fingerprinting with immediate security email notification on unfamiliar device/location logins.
+- **Adaptive CAPTCHA & Bot Protection**: Support for Cloudflare Turnstile, Google reCAPTCHA v2/v3, and hCaptcha with adaptive threshold trigger (only appears after $N$ failed attempts to protect normal UX).
+- **Re-Authentication for Sensitive Actions**: Built-in `password.confirm` middleware, controller, and views for protecting critical admin/security operations.
+- **Asynchronous Mail Queues**: Non-blocking email dispatch support (`mail.queue = true`) across OTPs, new device alerts, and password resets.
+- **Configurable Database Tables**: Change table names dynamically via `database.table_names` without forking or breaking relationships.
+- **Passwordless OTP Login**: Single-use, cryptographically secure OTP codes with configurable expiry and rate limiting.
 - **OAuth Social Login**: Google & GitHub OAuth via Laravel Socialite with automated user provisioning.
-- **Dynamic Password Strength Policies**: Granular `.env` configuration for minimum length, uppercase, lowercase, numbers, and custom special symbol sets.
-- **Zero-Trust Security**:
-  - Zero User Enumeration (constant-time responses and identical messaging across valid and non-existent accounts).
-  - Composite rate limiting (`sha1(ip + identifier)`).
-  - Account lockout with exponential decay.
-  - Session fixation mitigation with automated `session()->regenerate()`.
-  - Sensitive parameter redaction (`#[\SensitiveParameter]`).
+- **Dual UI Support**:
+  - Out-of-the-box multi-template engine: `split` (2-column enterprise console) & `card` (centered minimalist card).
+  - **Bring-Your-Own-UI**: Point the package to your own custom Blade templates in seconds.
+- **Unified Single-Folder Module Exporter**: Package all config, migrations, views, and routes into a self-contained `modules/Authentication/` folder via `php artisan authentication:install-module`.
+- **Zero-Trust Security**: Zero User Enumeration, composite rate limiting (`sha1(ip + identifier)`), account lockout, session fixation mitigation, and `#[\SensitiveParameter]` protection.
 - **Complete REST API**: Every authentication flow is 100% supported via stateless JSON endpoints (`/api/v1/auth/*`) with Laravel Sanctum token issuance.
-
----
-
-## 📚 Documentation
-
-| Guide | Description |
-| :--- | :--- |
-| [🚀 **Getting Started**](docs/getting-started.md) | Installation, initial publishing, and database setup. |
-| [📦 **Single-Folder Module**](docs/modular-installation.md) | Export package into a clean `modules/Authentication/` directory. |
-| [⚙️ **Features & Modules**](docs/features.md) | Registration, OTP, OAuth Socialite, and password reset policies. |
-| [🎨 **Custom Views (ID)**](docs/panduan-kustomisasi-view.md) / [**(EN)**](docs/views-customization.md) | Multi-template layouts (`split`/`card`), Blade components, & Bring Your Own UI. |
-| [🔌 **REST API Reference**](docs/api-reference.md) | Complete JSON API endpoints and request/response schemas. |
-| [🧩 **Strategies & Extending**](docs/strategies-and-extending.md) | Custom login identifiers (NIP, Employee ID, RFID) and strategy registries. |
-| [🛡️ **Security & Best Practices**](docs/security-and-best-practices.md) | Enumeration defense, rate limiting, lockout decay, and session security. |
-| [🚢 **Publishing & Releases**](docs/publishing-guide.md) | Git tagging, SemVer protocols, and Packagist synchronization. |
 
 ---
 
@@ -92,7 +78,24 @@ composer require mixudev/laravel-authentication:@dev
 
 ## 🛠️ Setup & Publishing Modes
 
-### Mode A: Standard Publishing (Individual Folders)
+### Mode A: Single-Folder Module Mode *(Recommended)*
+Export the entire authentication subsystem into a clean, unified `modules/Authentication/` folder:
+```bash
+php artisan authentication:install-module
+```
+
+Register the module Service Provider in `bootstrap/providers.php` (Laravel 11-13) or `config/app.php`:
+```php
+\Modules\Authentication\AuthenticationModuleServiceProvider::class,
+```
+Then run migrations:
+```bash
+php artisan migrate
+```
+
+---
+
+### Mode B: Standard Publishing (Individual Folders)
 ```bash
 # 1. Publish Configuration
 php artisan vendor:publish --tag=authentication-config
@@ -101,153 +104,115 @@ php artisan vendor:publish --tag=authentication-config
 php artisan vendor:publish --tag=authentication-migrations
 php artisan migrate
 
-# 3. Publish UI Views (Optional - for customizing Blade templates)
+# 3. Publish Blade Views (Optional, for UI customization)
 php artisan vendor:publish --tag=authentication-views
+
+# 4. Publish Translations (Optional)
+php artisan vendor:publish --tag=authentication-lang
 ```
 
 ---
 
-### Mode B: Unified Single-Folder Module Mode (Clean Organization)
-Export all package assets (Config, Migrations, Views, Routes, and ServiceProvider) into a single folder:
-
-```bash
-# Export into modules/Authentication/
-php artisan authentication:install-module
-
-# Or specify a custom directory:
-php artisan authentication:install-module --path=app/Modules/Authentication
-```
-
-See the [Unified Module Guide](docs/modular-installation.md) for full 3-step setup instructions.
-
----
-
-## ⚙️ Modular Feature Switches
-
-In `config/authentication.php` (or `.env`), toggle entire subsystems on or off. When disabled, associated routes, controller actions, and UI buttons fail-closed automatically:
+## ⚙️ Quick Configuration Overview (`config/authentication.php`)
 
 ```php
-'features' => [
-    'registration' => [
-        'enabled'                => env('AUTH_REGISTRATION_ENABLED', true),
-        'auto_login_on_register' => env('AUTH_AUTO_LOGIN_ON_REGISTER', true),
-    ],
+return [
+    'enabled' => true,
+    'guard'   => 'web',
+    'user_model' => \App\Models\User::class,
 
-    'forgot_password' => [
-        'enabled' => env('AUTH_FORGOT_PASSWORD_ENABLED', true),
-    ],
-
-    'otp' => [
-        'enabled'          => env('AUTH_OTP_ENABLED', true),
-        'length'           => (int) env('AUTH_OTP_LENGTH', 6),
-        'expiry_minutes'   => (int) env('AUTH_OTP_EXPIRY_MINUTES', 10),
-        'max_attempts'     => (int) env('AUTH_OTP_MAX_ATTEMPTS', 3),
-        'throttle_seconds' => (int) env('AUTH_OTP_THROTTLE_SECONDS', 60),
-        'type'             => env('AUTH_OTP_TYPE', 'numeric'), // 'numeric' or 'alphanumeric'
-    ],
-
-    'social' => [
-        'enabled'       => env('AUTH_SOCIAL_ENABLED', true),
-        'auto_register' => env('AUTH_SOCIAL_AUTO_REGISTER', true),
-        'providers'     => [
-            'google' => ['enabled' => env('AUTH_GOOGLE_ENABLED', true)],
-            'github' => ['enabled' => env('AUTH_GITHUB_ENABLED', true)],
+    // Dynamic database table names
+    'database' => [
+        'load_migrations' => true,
+        'table_names' => [
+            'attempts'           => 'authentication_attempts',
+            'login_histories'    => 'authentication_login_histories',
+            'password_histories' => 'authentication_password_histories',
+            'two_factor'         => 'authentication_two_factors',
+            'devices'            => 'authentication_devices',
+            'sessions'           => 'authentication_sessions',
         ],
     ],
-],
+
+    // Non-blocking mail queue
+    'mail' => [
+        'queue'            => false, // Set true for queue worker dispatching
+        'queue_connection' => null,
+        'queue_name'       => 'auth-emails',
+    ],
+
+    // Granular rate limits
+    'security' => [
+        'rate_limits' => [
+            'login'           => ['enabled' => true, 'max_attempts' => 5, 'decay_minutes' => 1, 'strategy' => 'composite'],
+            'registration'    => ['enabled' => true, 'max_attempts' => 5, 'decay_minutes' => 60, 'strategy' => 'ip'],
+            'otp_request'     => ['enabled' => true, 'max_attempts' => 3, 'decay_minutes' => 5, 'strategy' => 'composite'],
+            'otp_verify'      => ['enabled' => true, 'max_attempts' => 5, 'decay_minutes' => 10, 'strategy' => 'composite'],
+            'forgot_password' => ['enabled' => true, 'max_attempts' => 3, 'decay_minutes' => 60, 'strategy' => 'composite'],
+            'two_factor'      => ['enabled' => true, 'max_attempts' => 5, 'decay_minutes' => 5, 'strategy' => 'ip'],
+            'confirm_password'=> ['enabled' => true, 'max_attempts' => 5, 'decay_minutes' => 1, 'strategy' => 'ip'],
+        ],
+        'captcha' => [
+            'enabled'                       => false,
+            'driver'                        => 'turnstile', // 'turnstile', 'recaptcha_v2', 'recaptcha_v3', 'hcaptcha'
+            'trigger_after_failed_attempts' => 3,           // Adaptive: only show after 3 failed attempts
+            'site_key'                      => env('AUTH_CAPTCHA_SITE_KEY', ''),
+            'secret_key'                    => env('AUTH_CAPTCHA_SECRET_KEY', ''),
+        ],
+        'new_device_notification' => [
+            'enabled'          => true,
+            'include_location' => true,
+        ],
+    ],
+
+    // Modular features
+    'features' => [
+        'registration'       => ['enabled' => true, 'auto_login_on_register' => true],
+        'forgot_password'    => ['enabled' => true],
+        'otp'                => ['enabled' => true, 'length' => 6, 'expiry_minutes' => 10],
+        'two_factor'         => [
+            'enabled'        => true,
+            'trust_device'   => ['enabled' => true, 'duration_days' => 30],
+        ],
+        'confirm_password'   => ['enabled' => true, 'timeout_seconds' => 900],
+        'session_management' => ['enabled' => true, 'max_active_sessions' => 5],
+        'social'             => ['enabled' => true],
+    ],
+
+    // UI Configuration
+    'ui' => [
+        'layout'   => 'card', // 'card' or 'split'
+        'theme'    => 'light',
+        'use_vite' => true,
+    ],
+];
 ```
 
 ---
 
-## 🔒 Dynamic Password Policies (.env)
+## 🔒 Security Best Practices
 
-Customize your application's password complexity rules directly in your `.env` file without touching code:
-
-```env
-AUTH_PASSWORD_MIN_LENGTH=8
-AUTH_PASSWORD_REQUIRE_UPPERCASE=true
-AUTH_PASSWORD_REQUIRE_LOWERCASE=true
-AUTH_PASSWORD_REQUIRE_NUMBERS=true
-AUTH_PASSWORD_REQUIRE_SYMBOLS=true
-AUTH_PASSWORD_SYMBOLS_CHARSET="@#$!%*"
-```
-
-The live frontend registration checklist and backend validation automatically synchronize with these rules!
-
----
-
-## 🎨 UI Layouts & Custom Views
-
-### 1. Pilihan Template Layout Bawaan (`split` & `card`)
-Package menyertakan 2 pilihan layout modern berbasis Tailwind CSS:
-- **`split` (Default)**: Tampilan 2-kolom console (Brand sidebar di kiri, formulir interaktif di kanan).
-- **`card`**: Tampilan kartu minimalis terpusat dengan efek ambient glow.
-
-Ganti template dengan satu baris konfigurasi di `.env`:
-```env
-AUTH_UI_LAYOUT=card # atau 'split'
-```
-
-### 2. Bring Your Own UI (Custom Views)
-Untuk mengganti tampilan view bawaan dengan template Blade kustom Anda sendiri (misal Tailwind, Bootstrap, React):
-
-Di `config/authentication.php` atau `.env`:
-```env
-AUTH_VIEW_LOGIN=auth.login
-AUTH_VIEW_REGISTER=auth.register
-AUTH_VIEW_FORGOT_PASSWORD=auth.forgot-password
-AUTH_VIEW_RESET_PASSWORD=auth.reset-password
-AUTH_VIEW_OTP_REQUEST=auth.otp-request
-AUTH_VIEW_OTP_VERIFY=auth.otp-verify
-```
-
-Lihat panduan lengkap:
-- 🇮🇩 [Panduan Kustomisasi View Bahasa Indonesia](docs/panduan-kustomisasi-view.md)
-- 🇬🇧 [Custom Views Technical Guide (English)](docs/views-customization.md)
-
----
-
-## 🔌 REST API Endpoints
-
-All endpoints support pure JSON payloads under `/api/v1/auth`:
-
-| Method | URI | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/login` | Authenticate and issue Sanctum token |
-| `POST` | `/api/v1/auth/register` | Register new account and issue token |
-| `POST` | `/api/v1/auth/otp/send` | Dispatch OTP verification code |
-| `POST` | `/api/v1/auth/otp/verify` | Verify OTP code and authenticate |
-| `POST` | `/api/v1/auth/forgot-password` | Request password reset email |
-| `POST` | `/api/v1/auth/reset-password` | Update password using reset token |
-| `POST` | `/api/v1/auth/social/{provider}` | Exchange OAuth credentials for session/token |
-| `POST` | `/api/v1/auth/logout` | Revoke current token / destroy session |
-
-See the [REST API Reference](docs/api-reference.md) for complete request and response schemas.
-
----
-
-## 🛡️ Security Architecture
-
-| Vector | Protection Mechanism |
-| :--- | :--- |
-| **User Enumeration** | Timing normalization (`usleep`) and uniform generic responses across valid & non-existent accounts. |
-| **Brute Force & Credential Stuffing** | Composite rate limiting (`sha1(ip + identifier)`) with configurable lockout thresholds. |
-| **Session Fixation** | Automated `session()->regenerate()` immediately following successful authentication. |
-| **Credential Leakage** | All raw credentials use PHP 8.2+ `#[\SensitiveParameter]` attributes to prevent exposure in logs & stack traces. |
-| **Password Rehashing** | Automatic rehashing to modern cryptographic algorithms upon successful login. |
+- **Zero Hardcoded Coupling**: Never import `App\Models\User` into vendor logic. Everything resolves via `config('authentication.user_model')`.
+- **Sensitive Parameter Redaction**: All raw passwords, TOTP secrets, and API tokens use `#[\SensitiveParameter]` attributes to prevent exposure in logs and stack traces.
+- **Fail-Closed by Design**: Unrecognized channels, invalid configuration, or unhandled strategies throw explicit typed exceptions rather than defaulting insecurely.
+- **Timing Safe**: All hash, token, and OTP comparisons use `hash_equals` to mitigate timing attacks.
 
 ---
 
 ## 🧪 Testing
 
-Run package tests with PHPUnit:
-
+Run the test suite via PHPUnit:
 ```bash
 vendor/bin/phpunit
+```
+
+Analyze static types with PHPStan (Level 8):
+```bash
+vendor/bin/phpstan analyse
 ```
 
 ---
 
 ## 📄 License
 
-This package is open-sourced software licensed under the [MIT license](LICENSE.md).
+This package is open-sourced software licensed under the [MIT license](LICENSE).

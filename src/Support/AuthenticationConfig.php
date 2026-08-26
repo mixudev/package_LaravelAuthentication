@@ -40,6 +40,63 @@ final class AuthenticationConfig
         return $model;
     }
 
+    /**
+     * Get dynamic table name from config with fallback.
+     */
+    public function getTableName(string $key, string $default = ''): string
+    {
+        $defaultMap = [
+            'attempts'           => 'authentication_attempts',
+            'login_histories'    => 'authentication_login_histories',
+            'password_histories' => 'authentication_password_histories',
+            'two_factor'         => 'authentication_two_factors',
+            'devices'            => 'authentication_devices',
+            'sessions'           => 'authentication_sessions',
+        ];
+
+        $fallback = $default ?: ($defaultMap[$key] ?? "authentication_{$key}");
+
+        return (string) $this->config->get("authentication.database.table_names.{$key}", $fallback);
+    }
+
+    public static function tableName(string $key, string $default = ''): string
+    {
+        /** @var ConfigRepository $config */
+        $config = config();
+        $defaultMap = [
+            'attempts'           => 'authentication_attempts',
+            'login_histories'    => 'authentication_login_histories',
+            'password_histories' => 'authentication_password_histories',
+            'two_factor'         => 'authentication_two_factors',
+            'devices'            => 'authentication_devices',
+            'sessions'           => 'authentication_sessions',
+        ];
+
+        $fallback = $default ?: ($defaultMap[$key] ?? "authentication_{$key}");
+
+        return (string) $config->get("authentication.database.table_names.{$key}", $fallback);
+    }
+
+    public function shouldLoadMigrations(): bool
+    {
+        return (bool) $this->config->get('authentication.database.load_migrations', true);
+    }
+
+    public function isMailQueueEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.mail.queue', false);
+    }
+
+    public function getMailQueueConnection(): ?string
+    {
+        return $this->config->get('authentication.mail.queue_connection');
+    }
+
+    public function getMailQueueName(): string
+    {
+        return (string) $this->config->get('authentication.mail.queue_name', 'auth-emails');
+    }
+
     public function getDefaultStrategy(): string
     {
         return (string) $this->config->get('authentication.login.default_strategy', 'username_or_email');
@@ -62,24 +119,51 @@ final class AuthenticationConfig
         return $column;
     }
 
-    public function isRateLimitEnabled(): bool
+    /**
+     * Granular Rate Limits
+     *
+     * @return array{enabled: bool, max_attempts: int, decay_minutes: int, strategy: string}
+     */
+    public function getRateLimitConfig(string $feature = 'login'): array
     {
-        return (bool) $this->config->get('authentication.security.rate_limit.enabled', true);
+        // Check new granular rate_limits config, with backward compatibility fallback
+        $featureConfig = $this->config->get("authentication.security.rate_limits.{$feature}");
+
+        if (is_array($featureConfig)) {
+            return [
+                'enabled'       => (bool) ($featureConfig['enabled'] ?? true),
+                'max_attempts'  => (int) ($featureConfig['max_attempts'] ?? 5),
+                'decay_minutes' => (int) ($featureConfig['decay_minutes'] ?? 1),
+                'strategy'      => (string) ($featureConfig['strategy'] ?? 'composite'),
+            ];
+        }
+
+        return [
+            'enabled'       => (bool) $this->config->get('authentication.security.rate_limit.enabled', true),
+            'max_attempts'  => (int) $this->config->get('authentication.security.rate_limit.max_attempts', 5),
+            'decay_minutes' => (int) $this->config->get('authentication.security.rate_limit.decay_minutes', 1),
+            'strategy'      => (string) $this->config->get('authentication.security.rate_limit.strategy', 'composite'),
+        ];
     }
 
-    public function getRateLimitMaxAttempts(): int
+    public function isRateLimitEnabled(string $feature = 'login'): bool
     {
-        return (int) $this->config->get('authentication.security.rate_limit.max_attempts', 5);
+        return $this->getRateLimitConfig($feature)['enabled'];
     }
 
-    public function getRateLimitDecayMinutes(): int
+    public function getRateLimitMaxAttempts(string $feature = 'login'): int
     {
-        return (int) $this->config->get('authentication.security.rate_limit.decay_minutes', 1);
+        return $this->getRateLimitConfig($feature)['max_attempts'];
     }
 
-    public function getRateLimitStrategy(): string
+    public function getRateLimitDecayMinutes(string $feature = 'login'): int
     {
-        return (string) $this->config->get('authentication.security.rate_limit.strategy', 'composite');
+        return $this->getRateLimitConfig($feature)['decay_minutes'];
+    }
+
+    public function getRateLimitStrategy(string $feature = 'login'): string
+    {
+        return $this->getRateLimitConfig($feature)['strategy'];
     }
 
     public function isLockoutEnabled(): bool
@@ -172,6 +256,112 @@ final class AuthenticationConfig
         return (string) $this->config->get('authentication.features.otp.type', 'numeric');
     }
 
+    // Two-Factor Authentication (2FA / TOTP)
+    public function isTwoFactorEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.features.two_factor.enabled', false);
+    }
+
+    public function getTwoFactorDigits(): int
+    {
+        return (int) $this->config->get('authentication.features.two_factor.digits', 6);
+    }
+
+    public function getTwoFactorPeriod(): int
+    {
+        return (int) $this->config->get('authentication.features.two_factor.period', 30);
+    }
+
+    public function getTwoFactorWindow(): int
+    {
+        return (int) $this->config->get('authentication.features.two_factor.window', 1);
+    }
+
+    public function getTwoFactorBackupCodesCount(): int
+    {
+        return (int) $this->config->get('authentication.features.two_factor.backup_codes_count', 8);
+    }
+
+    public function getTwoFactorIssuer(): string
+    {
+        return (string) $this->config->get('authentication.features.two_factor.issuer', config('app.name', 'Laravel'));
+    }
+
+    public function isDeviceTrustEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.features.two_factor.trust_device.enabled', false);
+    }
+
+    public function getDeviceTrustDurationDays(): int
+    {
+        return (int) $this->config->get('authentication.features.two_factor.trust_device.duration_days', 30);
+    }
+
+    public function getDeviceTrustCookieName(): string
+    {
+        return (string) $this->config->get('authentication.features.two_factor.trust_device.cookie_name', 'auth_trusted_device');
+    }
+
+    // Confirm Password
+    public function isConfirmPasswordEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.features.confirm_password.enabled', true);
+    }
+
+    public function getConfirmPasswordTimeout(): int
+    {
+        return (int) $this->config->get('authentication.features.confirm_password.timeout_seconds', 900);
+    }
+
+    // Session Management
+    public function isSessionManagementEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.features.session_management.enabled', true);
+    }
+
+    public function getMaxActiveSessions(): int
+    {
+        return (int) $this->config->get('authentication.features.session_management.max_active_sessions', 5);
+    }
+
+    // CAPTCHA
+    public function isCaptchaEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.security.captcha.enabled', false);
+    }
+
+    public function getCaptchaDriver(): string
+    {
+        return (string) $this->config->get('authentication.security.captcha.driver', 'turnstile');
+    }
+
+    public function getCaptchaTriggerThreshold(): int
+    {
+        return (int) $this->config->get('authentication.security.captcha.trigger_after_failed_attempts', 3);
+    }
+
+    public function getCaptchaSiteKey(): string
+    {
+        return (string) $this->config->get('authentication.security.captcha.site_key', '');
+    }
+
+    public function getCaptchaSecretKey(): string
+    {
+        return (string) $this->config->get('authentication.security.captcha.secret_key', '');
+    }
+
+    // New Device Notification
+    public function isNewDeviceNotificationEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.security.new_device_notification.enabled', true);
+    }
+
+    public function shouldIncludeLocationInNewDeviceMail(): bool
+    {
+        return (bool) $this->config->get('authentication.security.new_device_notification.include_location', true);
+    }
+
+    // Social Auth
     public function isSocialEnabled(): bool
     {
         return (bool) $this->config->get('authentication.features.social.enabled', true);

@@ -9,6 +9,7 @@ use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\CredentialResolverInterface;
 use Vendor\LaravelAuthentication\Contracts\CredentialValidatorInterface;
+use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Contracts\LoginAttemptManagerInterface;
 use Vendor\LaravelAuthentication\Contracts\OtpServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
@@ -18,13 +19,21 @@ use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\Repositories\PasswordHistoryRepository;
 use Vendor\LaravelAuthentication\Services\AuthenticationAuditService;
 use Vendor\LaravelAuthentication\Services\AuthenticationService;
+use Vendor\LaravelAuthentication\Services\CaptchaService;
 use Vendor\LaravelAuthentication\Services\CredentialResolver;
 use Vendor\LaravelAuthentication\Services\CredentialValidator;
+use Vendor\LaravelAuthentication\Services\DeviceDetector;
+use Vendor\LaravelAuthentication\Services\DeviceTrustService;
+use Vendor\LaravelAuthentication\Services\FeatureRateLimiter;
 use Vendor\LaravelAuthentication\Services\LoginAttemptManager;
+use Vendor\LaravelAuthentication\Services\NewDeviceDetectionService;
 use Vendor\LaravelAuthentication\Services\OtpService;
 use Vendor\LaravelAuthentication\Services\RegistrationService;
+use Vendor\LaravelAuthentication\Services\SessionManagerService;
 use Vendor\LaravelAuthentication\Services\SocialAuthService;
 use Vendor\LaravelAuthentication\Services\TokenService;
+use Vendor\LaravelAuthentication\Services\TotpService;
+use Vendor\LaravelAuthentication\Services\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
 
@@ -62,7 +71,22 @@ class AuthenticationServiceProvider extends ServiceProvider
             return $registry;
         });
 
-        // 4. Bind Interfaces to Concrete Implementations
+        // 4. Rate Limiting & Abuse Prevention
+        $this->app->singleton(FeatureRateLimiterInterface::class, FeatureRateLimiter::class);
+        $this->app->singleton(FeatureRateLimiter::class);
+        $this->app->singleton(CaptchaService::class);
+
+        // 5. Device, Session & Security Services
+        $this->app->singleton(DeviceDetector::class);
+        $this->app->singleton(DeviceTrustService::class);
+        $this->app->singleton(NewDeviceDetectionService::class);
+        $this->app->singleton(SessionManagerService::class);
+
+        // 6. Two-Factor Authentication
+        $this->app->singleton(TotpService::class);
+        $this->app->singleton(TwoFactorService::class);
+
+        // 7. Bind Core Interfaces to Concrete Implementations
         $this->app->bind(CredentialResolverInterface::class, CredentialResolver::class);
         $this->app->bind(CredentialValidatorInterface::class, CredentialValidator::class);
         $this->app->bind(LoginAttemptManagerInterface::class, LoginAttemptManager::class);
@@ -89,7 +113,7 @@ class AuthenticationServiceProvider extends ServiceProvider
                 __DIR__ . '/../../config/authentication.php' => config_path('authentication.php'),
             ], 'authentication-config');
 
-            // 2. Publish Migrations (enumerate files explicitly — publishes() does not support directory-to-directory)
+            // 2. Publish Migrations
             $this->publishes(
                 $this->buildPublishMap(
                     __DIR__ . '/../../database/migrations',
@@ -98,7 +122,7 @@ class AuthenticationServiceProvider extends ServiceProvider
                 'authentication-migrations'
             );
 
-            // 3. Publish Views (enumerate files explicitly, including sub-directories)
+            // 3. Publish Views
             $this->publishes(
                 $this->buildPublishMap(
                     __DIR__ . '/../../resources/views',
@@ -119,8 +143,6 @@ class AuthenticationServiceProvider extends ServiceProvider
             }
 
             // 5. Publish Full Unified Module in one directory
-            //    The `authentication:install-module` Artisan command is the recommended method.
-            //    This tag provides a standard `vendor:publish` alternative.
             $modulePublishMap = [
                 __DIR__ . '/../../config/authentication.php' => base_path('modules/Authentication/Config/authentication.php'),
                 __DIR__ . '/../../routes/web.php'            => base_path('modules/Authentication/Routes/web.php'),
@@ -145,8 +167,10 @@ class AuthenticationServiceProvider extends ServiceProvider
             ]);
         }
 
-        // Load Migrations automatically if in testing or auto-load enabled
-        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        // Load Migrations automatically if enabled in config
+        if ($this->app['config']->get('authentication.database.load_migrations', true)) {
+            $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        }
 
         // Load Views & Translations namespace
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'authentication');
@@ -174,12 +198,6 @@ class AuthenticationServiceProvider extends ServiceProvider
      * Recursively enumerate all files in a source directory and map them
      * to corresponding paths in the destination directory.
      *
-     * Laravel's publishes() method does not support directory-to-directory mapping;
-     * each source file must be listed individually.
-     *
-     * Normalizes paths using realpath() to handle cross-platform separator differences
-     * (e.g., Windows backslash vs Unix forward slash).
-     *
      * @return array<string, string>
      */
     protected function buildPublishMap(string $sourceDir, string $destDir): array
@@ -204,7 +222,6 @@ class AuthenticationServiceProvider extends ServiceProvider
 
             $absoluteSource = $file->getPathname();
 
-            // Strip the base source directory, normalize separators to forward slashes
             $relativePath = ltrim(
                 str_replace(
                     [DIRECTORY_SEPARATOR, '\\'],
@@ -214,7 +231,6 @@ class AuthenticationServiceProvider extends ServiceProvider
                 '/'
             );
 
-            // Build destination path using OS-native separator
             $absoluteDest = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $destDir), DIRECTORY_SEPARATOR)
                 . DIRECTORY_SEPARATOR
                 . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);

@@ -124,14 +124,18 @@ class OtpService implements OtpServiceInterface
 
         if (!empty($recipientEmail)) {
             try {
-                \Illuminate\Support\Facades\Mail::to($recipientEmail)->send(
-                    new \Vendor\LaravelAuthentication\Mail\OtpMail(
-                        code: $code,
-                        expiryMinutes: $expiryMinutes,
-                        identifier: $identifier,
-                        user: $user
-                    )
+                $mailable = new \Vendor\LaravelAuthentication\Mail\OtpMail(
+                    code: $code,
+                    expiryMinutes: $expiryMinutes,
+                    identifier: $identifier,
+                    user: $user
                 );
+
+                if ((bool) config('authentication.mail.queue', false)) {
+                    \Illuminate\Support\Facades\Mail::to($recipientEmail)->queue($mailable);
+                } else {
+                    \Illuminate\Support\Facades\Mail::to($recipientEmail)->send($mailable);
+                }
             } catch (\Throwable $e) {
                 report($e);
             }

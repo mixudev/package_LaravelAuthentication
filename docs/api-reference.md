@@ -12,11 +12,12 @@ All API routes are served under the configurable prefix (default: `/api/v1/auth`
 {
   "identifier": "user@example.com",
   "password": "SecurePassword123!",
-  "device_name": "iPhone 15 Pro"
+  "strategy": "username_or_email",
+  "remember": false
 }
 ```
 
-### Response (200 OK):
+### Standard Response (200 OK):
 ```json
 {
   "status": "success",
@@ -30,9 +31,189 @@ All API routes are served under the configurable prefix (default: `/api/v1/auth`
 }
 ```
 
+### 2FA Required Response (200 OK):
+Returned when the account has Two-Factor Authentication enabled and the current device is not trusted:
+```json
+{
+  "status": "two_factor_required",
+  "message": "Two-factor authentication code required.",
+  "user_id": 1,
+  "two_factor_required": true
+}
+```
+
 ---
 
-## 2. Register
+## 2. Two-Factor Challenge Verification
+**`POST /api/v1/auth/two-factor/verify`**
+
+Verifies the TOTP 6-digit code or a single-use backup recovery code during login.
+
+### Request:
+```json
+{
+  "user_id": 1,
+  "code": "123456",
+  "trust_device": true
+}
+```
+*Note: `code` accepts either a 6-digit TOTP string (`"123456"`) or a recovery code (`"ABCD-1234"`).*
+
+### Response (200 OK):
+```json
+{
+  "message": "Two-factor authentication successful.",
+  "token": "2|new_api_token...",
+  "user": {
+    "id": 1,
+    "name": "Jane Doe",
+    "email": "user@example.com"
+  }
+}
+```
+
+---
+
+## 3. Two-Factor Authentication Setup (Authenticated)
+
+### A. Get Secret & Recovery Codes
+**`GET /api/v1/auth/two-factor/setup`**  
+*Header: `Authorization: Bearer <token>`*
+
+#### Response (200 OK):
+```json
+{
+  "secret": "JBSWY3DPEHPK3PXP",
+  "otpauth_url": "otpauth://totp/Laravel:user%40example.com?secret=JBSWY3DPEHPK3PXP&issuer=Laravel&algorithm=SHA1&digits=6&period=30",
+  "recovery_codes": [
+    "A1B2-C3D4",
+    "E5F6-G7H8",
+    "I9J0-K1L2",
+    "M3N4-O5P6",
+    "Q7R8-S9T0",
+    "U1V2-W3X4",
+    "Y5Z6-A7B8",
+    "C9D0-E1F2"
+  ]
+}
+```
+
+### B. Confirm & Activate 2FA
+**`POST /api/v1/auth/two-factor/confirm`**  
+*Header: `Authorization: Bearer <token>`*
+
+#### Request:
+```json
+{
+  "code": "123456"
+}
+```
+
+#### Response (200 OK):
+```json
+{
+  "message": "Two-factor authentication enabled successfully."
+}
+```
+
+### C. Disable 2FA
+**`DELETE /api/v1/auth/two-factor/disable`**  
+*Header: `Authorization: Bearer <token>`*
+
+#### Request:
+```json
+{
+  "password": "SecurePassword123!"
+}
+```
+
+#### Response (200 OK):
+```json
+{
+  "message": "Two-factor authentication disabled successfully."
+}
+```
+
+---
+
+## 4. Active Sessions & Device Management (Authenticated)
+
+### A. List Active Sessions
+**`GET /api/v1/auth/sessions`**  
+*Header: `Authorization: Bearer <token>`*
+
+#### Response (200 OK):
+```json
+{
+  "sessions": [
+    {
+      "id": "1",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
+      "platform": "Windows 10/11",
+      "browser": "Google Chrome",
+      "device_name": "Google Chrome on Windows 10/11",
+      "location": "Jakarta, ID",
+      "last_activity": "2026-08-26T13:30:00.000000Z",
+      "is_current_device": true
+    }
+  ]
+}
+```
+
+### B. Revoke Specific Session
+**`DELETE /api/v1/auth/sessions/{id}`**  
+*Header: `Authorization: Bearer <token>`*
+
+#### Response (200 OK):
+```json
+{
+  "message": "Session revoked successfully."
+}
+```
+
+### C. Revoke All Other Sessions
+**`POST /api/v1/auth/sessions/revoke-others`**  
+*Header: `Authorization: Bearer <token>`*
+
+#### Request:
+```json
+{
+  "password": "SecurePassword123!"
+}
+```
+
+#### Response (200 OK):
+```json
+{
+  "message": "All other sessions revoked successfully."
+}
+```
+
+---
+
+## 5. Confirm Password (Re-authentication for Sensitive API Actions)
+**`POST /api/v1/auth/confirm-password`**  
+*Header: `Authorization: Bearer <token>`*
+
+### Request:
+```json
+{
+  "password": "SecurePassword123!"
+}
+```
+
+### Response (200 OK):
+```json
+{
+  "message": "Password confirmed successfully.",
+  "confirmed": true
+}
+```
+
+---
+
+## 6. User Registration
 **`POST /api/v1/auth/register`**
 
 ### Request:
@@ -50,7 +231,7 @@ All API routes are served under the configurable prefix (default: `/api/v1/auth`
 {
   "status": "success",
   "message": "Account registered successfully.",
-  "token": "2|registration_token...",
+  "token": "3|registration_token...",
   "user": {
     "id": 2,
     "name": "Jane Doe",
@@ -61,17 +242,19 @@ All API routes are served under the configurable prefix (default: `/api/v1/auth`
 
 ---
 
-## 3. Request OTP Code
+## 7. Passwordless OTP Endpoints
+
+### A. Send OTP Code
 **`POST /api/v1/auth/otp/send`**
 
-### Request:
+#### Request:
 ```json
 {
   "identifier": "user@example.com"
 }
 ```
 
-### Response (200 OK):
+#### Response (200 OK):
 ```json
 {
   "status": "success",
@@ -79,12 +262,10 @@ All API routes are served under the configurable prefix (default: `/api/v1/auth`
 }
 ```
 
----
-
-## 4. Verify OTP Code
+### B. Verify OTP Code
 **`POST /api/v1/auth/otp/verify`**
 
-### Request:
+#### Request:
 ```json
 {
   "identifier": "user@example.com",
@@ -92,12 +273,12 @@ All API routes are served under the configurable prefix (default: `/api/v1/auth`
 }
 ```
 
-### Response (200 OK):
+#### Response (200 OK):
 ```json
 {
   "status": "success",
   "message": "OTP verified successfully.",
-  "token": "3|otp_token...",
+  "token": "4|otp_token...",
   "user": {
     "id": 1,
     "name": "Jane Doe",
@@ -108,75 +289,52 @@ All API routes are served under the configurable prefix (default: `/api/v1/auth`
 
 ---
 
-## 5. Password Reset Request
+## 8. Password Recovery Endpoints
+
+### A. Request Reset Link
 **`POST /api/v1/auth/forgot-password`**
 
-### Request:
+#### Request:
 ```json
 {
   "email": "user@example.com"
 }
 ```
 
-### Response (200 OK):
+#### Response (200 OK):
 ```json
 {
   "status": "success",
-  "message": "Password reset link has been dispatched if account exists."
+  "message": "Password reset link sent to your email."
 }
 ```
 
----
-
-## 6. Password Reset Submission
+### B. Reset Password with Token
 **`POST /api/v1/auth/reset-password`**
 
-### Request:
+#### Request:
 ```json
 {
-  "token": "xyz_reset_token",
   "email": "user@example.com",
+  "token": "reset_token_from_email",
   "password": "NewSecurePassword123!",
   "password_confirmation": "NewSecurePassword123!"
 }
 ```
 
-### Response (200 OK):
+#### Response (200 OK):
 ```json
 {
   "status": "success",
-  "message": "Password has been successfully updated."
+  "message": "Password has been reset successfully."
 }
 ```
 
 ---
 
-## 7. Social OAuth Token Exchange
-**`POST /api/v1/auth/social/{provider}`** *(e.g. `google`, `github`)*
-
-### Response (200 OK):
-```json
-{
-  "status": "success",
-  "message": "Authenticated successfully with Google.",
-  "token": "4|social_google_token...",
-  "user": {
-    "id": 1,
-    "name": "Google User",
-    "email": "user@gmail.com"
-  }
-}
-```
-
----
-
-## 8. Logout
-**`POST /api/v1/auth/logout`** *(Requires Bearer Authorization)*
-
-### Headers:
-```
-Authorization: Bearer 1|abc123token...
-```
+## 9. Logout
+**`POST /api/v1/auth/logout`**  
+*Header: `Authorization: Bearer <token>`*
 
 ### Response (200 OK):
 ```json

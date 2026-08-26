@@ -3,13 +3,17 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Http\Controllers\ConfirmPasswordController;
 use Vendor\LaravelAuthentication\Http\Controllers\EmailVerificationController;
 use Vendor\LaravelAuthentication\Http\Controllers\LoginController;
 use Vendor\LaravelAuthentication\Http\Controllers\LogoutController;
 use Vendor\LaravelAuthentication\Http\Controllers\OtpController;
 use Vendor\LaravelAuthentication\Http\Controllers\PasswordResetController;
 use Vendor\LaravelAuthentication\Http\Controllers\RegisterController;
+use Vendor\LaravelAuthentication\Http\Controllers\SessionController;
 use Vendor\LaravelAuthentication\Http\Controllers\SocialAuthController;
+use Vendor\LaravelAuthentication\Http\Controllers\TwoFactorChallengeController;
+use Vendor\LaravelAuthentication\Http\Controllers\TwoFactorSetupController;
 
 Route::group(['middleware' => config('authentication.routes.web.middleware', ['web'])], function () {
     // Guest Routes
@@ -17,6 +21,12 @@ Route::group(['middleware' => config('authentication.routes.web.middleware', ['w
         // Standard Login
         Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [LoginController::class, 'login'])->name('login.perform');
+
+        // Two-Factor Challenge (during pending 2FA login)
+        if (config('authentication.features.two_factor.enabled', true)) {
+            Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'show'])->name('two-factor.challenge');
+            Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'verify'])->name('two-factor.verify');
+        }
 
         // Registration (Toggleable)
         if (config('authentication.features.registration.enabled', true)) {
@@ -50,6 +60,26 @@ Route::group(['middleware' => config('authentication.routes.web.middleware', ['w
     // Authenticated Routes
     Route::middleware('auth')->group(function () {
         Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
+
+        // Confirm Password (Re-authentication)
+        if (config('authentication.features.confirm_password.enabled', true)) {
+            Route::get('/confirm-password', [ConfirmPasswordController::class, 'show'])->name('password.confirm');
+            Route::post('/confirm-password', [ConfirmPasswordController::class, 'confirm'])->name('password.confirm.submit');
+        }
+
+        // 2FA Setup Management
+        if (config('authentication.features.two_factor.enabled', true)) {
+            Route::get('/auth/two-factor/setup', [TwoFactorSetupController::class, 'show'])->name('two-factor.setup');
+            Route::post('/auth/two-factor/confirm', [TwoFactorSetupController::class, 'confirm'])->name('two-factor.enable');
+            Route::delete('/auth/two-factor/disable', [TwoFactorSetupController::class, 'destroy'])->name('two-factor.disable');
+        }
+
+        // Session & Device Management
+        if (config('authentication.features.session_management.enabled', true)) {
+            Route::get('/auth/sessions', [SessionController::class, 'index'])->name('auth.sessions.index');
+            Route::delete('/auth/sessions/{id}', [SessionController::class, 'destroy'])->name('auth.sessions.destroy');
+            Route::post('/auth/sessions/revoke-others', [SessionController::class, 'destroyOthers'])->name('auth.sessions.destroy-others');
+        }
 
         // Email Verification
         Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');

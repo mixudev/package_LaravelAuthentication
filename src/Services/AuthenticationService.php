@@ -10,19 +10,21 @@ use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Contracts\Events\Dispatcher;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationStrategyInterface;
-use Vendor\LaravelAuthentication\DTO\LoginData;
-use Vendor\LaravelAuthentication\DTO\AuthenticationResult;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\DTO\AuthenticationResult;
+use Vendor\LaravelAuthentication\DTO\LoginData;
 use Vendor\LaravelAuthentication\Enums\AuthenticationStatus;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\LoginAttempted;
-use Vendor\LaravelAuthentication\Events\LoginSucceeded;
 use Vendor\LaravelAuthentication\Events\LoginFailed;
+use Vendor\LaravelAuthentication\Events\LoginSucceeded;
 use Vendor\LaravelAuthentication\Events\LogoutPerformed;
 use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
+use Vendor\LaravelAuthentication\Exceptions\InvalidStrategyException;
+use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
 
@@ -32,8 +34,8 @@ use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
  *
  * Pipeline Flow:
  * Request -> Pre-check / Rate Limit -> Strategy Selection -> Identity Lookup
- * -> Credential Validation -> Post-check / Lockout -> Session / Token Generation
- * -> Event Dispatch -> Security Audit -> Return Result
+ * -> Credential Validation -> Post-check / Lockout -> Two-Factor Check
+ * -> Session / Token Generation -> Device Registration -> Event Dispatch -> Security Audit -> Return Result
  */
 class AuthenticationService implements AuthenticationServiceInterface
 {
@@ -46,6 +48,9 @@ class AuthenticationService implements AuthenticationServiceInterface
         private readonly SessionSecurityService $sessionSecurity,
         private readonly TokenService $tokenService,
         private readonly AuthenticationAuditService $auditService,
+        private readonly TwoFactorService $twoFactorService,
+        private readonly DeviceTrustService $deviceTrustService,
+        private readonly NewDeviceDetectionService $newDeviceService,
         private readonly AuthenticationConfig $config
     ) {}
 
@@ -121,11 +126,25 @@ class AuthenticationService implements AuthenticationServiceInterface
             throw new InvalidCredentialsException();
         }
 
-        // 7. Success Lifecycle
+        // 7. Success Preparation
         $this->attemptManager->clearAttempts($data, $context);
         $this->lockService->clearFailures($user);
 
-        // Establish Session or API Token
+        // 8. Two-Factor Authentication Check
+        if ($this->twoFactorService->isEnabledFor($user)) {
+            $isDeviceTrusted = request() ? $this->deviceTrustService->isTrusted($user, request()) : false;
+
+            if (!$isDeviceTrusted) {
+                if ($context->channel->value === 'web' && request()->hasSession()) {
+                    request()->session()->put('auth.2fa.user_id', $user->getAuthIdentifier());
+                    request()->session()->put('auth.2fa.remember', $data->remember);
+                }
+
+                throw new TwoFactorChallengeRequiredException($user);
+            }
+        }
+
+        // 9. Establish Session or API Token
         $token = null;
         if ($context->channel->value === 'web') {
             $guard = $this->auth->guard($context->guard);
@@ -135,6 +154,9 @@ class AuthenticationService implements AuthenticationServiceInterface
         } else {
             $token = $this->tokenService->createToken($user);
         }
+
+        // 10. Record device / detect new device login
+        $this->newDeviceService->handleLogin($user, $context);
 
         $result = AuthenticationResult::success($user, $token, [
             'strategy' => $strategy->name(),
@@ -181,7 +203,12 @@ class AuthenticationService implements AuthenticationServiceInterface
 
     protected function resolveStrategy(LoginData $data): AuthenticationStrategyInterface
     {
-        $strategyName = $data->strategy ?? $this->config->getDefaultStrategy();
+        $strategyName = $data->strategy ?: $this->config->getDefaultStrategy();
+
+        if (!$this->strategyRegistry->has($strategyName)) {
+            throw new InvalidStrategyException("The requested authentication strategy [{$strategyName}] is not registered.");
+        }
+
         return $this->strategyRegistry->get($strategyName);
     }
 }

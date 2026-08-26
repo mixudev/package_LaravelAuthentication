@@ -18,12 +18,19 @@ Package ini menyediakan arsitektur autentikasi modular, portable, enterprise-gra
    - Struktur modul rapi di `modules/Authentication/`
 
 3. [**Fitur & Modul Utama (Features & Modules)**](features.md)
-   - Modular feature toggles (`config/authentication.php`)
+   - Multi-Factor Authentication (MFA/2FA TOTP & Recovery Codes)
+   - Manajemen Sesi & Perangkat Aktif (Session & Device Management)
+   - Rate Limiting Granular per Fitur
+   - Notifikasi Login dari Perangkat Baru / Mencurigakan
+   - Konfigurasi Nama Tabel Database & Migrasi Dinamis
+   - CAPTCHA & Proteksi Bot Adaptif (Turnstile, reCAPTCHA, hCaptcha)
+   - Konfirmasi Password untuk Aksi Sensitif (Re-Auth)
+   - Pengiriman Email & OTP Asinkron (Queue)
    - Modul registrasi akun & auto-login
    - Modul autentikasi tanpa password via Kode OTP
    - Modul OAuth Social Login (Google & GitHub)
    - Modul pemulihan & reset kata sandi
-   - Kebijakan kekuatan password dinamis
+   - Kebijakan kekuatan password & riwayat password
 
 4. [**Kustomisasi Tampilan & Template UI**](panduan-kustomisasi-view.md) / [🇬🇧 English](views-customization.md)
    - Penggunaan 2 template layout bawaan: `split` (2-kolom) & `card` (kartu tengah)
@@ -38,12 +45,14 @@ Package ini menyediakan arsitektur autentikasi modular, portable, enterprise-gra
 
 6. [**Referensi REST API (API Reference)**](api-reference.md)
    - Katalog lengkap endpoint API JSON (`/api/v1/auth/*`)
+   - 2FA Challenge, Session Management, dan Confirm Password endpoints
    - Skema payload request & response
-   - Manajemen token Bearer dengan Laravel Sanctum
 
 7. [**Keamanan & Praktik Terbaik (Security & Best Practices)**](security-and-best-practices.md)
+   - Matriks mitigasi ancaman & proteksi zero-trust
+   - Rate limiting komposit per fitur & adaptif CAPTCHA
+   - MFA/2FA & Device Trust cookies
    - Mitigasi User Enumeration & timing normalization
-   - Rate limiting komposit (`sha1(ip + identifier)`) & account lockout
    - Proteksi session fixation & rehash password otomatis
    - Audit logging & penyamaran data sensitif (`#[\SensitiveParameter]`)
 

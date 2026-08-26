@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 /**
  * Stores records of authentication attempts for forensics and rate-limit audits.
@@ -23,8 +24,6 @@ class AuthenticationAttempt extends Model
 {
     public $timestamps = false;
 
-    protected $table = 'authentication_attempts';
-
     protected $fillable = [
         'identifier',
         'ip_address',
@@ -35,6 +34,11 @@ class AuthenticationAttempt extends Model
         'channel',
         'attempted_at',
     ];
+
+    public function getTable(): string
+    {
+        return AuthenticationConfig::tableName('attempts', 'authentication_attempts');
+    }
 
     /**
      * Get the attributes that should be cast.

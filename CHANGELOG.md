@@ -5,6 +5,33 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-08-26
+
+### Added
+- **Multi-Factor Authentication (MFA / 2FA)**:
+  - Pure PHP RFC 6238 TOTP engine compatible with Google Authenticator, Authy, Microsoft Authenticator, and 1Password (`TotpService`).
+  - Single-use encrypted backup recovery codes (`TwoFactorService`).
+  - Web & API challenge intercept workflow during login (`TwoFactorChallengeController`, `TwoFactorSetupController`).
+  - "Trust This Device" (Remember Device) support with signed cookies to bypass 2FA on trusted devices for $N$ days (`DeviceTrustService`).
+- **Granular Rate Limiting per Feature**:
+  - Independent throttle counters for `login`, `registration`, `otp_request`, `otp_verify`, `forgot_password`, `two_factor`, and `confirm_password` to eliminate cross-feature abuse (`FeatureRateLimiter`).
+- **Adaptive CAPTCHA & Bot Protection**:
+  - Multi-provider CAPTCHA engine supporting Cloudflare Turnstile, Google reCAPTCHA v2/v3, and hCaptcha (`CaptchaService`).
+  - Adaptive threshold trigger allowing smooth friction-free login until $N$ consecutive failures are detected.
+  - Validation rule `ValidCaptcha`.
+- **Active Session & Device Management**:
+  - Device detector extracting OS, browser, device name, and network fingerprint from User-Agent & IP (`DeviceDetector`).
+  - List active sessions, revoke specific device sessions, or log out all other devices with password confirmation (`SessionManagerService`, `SessionController`).
+- **Suspicious & New Device Login Alerts**:
+  - Automatic detection of unrecognized device/IP fingerprints upon `LoginSucceeded` (`NewDeviceDetectionService`).
+  - Event `NewDeviceLoginDetected` and alert email `NewDeviceLoginMail` with instant "Secure Account & Revoke Sessions" link.
+- **Asynchronous Mail Queueing**:
+  - Non-blocking email dispatch support (`mail.queue`, `mail.queue_connection`, `mail.queue_name`) across OTP, new device alerts, and password resets.
+- **Configurable Database Table Names & Migration Loader**:
+  - Custom table names configuration (`database.table_names`) and toggleable package migration loading (`database.load_migrations`).
+- **Sensitive Action Re-Authentication (Confirm Password)**:
+  - Middleware `RequirePasswordConfirmation`, controller, and views for protecting high-risk admin and security actions.
+
 ## [1.3.0] - 2026-08-26
 
 ### Added
