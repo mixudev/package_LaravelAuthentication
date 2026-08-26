@@ -2,7 +2,7 @@
 =============================================================================
 HALAMAN VIEW: OTP VERIFY
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman verifikasi kode OTP dengan dukungan 2 bahasa.
+Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 detik.
 =============================================================================
 --}}
 @php
@@ -23,7 +23,7 @@ Deskripsi: Halaman verifikasi kode OTP dengan dukungan 2 bahasa.
         : (Route::has('login') ? route('login') : url('/login'));
 
     $identifier = $identifier ?? old('identifier', request('identifier', ''));
-    $otpLength = (int) config('authentication.features.otp.length', 6);
+    $otpLength  = (int) config('authentication.features.otp.length', 6);
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.otp_verify_title')">
@@ -35,11 +35,14 @@ Deskripsi: Halaman verifikasi kode OTP dengan dukungan 2 bahasa.
             :subtitle="__('authentication::messages.otp_verify_subtitle')"
         />
 
+        {{-- Alert di atas form, hilang otomatis dalam 3 detik --}}
         @if (session('status'))
-            <x-authentication::alert type="success" :message="session('status')" />
+            <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
         @if (session('error'))
-            <x-authentication::alert type="error" :message="session('error')" />
+            <x-authentication::alert type="error" :autodismiss="true" :message="session('error')" />
+        @elseif ($errors->any())
+            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         <form method="POST" action="{{ $verifyRoute }}" class="space-y-4" novalidate>
@@ -47,7 +50,7 @@ Deskripsi: Halaman verifikasi kode OTP dengan dukungan 2 bahasa.
 
             <input type="hidden" name="identifier" value="{{ $identifier }}">
 
-            {{-- Kotak OTP 6 Digit --}}
+            {{-- Kotak OTP 6 Digit — Auto-advance otomatis saat mengetik --}}
             <div class="py-2">
                 <x-authentication::otp-input 
                     name="code"
@@ -55,18 +58,6 @@ Deskripsi: Halaman verifikasi kode OTP dengan dukungan 2 bahasa.
                     :autofocus="true"
                 />
             </div>
-
-            {{-- Alert Error --}}
-            @if ($errors->any())
-                <x-authentication::alert type="error">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        {{ $errors->first() }}
-                    </span>
-                </x-authentication::alert>
-            @endif
 
             <div class="block pt-1">
                 <x-authentication::checkbox 
@@ -84,6 +75,7 @@ Deskripsi: Halaman verifikasi kode OTP dengan dukungan 2 bahasa.
 
         </form>
 
+        {{-- Kirim ulang OTP & Kembali ke login --}}
         <div class="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center text-xs">
             <form method="POST" action="{{ $sendRoute }}" class="inline-block">
                 @csrf

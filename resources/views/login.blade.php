@@ -2,7 +2,7 @@
 =============================================================================
 HALAMAN VIEW: LOGIN
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman login bersih dengan alert di bawah field dan dukungan 2 bahasa.
+Deskripsi: Halaman login bersih — alert di atas form dengan auto-dismiss 3 detik.
 =============================================================================
 --}}
 @php
@@ -10,7 +10,6 @@ Deskripsi: Halaman login bersih dengan alert di bawah field dan dukungan 2 bahas
         ? 'authentication::layouts.split' 
         : 'authentication::layouts.card';
 
-    /* Resolusi rute secara fleksibel agar kompatibel dengan berbagai konfigurasi host */
     $loginPerformRoute = Route::has('login.perform') 
         ? route('login.perform') 
         : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
@@ -26,6 +25,12 @@ Deskripsi: Halaman login bersih dengan alert di bawah field dan dukungan 2 bahas
     $registerRoute = Route::has('register') 
         ? route('register') 
         : (Route::has('authentication.register') ? route('authentication.register') : url('/register'));
+
+    
+    $credentialError = $errors->first('credentials') 
+        ?: $errors->first('identifier')
+        ?: $errors->first('password')
+        ?: session('error');
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.sign_in')">
@@ -38,9 +43,18 @@ Deskripsi: Halaman login bersih dengan alert di bawah field dan dukungan 2 bahas
             :subtitle="__('authentication::messages.sign_in_subtitle')"
         />
 
-        {{-- Notifikasi Status Sukses (misal: setelah logout) --}}
+        {{-- 
+            Alert Notifikasi — Tampil di atas form, hilang otomatis dalam 3 detik.
+            Sukses: setelah logout / redirect. Error: kredensial salah.
+        --}}
         @if (session('status'))
-            <x-authentication::alert type="success" :message="session('status')" />
+            <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
+        @endif
+
+        @if ($credentialError)
+            <x-authentication::alert type="error" :autodismiss="true" :message="$credentialError" />
+        @elseif ($errors->any())
+            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         {{-- Tombol Social Login (Google / GitHub) --}}
@@ -81,33 +95,6 @@ Deskripsi: Halaman login bersih dengan alert di bawah field dan dukungan 2 bahas
                     </x-slot:labelRight>
                 @endif
             </x-authentication::input>
-
-            {{-- Alert Error Kredensial — Tampil di bawah field password, bukan di atas form --}}
-            @php
-                $credentialError = $errors->first('credentials') 
-                    ?: $errors->first('identifier')
-                    ?: $errors->first('password')
-                    ?: session('error');
-            @endphp
-            @if ($credentialError)
-                <x-authentication::alert type="error">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        {{ $credentialError }}
-                    </span>
-                </x-authentication::alert>
-            @elseif ($errors->any())
-                <x-authentication::alert type="error">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        {{ $errors->first() }}
-                    </span>
-                </x-authentication::alert>
-            @endif
 
             {{-- Checkbox Ingat Saya --}}
             <div class="block pt-1">

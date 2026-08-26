@@ -2,7 +2,7 @@
 =============================================================================
 HALAMAN VIEW: REGISTER
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman registrasi dengan dukungan 2 bahasa (Indonesia / Inggris).
+Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik.
 =============================================================================
 --}}
 @php
@@ -28,11 +28,14 @@ Deskripsi: Halaman registrasi dengan dukungan 2 bahasa (Indonesia / Inggris).
             :subtitle="__('authentication::messages.register_subtitle')"
         />
 
+        {{-- Alert di atas form, hilang otomatis dalam 3 detik --}}
         @if (session('status'))
-            <x-authentication::alert type="success" :message="session('status')" />
+            <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
         @if (session('error'))
-            <x-authentication::alert type="error" :message="session('error')" />
+            <x-authentication::alert type="error" :autodismiss="true" :message="session('error')" />
+        @elseif ($errors->any())
+            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         <x-authentication::social-buttons />
@@ -97,17 +100,6 @@ Deskripsi: Halaman registrasi dengan dukungan 2 bahasa (Indonesia / Inggris).
                     </span>
                 </x-authentication::checkbox>
             </div>
-
-            @if ($errors->any())
-                <x-authentication::alert type="error">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        {{ $errors->first() }}
-                    </span>
-                </x-authentication::alert>
-            @endif
 
             <div class="pt-2">
                 <x-authentication::button type="submit" variant="primary">
