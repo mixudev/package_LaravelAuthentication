@@ -2,10 +2,12 @@
 =============================================================================
 HALAMAN VIEW: LOGIN
 Package: mixudev/laravel-authentication
-Deskripsi: Halaman login bersih — alert di atas form dengan auto-dismiss 3 detik.
+Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali gagal).
 =============================================================================
 --}}
 @php
+    use Vendor\LaravelAuthentication\Services\CaptchaService;
+
     $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
         ? 'authentication::layouts.split' 
         : 'authentication::layouts.card';
@@ -26,14 +28,38 @@ Deskripsi: Halaman login bersih — alert di atas form dengan auto-dismiss 3 det
         ? route('register') 
         : (Route::has('authentication.register') ? route('authentication.register') : url('/register'));
 
-    
     $credentialError = $errors->first('credentials') 
         ?: $errors->first('identifier')
         ?: $errors->first('password')
         ?: session('error');
+
+    // CAPTCHA: Tentukan apakah perlu tampil di request ini
+    /** @var CaptchaService $captchaService */
+    $captchaService   = app(CaptchaService::class);
+    $captchaDriver    = config('authentication.security.captcha.driver', 'turnstile');
+    $captchaSiteKey   = config('authentication.security.captcha.site_key', '');
+    $showCaptcha      = $captchaService->isEnabled()
+        && $captchaService->shouldShowCaptcha(old('identifier'), request()->ip());
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.sign_in')">
+
+    {{-- Load CAPTCHA Script (hanya jika perlu tampil) --}}
+    @if ($showCaptcha)
+        @if ($captchaDriver === 'turnstile')
+            @push('scripts')
+                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+            @endpush
+        @elseif (str_starts_with($captchaDriver, 'recaptcha'))
+            @push('scripts')
+                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+            @endpush
+        @elseif ($captchaDriver === 'hcaptcha')
+            @push('scripts')
+                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+            @endpush
+        @endif
+    @endif
     
     <div class="space-y-4">
         
@@ -103,6 +129,51 @@ Deskripsi: Halaman login bersih — alert di atas form dengan auto-dismiss 3 det
                     :label="__('authentication::messages.remember_me')"
                 />
             </div>
+
+            {{-- 
+                CAPTCHA Widget Adaptif
+                Muncul otomatis setelah trigger_after_failed_attempts kali gagal login.
+                Cloudflare Turnstile: field "cf-turnstile-response"
+                Google reCAPTCHA:    field "g-recaptcha-response"
+                hCaptcha:            field "h-captcha-response"
+            --}}
+            @if ($showCaptcha && !empty($captchaSiteKey))
+                <div class="pt-1">
+                    @if ($captchaDriver === 'turnstile')
+                        <div class="cf-turnstile" data-sitekey="{{ $captchaSiteKey }}" data-theme="light"></div>
+                        @if ($errors->has('cf-turnstile-response'))
+                            <p class="text-xs text-red-500 mt-1">{{ $errors->first('cf-turnstile-response') }}</p>
+                        @endif
+
+                    @elseif ($captchaDriver === 'recaptcha_v2')
+                        <div class="g-recaptcha" data-sitekey="{{ $captchaSiteKey }}"></div>
+                        @if ($errors->has('g-recaptcha-response'))
+                            <p class="text-xs text-red-500 mt-1">{{ $errors->first('g-recaptcha-response') }}</p>
+                        @endif
+
+                    @elseif ($captchaDriver === 'recaptcha_v3')
+                        {{-- reCAPTCHA v3 tidak tampil secara visual, token dikirim via hidden field --}}
+                        <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response-v3">
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                if (window.grecaptcha) {
+                                    grecaptcha.ready(function() {
+                                        grecaptcha.execute('{{ $captchaSiteKey }}', {action: 'login'}).then(function(token) {
+                                            document.getElementById('g-recaptcha-response-v3').value = token;
+                                        });
+                                    });
+                                }
+                            });
+                        </script>
+
+                    @elseif ($captchaDriver === 'hcaptcha')
+                        <div class="h-captcha" data-sitekey="{{ $captchaSiteKey }}"></div>
+                        @if ($errors->has('h-captcha-response'))
+                            <p class="text-xs text-red-500 mt-1">{{ $errors->first('h-captcha-response') }}</p>
+                        @endif
+                    @endif
+                </div>
+            @endif
 
             {{-- Tombol Submit --}}
             <div class="pt-2">

@@ -15,7 +15,6 @@ use Illuminate\Validation\ValidationException;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
-use Vendor\LaravelAuthentication\Enums\AuthenticationChannel;
 use Vendor\LaravelAuthentication\Events\LoginSucceeded;
 use Vendor\LaravelAuthentication\Services\DeviceTrustService;
 use Vendor\LaravelAuthentication\Services\NewDeviceDetectionService;
@@ -67,11 +66,22 @@ class TwoFactorChallengeController extends Controller
                 : redirect()->route('login');
         }
 
+        // Accept either TOTP 6-digit code or backup recovery code from separate fields
         $request->validate([
-            'code'          => ['required', 'string'],
+            'code'          => ['nullable', 'string'],
+            'recovery_code' => ['nullable', 'string'],
             'trust_device'  => ['nullable', 'boolean'],
             'remember'      => ['nullable', 'boolean'],
         ]);
+
+        // One of the two fields must be present
+        $code = trim((string) ($request->input('code') ?: $request->input('recovery_code', '')));
+
+        if ($code === '') {
+            throw ValidationException::withMessages([
+                'code' => [__('authentication::messages.invalid_two_factor_code')],
+            ]);
+        }
 
         $ip = (string) $request->ip();
 
@@ -89,8 +99,6 @@ class TwoFactorChallengeController extends Controller
             return redirect()->route('login');
         }
 
-        $code = (string) $request->input('code');
-
         if (!$this->twoFactorService->verifyChallenge($user, $code)) {
             $this->rateLimiter->hit('two_factor', (string) $userId, $ip);
 
@@ -104,7 +112,6 @@ class TwoFactorChallengeController extends Controller
 
         $context = AuthenticationContext::fromRequest(
             $request,
-            $request->expectsJson() ? AuthenticationChannel::API : AuthenticationChannel::WEB,
             $this->config->getGuard()
         );
 
