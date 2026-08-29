@@ -245,4 +245,39 @@ class ComprehensiveSecurityRemediationTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('status', 'Two-factor authentication is already enabled on your account.');
     }
+
+    /**
+     * Session and Device Management Analytics:
+     * Verifies getSummary and getRecentLogins programmatic helpers.
+     */
+    public function test_session_manager_summary_and_audit_recent_logins(): void
+    {
+        $user = new \Illuminate\Auth\GenericUser([
+            'id'       => 555,
+            'name'     => 'Analytics User',
+            'email'    => 'analytics@example.com',
+            'password' => bcrypt('Password123!'),
+        ]);
+
+        \Vendor\LaravelAuthentication\Models\AuthenticationDevice::create([
+            'user_id'            => 555,
+            'device_fingerprint' => sha1('device1'),
+            'device_name'        => 'Google Chrome on Windows 11',
+            'platform'           => 'Windows 11',
+            'browser'            => 'Google Chrome',
+            'ip_address'         => '127.0.0.1',
+            'last_seen_at'       => now(),
+        ]);
+
+        $sessionService = app(\Vendor\LaravelAuthentication\Services\SessionManagerService::class);
+        $summary = $sessionService->getSummary($user);
+
+        $this->assertIsArray($summary);
+        $this->assertArrayHasKey('total_sessions', $summary);
+        $this->assertGreaterThanOrEqual(1, $summary['total_sessions']);
+
+        $auditService = app(\Vendor\LaravelAuthentication\Services\AuthenticationAuditService::class);
+        $recentLogins = $auditService->getRecentLogins($user);
+        $this->assertIsArray($recentLogins);
+    }
 }

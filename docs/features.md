@@ -75,17 +75,42 @@ Memungkinkan pengguna melihat daftar perangkat/browser yang sedang login ke akun
 ],
 ```
 
-### Cara Kerja & Alur Pemakaian:
-1. **Melihat Daftar Sesi Aktif**:
-   - Web: Buka `GET /auth/sessions` (nama rute: `auth.sessions.index`).
-   - API: `GET /api/v1/auth/sessions` (membutuhkan header `Authorization: Bearer <token>`).
-   - Data yang ditampilkan: Nama Perangkat, Browser, Sistem Operasi, IP Address, Perkiraan Lokasi, Waktu Terakhir Aktif, dan penanda *Perangkat Saat Ini*.
-2. **Mencabut Sesi Tertentu**:
-   - Web: Submit form `DELETE /auth/sessions/{id}` (nama rute: `auth.sessions.destroy`).
-   - API: `DELETE /api/v1/auth/sessions/{id}`.
-3. **Mencabut Seluruh Sesi Perangkat Lain (*Logout Other Devices*)**:
-   - Web: Submit form `POST /auth/sessions/revoke-others` dengan menyertakan password akun.
-   - API: `POST /api/v1/auth/sessions/revoke-others` dengan JSON payload `{"password": "your-password"}`.
+### Cara Kerja & 3 Cara Integrasi ke Project:
+
+#### A. Opsi 1: Halaman Standalone Siap Pakai
+* **Web**: Buka `GET /auth/sessions` (nama rute: `auth.sessions.index`).
+* Cocok untuk project yang ingin langsung memiliki halaman manajemen keamanan tanpa perlu merancang layout baru.
+
+#### B. Opsi 2: Reusable Blade Component (Disisipkan ke Dashboard Kustom)
+Cukup tempelkan tag komponen Blade ini di halaman dashboard atau profile aplikasi host Anda:
+```blade
+{{-- Halaman profile/dashboard host application --}}
+<div class="max-w-4xl mx-auto py-6 space-y-6">
+    <x-authentication::active-sessions />
+</div>
+```
+Komponen ini otomatis merender daftar perangkat, badge *"Perangkat Ini"*, tombol cabut sesi individu, dan form konfirmasi password untuk keluar dari semua perangkat lain.
+
+#### C. Opsi 3: Headless REST API (Inertia, Vue, React, Flutter)
+* **List Sesi**: `GET /api/v1/auth/sessions` (Header `Authorization: Bearer <token>`).
+* **Cabut 1 Sesi**: `DELETE /api/v1/auth/sessions/{id}`.
+* **Cabut Semua Sesi Lain**: `POST /api/v1/auth/sessions/revoke-others` dengan payload JSON `{"password": "your-password"}`.
+
+#### D. Opsi 4: Programmatic PHP Service (Untuk Custom Admin Dashboard / Widget)
+```php
+use Vendor\LaravelAuthentication\Services\SessionManagerService;
+use Vendor\LaravelAuthentication\Services\AuthenticationAuditService;
+
+$sessionService = app(SessionManagerService::class);
+$auditService   = app(AuthenticationAuditService::class);
+
+// Ringkasan metrik sesi aktif
+$summary = $sessionService->getSummary(auth()->user());
+// Output: ['total_sessions' => 2, 'current_device' => [...], 'other_sessions_count' => 1]
+
+// Riwayat login terakhir user
+$recentLogins = $auditService->getRecentLogins(auth()->user(), limit: 5);
+```
 
 ---
 

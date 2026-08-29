@@ -37,7 +37,7 @@ Returned when the account has Two-Factor Authentication enabled and the current 
 {
   "status": "two_factor_required",
   "message": "Two-factor authentication code required.",
-  "user_id": 1,
+  "pending_token": "a1b2c3d4e5f6...",
   "two_factor_required": true
 }
 ```
@@ -52,7 +52,7 @@ Verifies the TOTP 6-digit code or a single-use backup recovery code during login
 ### Request:
 ```json
 {
-  "user_id": 1,
+  "pending_token": "a1b2c3d4e5f6...",
   "code": "123456",
   "trust_device": true
 }
@@ -343,3 +343,63 @@ Verifies the TOTP 6-digit code or a single-use backup recovery code during login
   "message": "Logged out successfully."
 }
 ```
+
+---
+
+## 10. Active Sessions & Device Management (Authenticated)
+
+### A. List Active Sessions
+**`GET /api/v1/auth/sessions`**  
+*Header: `Authorization: Bearer <token>`*
+
+#### Response (200 OK):
+```json
+{
+  "status": "success",
+  "sessions": [
+    {
+      "id": "sess_123456",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
+      "platform": "Windows 10/11",
+      "browser": "Google Chrome",
+      "device_name": "Google Chrome on Windows 10/11",
+      "location": "Jakarta, ID",
+      "last_activity": "2026-08-29T12:00:00.000000Z",
+      "is_current_device": true
+    }
+  ]
+}
+```
+
+### B. Revoke Specific Session
+**`DELETE /api/v1/auth/sessions/{id}`**  
+*Header: `Authorization: Bearer <token>`*
+
+#### Response (200 OK):
+```json
+{
+  "status": "success",
+  "message": "Session revoked successfully."
+}
+```
+
+### C. Revoke All Other Sessions
+**`POST /api/v1/auth/sessions/revoke-others`**  
+*Header: `Authorization: Bearer <token>`*
+
+#### Request:
+```json
+{
+  "password": "SecurePassword123!"
+}
+```
+
+#### Response (200 OK):
+```json
+{
+  "status": "success",
+  "message": "All other sessions have been revoked."
+}
+```
+

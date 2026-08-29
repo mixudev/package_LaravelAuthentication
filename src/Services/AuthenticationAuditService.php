@@ -77,4 +77,30 @@ class AuthenticationAuditService implements AuditLoggerInterface
             ]);
         }
     }
+
+    /**
+     * Retrieve recent login history records for a user.
+     *
+     * @return array<int, array{id: int|string, ip_address: ?string, user_agent: ?string, login_method: string, channel: string, login_at: \Illuminate\Support\Carbon|string, logout_at: \Illuminate\Support\Carbon|string|null}>
+     */
+    public function getRecentLogins(Authenticatable $user, int $limit = 10): array
+    {
+        $userId = $user->getAuthIdentifier();
+        $records = $this->historyRepo->getRecentForUser($userId, $limit);
+        $results = [];
+
+        foreach ($records as $record) {
+            $results[] = [
+                'id'           => $record->id,
+                'ip_address'   => $record->ip_address,
+                'user_agent'   => $record->user_agent,
+                'login_method' => $record->login_method,
+                'channel'      => $record->channel,
+                'login_at'     => $record->login_at,
+                'logout_at'    => $record->logout_at,
+            ];
+        }
+
+        return $results;
+    }
 }

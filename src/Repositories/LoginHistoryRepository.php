@@ -32,4 +32,15 @@ class LoginHistoryRepository
             ->limit(1)
             ->update(['logout_at' => Carbon::now()]);
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, LoginHistory>
+     */
+    public function getRecentForUser(int|string $userId, int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    {
+        return LoginHistory::where('user_id', (int) $userId)
+            ->orderBy('login_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
 }

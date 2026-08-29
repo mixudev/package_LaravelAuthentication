@@ -136,4 +136,35 @@ class SessionManagerService
 
         return true;
     }
+
+    /**
+     * Get summary metrics for user's active devices and session health.
+     *
+     * @return array{total_sessions: int, current_device: ?array{platform: string, browser: string, ip_address: string, location: ?string}, other_sessions_count: int}
+     */
+    public function getSummary(Authenticatable $user, ?string $currentSessionId = null): array
+    {
+        $sessions = $this->getActiveSessions($user, $currentSessionId);
+        $currentDevice = null;
+        $otherCount = 0;
+
+        foreach ($sessions as $session) {
+            if ($session['is_current_device']) {
+                $currentDevice = [
+                    'platform'   => $session['platform'],
+                    'browser'    => $session['browser'],
+                    'ip_address' => $session['ip_address'],
+                    'location'   => $session['location'],
+                ];
+            } else {
+                $otherCount++;
+            }
+        }
+
+        return [
+            'total_sessions'       => count($sessions),
+            'current_device'       => $currentDevice,
+            'other_sessions_count' => $otherCount,
+        ];
+    }
 }

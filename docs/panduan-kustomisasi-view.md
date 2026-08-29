@@ -297,6 +297,9 @@ Meskipun Anda membuat view sendiri, Anda tetap bisa memanfaatkan seluruh kompone
 
 {{-- Kotak 6-Digit OTP --}}
 <x-authentication::otp-input name="code" :length="6" />
+
+{{-- Kartu Manajemen Sesi & Perangkat Aktif (Bisa disisipkan di Dashboard / Profile mana saja) --}}
+<x-authentication::active-sessions />
 ```
 
 ---
