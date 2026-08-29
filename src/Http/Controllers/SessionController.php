@@ -31,19 +31,37 @@ class SessionController extends Controller
 
         $currentSessionId = $request->hasSession() ? $request->session()->getId() : null;
         $sessions = $this->sessionManager->getActiveSessions($user, $currentSessionId);
+        $summary = $this->sessionManager->getSummary($user, $currentSessionId);
+
+        /** @var \Vendor\LaravelAuthentication\Services\TwoFactorService $twoFactorService */
+        $twoFactorService = app(\Vendor\LaravelAuthentication\Services\TwoFactorService::class);
+        $isTwoFactorEnabled = $twoFactorService->isEnabledFor($user);
+
+        /** @var \Vendor\LaravelAuthentication\Services\AuthenticationAuditService $auditService */
+        $auditService = app(\Vendor\LaravelAuthentication\Services\AuthenticationAuditService::class);
+        $recentLogins = $auditService->getRecentLogins($user, 5);
 
         if ($request->expectsJson()) {
             return response()->json([
-                'sessions' => $sessions,
+                'status'             => 'success',
+                'user'               => $user,
+                'is_2fa_enabled'     => $isTwoFactorEnabled,
+                'summary'            => $summary,
+                'sessions'           => $sessions,
+                'recent_logins'      => $recentLogins,
             ]);
         }
 
         $viewName = $this->config->getView('sessions', 'authentication::sessions');
 
         return response()->view($viewName, [
-            'sessions'     => $sessions,
-            'brandName'    => config('authentication.ui.brand_name', config('app.name', 'Laravel')),
-            'brandTagline' => config('authentication.ui.brand_tagline', 'Manajemen Sesi & Perangkat'),
+            'user'               => $user,
+            'isTwoFactorEnabled' => $isTwoFactorEnabled,
+            'summary'            => $summary,
+            'sessions'           => $sessions,
+            'recentLogins'       => $recentLogins,
+            'brandName'          => config('authentication.ui.brand_name', config('app.name', 'Laravel')),
+            'brandTagline'       => config('authentication.ui.brand_tagline', 'Pusat Keamanan & Manajemen Akun'),
         ]);
     }
 
