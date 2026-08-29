@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\Http\Controllers;
 
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
@@ -21,7 +23,8 @@ use Vendor\LaravelAuthentication\Http\Requests\LoginRequest;
 class LoginController extends Controller
 {
     public function __construct(
-        protected readonly AuthenticationServiceInterface $authService
+        protected readonly AuthenticationServiceInterface $authService,
+        protected readonly CacheRepository $cache
     ) {}
 
     /**
@@ -85,10 +88,17 @@ class LoginController extends Controller
                 'user'    => $result->user,
             ]);
         } catch (TwoFactorChallengeRequiredException $e) {
+            // BP-01 FIX: Ganti user_id langsung dengan opaque pending_token ber-TTL pendek.
+            // Token ini disimpan di cache dan divalidasi oleh TwoFactorChallengeController.
+            // Attacker tidak dapat menyuntikkan user_id sembarangan ke endpoint 2FA verify.
+            $pendingToken = Str::random(64);
+            $cacheKey     = '2fa.pending.' . hash('sha256', $pendingToken);
+            $this->cache->put($cacheKey, $e->user->getAuthIdentifier(), now()->addMinutes(10));
+
             return response()->json([
                 'status'              => 'two_factor_required',
                 'message'             => 'Two-factor authentication code required.',
-                'user_id'             => $e->user->getAuthIdentifier(),
+                'pending_token'       => $pendingToken,
                 'two_factor_required' => true,
             ], 200);
         } catch (AuthenticationThrottledException $e) {

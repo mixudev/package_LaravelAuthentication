@@ -19,7 +19,7 @@ class PasswordHistoryRepository implements PasswordHistoryRepositoryInterface
     public function recordPassword(Authenticatable $user, string $passwordHash): void
     {
         PasswordHistory::create([
-            'user_id'       => (int) $user->getAuthIdentifier(),
+            'user_id'       => (string) $user->getAuthIdentifier(),
             'password_hash' => $passwordHash,
             'created_at'    => Carbon::now(),
         ]);
@@ -27,7 +27,7 @@ class PasswordHistoryRepository implements PasswordHistoryRepositoryInterface
 
     public function isPreviouslyUsed(Authenticatable $user, #[\SensitiveParameter] string $plainPassword, int $rememberCount = 5): bool
     {
-        $histories = PasswordHistory::where('user_id', (int) $user->getAuthIdentifier())
+        $histories = PasswordHistory::where('user_id', (string) $user->getAuthIdentifier())
             ->latest('created_at')
             ->limit($rememberCount)
             ->get();

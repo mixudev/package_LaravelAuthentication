@@ -36,7 +36,7 @@ class TwoFactorService
     /**
      * Start the 2FA setup process for a user.
      *
-     * @return array{secret: string, otpauth_url: string, recovery_codes: array<string>}
+     * @return array{secret: string, otpauth_url: string, qr_code_url: string, qr_code_svg: string, recovery_codes: array<string>}
      */
     public function setup(Authenticatable $user): array
     {
@@ -47,17 +47,28 @@ class TwoFactorService
         /** @var TwoFactorAuthentication|null $record */
         $record = TwoFactorAuthentication::where('user_id', $userId)->first();
 
-        $secret = $record?->secret ?? $this->totp->generateSecret(16);
-        $recoveryCodes = $this->generateRecoveryCodes($this->config->getTwoFactorBackupCodesCount());
+        if ($record === null) {
+            $secret = $this->totp->generateSecret(16);
+            $recoveryCodes = $this->generateRecoveryCodes($this->config->getTwoFactorBackupCodesCount());
 
-        TwoFactorAuthentication::updateOrCreate(
-            ['user_id' => $userId],
-            [
+            TwoFactorAuthentication::create([
+                'user_id'        => $userId,
                 'secret'         => $secret,
                 'recovery_codes' => $recoveryCodes,
                 'confirmed_at'   => null,
-            ]
-        );
+            ]);
+        } elseif (!$record->isConfirmed()) {
+            $secret = $record->secret ?: $this->totp->generateSecret(16);
+            $recoveryCodes = !empty($record->recovery_codes) ? $record->recovery_codes : $this->generateRecoveryCodes($this->config->getTwoFactorBackupCodesCount());
+
+            $record->update([
+                'secret'         => $secret,
+                'recovery_codes' => $recoveryCodes,
+            ]);
+        } else {
+            $secret = $record->secret;
+            $recoveryCodes = $record->recovery_codes ?? [];
+        }
 
         $otpAuthUrl = $this->totp->getOtpAuthUrl(
             $issuer,
@@ -68,11 +79,13 @@ class TwoFactorService
         );
 
         $qrCodeUrl = $this->totp->getQrCodeUrl($otpAuthUrl, 220);
+        $qrCodeSvg = $this->totp->getQrCodeSvg($otpAuthUrl, 220);
 
         return [
             'secret'         => $secret,
             'otpauth_url'    => $otpAuthUrl,
             'qr_code_url'    => $qrCodeUrl,
+            'qr_code_svg'    => $qrCodeSvg,
             'recovery_codes' => $recoveryCodes,
         ];
     }

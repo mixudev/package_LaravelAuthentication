@@ -72,9 +72,18 @@ class PasswordRule implements ValidationRule
         }
 
         if ($this->requireSymbols) {
-            $escapedCharset = preg_quote($this->symbolsCharset, '/');
-            if (! preg_match("/[{$escapedCharset}]/", $value)) {
-                $charset = $this->symbolsCharset ?: '@$!%*#?&';
+            $charset = $this->symbolsCharset ?: '@$!%*#?&_-+=[]{}|;:,.<>';
+            $symbols = mb_str_split($charset);
+            $hasSymbol = false;
+
+            foreach ($symbols as $symbol) {
+                if (str_contains($value, $symbol)) {
+                    $hasSymbol = true;
+                    break;
+                }
+            }
+
+            if (! $hasSymbol) {
                 $fail("The :attribute must contain at least one special character ({$charset}).");
             }
         }

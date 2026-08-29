@@ -25,9 +25,12 @@ class CredentialResolver implements CredentialResolverInterface
         /** @var Model $instance */
         $instance = new $userModel();
 
-        return $instance->newQuery()
+        /** @var Authenticatable|null $result */
+        $result = $instance->newQuery()
             ->where($column, $identifier)
             ->first();
+
+        return $result;
     }
 
     public function resolveByColumns(array $columns, string $identifier): ?Authenticatable
@@ -45,6 +48,9 @@ class CredentialResolver implements CredentialResolverInterface
             }
         });
 
-        return $query->first();
+        /** @var Authenticatable|null $result */
+        $result = $query->first();
+
+        return $result;
     }
 }

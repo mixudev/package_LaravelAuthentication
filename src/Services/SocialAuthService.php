@@ -15,8 +15,10 @@ use Vendor\LaravelAuthentication\Contracts\SocialAuthServiceInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\LoginSucceeded;
+use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
+use Vendor\LaravelAuthentication\Services\AccountLockService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 /**
@@ -29,7 +31,8 @@ class SocialAuthService implements SocialAuthServiceInterface
         private readonly Dispatcher $events,
         private readonly Hasher $hasher,
         private readonly AuthenticationAuditService $auditService,
-        private readonly AuthenticationConfig $config
+        private readonly AuthenticationConfig $config,
+        private readonly AccountLockService $lockService
     ) {}
 
     public function isEnabled(): bool
@@ -126,6 +129,12 @@ class SocialAuthService implements SocialAuthServiceInterface
             ]);
 
             $user->save();
+        }
+
+        // BP-03 FIX: Social login tidak boleh membypass account lockout.
+        // Cek setelah user resolve (baik existing maupun auto-registered).
+        if ($this->lockService->isLocked($user)) {
+            throw new AccountLockedException($this->config->getLockoutDurationMinutes());
         }
 
         $this->events->dispatch(new LoginSucceeded($user, $context, "social_{$provider}"));

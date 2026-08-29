@@ -20,9 +20,10 @@ class TotpService
     public function generateSecret(int $length = 16): string
     {
         $secret = '';
-        $randomBytes = random_bytes($length);
+        $safeLength = max(1, $length);
+        $randomBytes = random_bytes($safeLength);
 
-        for ($i = 0; $i < $length; $i++) {
+        for ($i = 0; $i < $safeLength; $i++) {
             $secret .= self::BASE32_CHARS[ord($randomBytes[$i]) & 31];
         }
 
@@ -97,11 +98,19 @@ class TotpService
     }
 
     /**
-     * Generate a reliable scannable QR Code image URL for Google Authenticator / Authy.
+     * Generate a reliable scannable QR Code image URL (inline SVG Data URI) locally without external network calls.
      */
-    public function getQrCodeUrl(string $otpAuthUrl, int $size = 200): string
+    public function getQrCodeUrl(string $otpAuthUrl, int $size = 220): string
     {
-        return 'https://api.qrserver.com/v1/create-qr-code/?size=' . $size . 'x' . $size . '&margin=8&data=' . rawurlencode($otpAuthUrl);
+        return \Vendor\LaravelAuthentication\Support\QrCodeGenerator::dataUri($otpAuthUrl, $size);
+    }
+
+    /**
+     * Generate raw SVG string for inline embedding.
+     */
+    public function getQrCodeSvg(string $otpAuthUrl, int $size = 220): string
+    {
+        return \Vendor\LaravelAuthentication\Support\QrCodeGenerator::svg($otpAuthUrl, $size);
     }
 
     /**

@@ -41,6 +41,13 @@ class User extends Model implements Authenticatable, MustVerifyEmail
         ])->save();
     }
 
+    public function markEmailAsUnverified(): bool
+    {
+        return $this->forceFill([
+            'email_verified_at' => null,
+        ])->save();
+    }
+
     public function sendEmailVerificationNotification(): void
     {
         // Mock notification send

@@ -48,31 +48,51 @@ class DeviceDetector
 
     protected function detectBrowser(string $userAgent): string
     {
-        return match (true) {
-            str_contains($userAgent, 'Edg/')     => 'Microsoft Edge',
-            str_contains($userAgent, 'OPR/') || str_contains($userAgent, 'Opera') => 'Opera',
-            str_contains($userAgent, 'Chrome/')  => 'Google Chrome',
-            str_contains($userAgent, 'Firefox/') => 'Mozilla Firefox',
-            str_contains($userAgent, 'Safari/') && !str_contains($userAgent, 'Chrome/') => 'Apple Safari',
-            default                              => 'Unknown Browser',
-        };
+        if (str_contains($userAgent, 'Edg/')) {
+            return 'Microsoft Edge';
+        }
+        if (str_contains($userAgent, 'OPR/') || str_contains($userAgent, 'Opera')) {
+            return 'Opera';
+        }
+        if (str_contains($userAgent, 'Chrome/')) {
+            return 'Google Chrome';
+        }
+        if (str_contains($userAgent, 'Firefox/')) {
+            return 'Mozilla Firefox';
+        }
+        if (str_contains($userAgent, 'Safari/')) {
+            return 'Apple Safari';
+        }
+
+        return 'Unknown Browser';
     }
 
     protected function detectLocation(): ?string
     {
-        // Detect Geo headers commonly provided by Cloudflare or Reverse Proxies
-        $country = request()->header('CF-IPCountry')
-            ?? request()->header('X-Country-Code')
-            ?? request()->header('X-GeoIP-Country');
+        try {
+            if (!function_exists('app') || !app()->bound('request')) {
+                return null;
+            }
 
-        $city = request()->header('CF-IPCity')
-            ?? request()->header('X-City-Name');
+            // Detect Geo headers commonly provided by Cloudflare or Reverse Proxies
+            $countryRaw = request()->header('CF-IPCountry')
+                ?? request()->header('X-Country-Code')
+                ?? request()->header('X-GeoIP-Country');
 
-        if ($city && $country) {
-            return "{$city}, {$country}";
+            $cityRaw = request()->header('CF-IPCity')
+                ?? request()->header('X-City-Name');
+
+            $country = is_string($countryRaw) ? $countryRaw : null;
+            $city    = is_string($cityRaw)    ? $cityRaw    : null;
+
+            if ($city !== null && $country !== null) {
+                return "{$city}, {$country}";
+            }
+
+            return $country;
+        } catch (\Throwable) {
+            return null;
         }
-
-        return $country ?: null;
     }
 
     protected function resolveIpSubnet(string $ip): string

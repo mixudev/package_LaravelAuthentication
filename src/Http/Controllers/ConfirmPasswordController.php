@@ -75,7 +75,12 @@ class ConfirmPasswordController extends Controller
 
         $this->rateLimiter->clear('confirm_password', (string) $user->getAuthIdentifier(), $ip);
 
-        $request->session()->put('auth.password_confirmed_at', time());
+        $now = time();
+        if ($request->hasSession()) {
+            $request->session()->put('auth.password_confirmed_at', $now);
+        } else {
+            cache()->put('auth_pwd_confirmed:' . $user->getAuthIdentifier(), $now, $this->config->getConfirmPasswordTimeout());
+        }
 
         if ($request->expectsJson()) {
             return response()->json([

@@ -12,14 +12,19 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Vendor\LaravelAuthentication\Contracts\OtpServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Http\Requests\SendOtpRequest;
 use Vendor\LaravelAuthentication\Http\Requests\VerifyOtpRequest;
+use Vendor\LaravelAuthentication\Services\AccountLockService;
+use Vendor\LaravelAuthentication\Services\DeviceTrustService;
 use Vendor\LaravelAuthentication\Services\SessionSecurityService;
+use Vendor\LaravelAuthentication\Services\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 class OtpController extends Controller
@@ -29,7 +34,11 @@ class OtpController extends Controller
         protected readonly AuthFactory $auth,
         protected readonly SessionSecurityService $sessionSecurity,
         protected readonly TokenManagerInterface $tokenManager,
-        protected readonly AuthenticationConfig $config
+        protected readonly AuthenticationConfig $config,
+        protected readonly AccountLockService $lockService,
+        protected readonly TwoFactorService $twoFactorService,
+        protected readonly DeviceTrustService $deviceTrustService,
+        protected readonly CacheRepository $cache
     ) {}
 
     /**
@@ -103,22 +112,46 @@ class OtpController extends Controller
         }
 
         $identifier = (string) $request->input('identifier');
-        $code = (string) $request->input('code');
-        $remember = $request->boolean('remember');
-        $context = AuthenticationContext::fromRequest($request);
+        $code       = (string) $request->input('code');
+        $remember   = $request->boolean('remember');
+        $context    = AuthenticationContext::fromRequest($request);
 
         try {
             $user = $this->otpService->verify($identifier, $code, $context);
 
-            if ($user !== null) {
-                $guard = $this->auth->guard($context->guard);
-                if ($guard instanceof StatefulGuard && $request->hasSession()) {
-                    $this->sessionSecurity->loginUser($guard, $user, $remember, $request);
+            // BP-08 FIX: Jika OTP valid tapi user tidak ditemukan, jangan redirect sukses palsu.
+            if ($user === null) {
+                throw new InvalidCredentialsException('OTP verified but no account found for the given identifier.');
+            }
+
+            // BP-02 FIX: Cek account lockout sebelum login — OTP tidak boleh membypass lockout.
+            if ($this->lockService->isLocked($user)) {
+                throw new AccountLockedException($this->config->getLockoutDurationMinutes());
+            }
+
+            // Enforce Two-Factor Authentication if enabled for the user
+            if ($this->twoFactorService->isEnabledFor($user)) {
+                $isDeviceTrusted = $this->deviceTrustService->isTrusted($user, $request);
+                if (!$isDeviceTrusted) {
+                    if ($request->hasSession()) {
+                        $request->session()->put('auth.2fa.user_id', $user->getAuthIdentifier());
+                        $request->session()->put('auth.2fa.remember', $remember);
+                    }
+                    return redirect()->route('two-factor.challenge');
                 }
+            }
+
+            $guard = $this->auth->guard($context->guard);
+            if ($guard instanceof StatefulGuard && $request->hasSession()) {
+                $this->sessionSecurity->loginUser($guard, $user, $remember, $request);
             }
 
             return redirect()->intended($this->config->getRedirect('login', '/dashboard'))
                 ->with('status', 'Authentication successful.');
+        } catch (AccountLockedException $e) {
+            throw ValidationException::withMessages([
+                'identifier' => [$e->getMessage()],
+            ]);
         } catch (InvalidCredentialsException|AuthenticationException $e) {
             throw ValidationException::withMessages([
                 'code' => [$e->getMessage()],
@@ -169,16 +202,46 @@ class OtpController extends Controller
         }
 
         $identifier = (string) $request->input('identifier');
-        $code = (string) $request->input('code');
-        $context = AuthenticationContext::fromRequest($request);
+        $code       = (string) $request->input('code');
+        $context    = AuthenticationContext::fromRequest($request);
 
         try {
             $user = $this->otpService->verify($identifier, $code, $context);
 
-            $token = null;
-            if ($user !== null) {
-                $token = $this->tokenManager->createToken($user, 'otp_token');
+            // BP-08 FIX: Jika OTP valid tapi user tidak ditemukan, jangan return token null dengan status success.
+            if ($user === null) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'OTP verified but no account found for the given identifier.',
+                ], 404);
             }
+
+            // BP-02 FIX: Cek account lockout sebelum issue token — OTP tidak boleh membypass lockout.
+            if ($this->lockService->isLocked($user)) {
+                return response()->json([
+                    'status'  => 'locked',
+                    'message' => 'Your account has been temporarily locked. Please contact support.',
+                ], 423);
+            }
+
+            // Enforce Two-Factor Authentication if enabled for the user
+            if ($this->twoFactorService->isEnabledFor($user)) {
+                $isDeviceTrusted = $this->deviceTrustService->isTrusted($user, $request);
+                if (!$isDeviceTrusted) {
+                    $pendingToken = \Illuminate\Support\Str::random(64);
+                    $cacheKey     = '2fa.pending.' . hash('sha256', $pendingToken);
+                    $this->cache->put($cacheKey, $user->getAuthIdentifier(), now()->addMinutes(10));
+
+                    return response()->json([
+                        'status'              => 'two_factor_required',
+                        'message'             => 'Two-factor authentication code required.',
+                        'pending_token'       => $pendingToken,
+                        'two_factor_required' => true,
+                    ], 200);
+                }
+            }
+
+            $token = $this->tokenManager->createToken($user, 'otp_token');
 
             return response()->json([
                 'status'  => 'success',

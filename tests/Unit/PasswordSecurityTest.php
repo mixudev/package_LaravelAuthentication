@@ -45,6 +45,7 @@ class PasswordSecurityTest extends BaseTestCase
     public function test_security_helper_masks_identifiers(): void
     {
         $this->assertEquals('j*****e@example.com', SecurityHelper::maskIdentifier('johndoe@example.com'));
-        $this->assertEquals('a*****n', SecurityHelper::maskIdentifier('administrator'));
+        $this->assertEquals('a***n', SecurityHelper::maskIdentifier('admin'));
+        $this->assertEquals('a***********r', SecurityHelper::maskIdentifier('administrator'));
     }
 }

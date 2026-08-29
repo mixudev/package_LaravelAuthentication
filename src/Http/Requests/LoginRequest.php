@@ -39,9 +39,20 @@ class LoginRequest extends FormRequest
         /** @var CaptchaService $captchaService */
         $captchaService = app(CaptchaService::class);
         if ($captchaService->isEnabled() && $captchaService->shouldShowCaptcha($identifier ?: null, $ip)) {
-            $rules['cf-turnstile-response'] = ['nullable', new ValidCaptcha($identifier ?: null, $ip)];
-            $rules['g-recaptcha-response']  = ['nullable', new ValidCaptcha($identifier ?: null, $ip)];
-            $rules['h-captcha-response']    = ['nullable', new ValidCaptcha($identifier ?: null, $ip)];
+            $driver = $captchaService->getDriverName();
+            $primaryField = match ($driver) {
+                'turnstile'    => 'cf-turnstile-response',
+                'hcaptcha'     => 'h-captcha-response',
+                default        => 'g-recaptcha-response',
+            };
+
+            $otherFields = array_diff(['cf-turnstile-response', 'g-recaptcha-response', 'h-captcha-response'], [$primaryField]);
+            $otherFieldsStr = implode(',', $otherFields);
+
+            $rules[$primaryField] = ["required_without_all:{$otherFieldsStr}", 'string', new ValidCaptcha($identifier ?: null, $ip)];
+            foreach ($otherFields as $otherField) {
+                $rules[$otherField] = ['nullable', 'string', new ValidCaptcha($identifier ?: null, $ip)];
+            }
         }
 
         return $rules;

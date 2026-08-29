@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Http\Controllers;
 
 use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,7 +32,8 @@ class TwoFactorChallengeController extends Controller
         private readonly FeatureRateLimiterInterface $rateLimiter,
         private readonly SessionSecurityService $sessionSecurity,
         private readonly TokenManagerInterface $tokenService,
-        private readonly AuthenticationConfig $config
+        private readonly AuthenticationConfig $config,
+        private readonly CacheRepository $cache
     ) {}
 
     public function show(Request $request): HttpResponse|JsonResponse|RedirectResponse
@@ -58,11 +60,27 @@ class TwoFactorChallengeController extends Controller
 
     public function verify(Request $request): RedirectResponse|JsonResponse
     {
-        $userId = $request->session()->get('auth.2fa.user_id') ?? $request->input('user_id');
+        // BP-01 FIX: user_id HANYA boleh berasal dari:
+        //   - Web: session yang diset oleh AuthenticationService (server-side, tidak dapat dimanipulasi user)
+        //   - API: pending_token yang merupakan opaque cache key ber-TTL pendek (diset oleh LoginController)
+        $userId = null;
+
+        if ($request->hasSession()) {
+            $userId = $request->session()->get('auth.2fa.user_id');
+        }
+
+        if ($userId === null && $request->expectsJson()) {
+            // Resolusi via pending_token untuk API stateless
+            $pendingToken = (string) $request->input('pending_token', '');
+            if ($pendingToken !== '') {
+                $cacheKey = '2fa.pending.' . hash('sha256', $pendingToken);
+                $userId   = $this->cache->get($cacheKey);
+            }
+        }
 
         if (!$userId) {
             return $request->expectsJson()
-                ? response()->json(['message' => 'Invalid two-factor session.'], 400)
+                ? response()->json(['message' => 'Invalid or expired two-factor session.'], 401)
                 : redirect()->route('login');
         }
 
@@ -93,7 +111,7 @@ class TwoFactorChallengeController extends Controller
         }
 
         $userModel = $this->config->getUserModel();
-        $user = $userModel::find($userId);
+        $user      = $userModel::find($userId);
 
         if (!$user) {
             return redirect()->route('login');
@@ -108,7 +126,19 @@ class TwoFactorChallengeController extends Controller
         }
 
         $this->rateLimiter->clear('two_factor', (string) $userId, $ip);
-        $request->session()->forget('auth.2fa.user_id');
+
+        // Invalidate session slot
+        if ($request->hasSession()) {
+            $request->session()->forget('auth.2fa.user_id');
+        }
+
+        // Invalidate API pending token immediately (single-use)
+        if ($request->expectsJson()) {
+            $pendingToken = (string) $request->input('pending_token', '');
+            if ($pendingToken !== '') {
+                $this->cache->forget('2fa.pending.' . hash('sha256', $pendingToken));
+            }
+        }
 
         $context = AuthenticationContext::fromRequest(
             $request,
@@ -140,11 +170,11 @@ class TwoFactorChallengeController extends Controller
             ])
             : redirect()->intended($this->config->getRedirect('two_factor', '/dashboard'));
 
-        // Handle remember this device
+        // BP-04 FIX: assign return value karena withCookie() bersifat immutable (mengembalikan instance baru)
         if ($request->boolean('trust_device') && $this->config->isDeviceTrustEnabled()) {
             $cookie = $this->deviceTrustService->createTrustCookie($user, $request);
             if (method_exists($response, 'withCookie')) {
-                $response->withCookie($cookie);
+                $response = $response->withCookie($cookie);
             }
         }
 

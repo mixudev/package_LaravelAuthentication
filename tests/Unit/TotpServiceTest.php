@@ -27,7 +27,7 @@ class TotpServiceTest extends TestCase
     public function test_it_calculates_and_verifies_totp_code_accurately(): void
     {
         $secret = 'JBSWY3DPEHPK3PXP'; // Base32 for "Hello!\xDE\xAD\xBE\xEF"
-        $timestamp = 1600000000;
+        $timestamp = time();
 
         $code = $this->totp->calculateCode($secret, $timestamp);
         $this->assertSame(6, strlen($code));

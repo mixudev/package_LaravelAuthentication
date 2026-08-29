@@ -49,10 +49,16 @@ abstract class TestCase extends OrchestraTestCase
         $app['config']->set('authentication.security.account_lockout.lockout_duration_mins', 15);
         $app['config']->set('authentication.password.history.enabled', true);
         $app['config']->set('authentication.audit.enabled', true);
+        $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
+        $app['config']->set('app.cipher', 'AES-256-CBC');
+        $app['config']->set('authentication.routes.api.enabled', true);
+        $app['config']->set('authentication.routes.api.auth_middleware', ['auth']);
     }
 
     protected function setUpDatabase(): void
     {
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();

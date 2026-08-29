@@ -35,7 +35,13 @@ class RequirePasswordConfirmation
         }
 
         $timeout = $customTimeout ?? $this->config->getConfirmPasswordTimeout();
-        $confirmedAt = (int) $request->session()->get('auth.password_confirmed_at', 0);
+        
+        $confirmedAt = 0;
+        if ($request->hasSession()) {
+            $confirmedAt = (int) $request->session()->get('auth.password_confirmed_at', 0);
+        } else {
+            $confirmedAt = (int) cache()->get('auth_pwd_confirmed:' . $user->getAuthIdentifier(), 0);
+        }
 
         if ((time() - $confirmedAt) > $timeout) {
             if ($request->expectsJson()) {
@@ -45,7 +51,9 @@ class RequirePasswordConfirmation
                 ], 423);
             }
 
-            $request->session()->put('url.intended', $request->fullUrl());
+            if ($request->hasSession()) {
+                $request->session()->put('url.intended', $request->fullUrl());
+            }
 
             return redirect()->route('password.confirm');
         }
