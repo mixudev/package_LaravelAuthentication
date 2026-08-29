@@ -218,4 +218,31 @@ class ComprehensiveSecurityRemediationTest extends TestCase
         // It should proceed past validation without "The remember field must be true or false."
         $response->assertSessionDoesntHaveErrors('remember');
     }
+
+    /**
+     * Active 2FA Setup Guard:
+     * When 2FA is already active and confirmed, accessing the setup page is rejected.
+     */
+    public function test_two_factor_setup_page_is_rejected_if_already_enabled(): void
+    {
+        $user = new \Illuminate\Auth\GenericUser([
+            'id'       => 999,
+            'name'     => 'Active 2FA User',
+            'email'    => 'active2fa@example.com',
+            'password' => bcrypt('Password123!'),
+        ]);
+
+        \Vendor\LaravelAuthentication\Models\TwoFactorAuthentication::create([
+            'user_id'        => 999,
+            'secret'         => 'JBSWY3DPEHPK3PXP',
+            'recovery_codes' => ['code1', 'code2'],
+            'confirmed_at'   => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get('/auth/two-factor/setup');
+
+        // Should redirect away rather than generating/displaying a new QR setup
+        $response->assertRedirect();
+        $response->assertSessionHas('status', 'Two-factor authentication is already enabled on your account.');
+    }
 }

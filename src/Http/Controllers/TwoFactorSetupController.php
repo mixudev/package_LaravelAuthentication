@@ -21,12 +21,29 @@ class TwoFactorSetupController extends Controller
         private readonly AuthenticationConfig $config
     ) {}
 
-    public function show(Request $request): HttpResponse|JsonResponse
+    public function show(Request $request): HttpResponse|JsonResponse|RedirectResponse
     {
         $user = $request->user();
 
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // Jika 2FA sudah aktif & terkonfirmasi, tolak akses ke halaman setup QR code
+        if ($this->twoFactorService->isEnabledFor($user)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message'            => 'Two-factor authentication is already enabled.',
+                    'two_factor_enabled' => true,
+                ], 400);
+            }
+
+            $redirectUrl = \Illuminate\Support\Facades\Route::has('auth.sessions.index')
+                ? route('auth.sessions.index')
+                : (string) config('authentication.redirects.login', '/dashboard');
+
+            return redirect($redirectUrl)
+                ->with('status', 'Two-factor authentication is already enabled on your account.');
         }
 
         $setupData = $this->twoFactorService->setup($user);
@@ -49,15 +66,27 @@ class TwoFactorSetupController extends Controller
 
     public function confirm(Request $request): RedirectResponse|JsonResponse
     {
-        $request->validate([
-            'code' => ['required', 'string'],
-        ]);
-
         $user = $request->user();
 
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
+
+        // Jika 2FA sudah aktif, tolak konfirmasi ulang
+        if ($this->twoFactorService->isEnabledFor($user)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Two-factor authentication is already enabled.',
+                ], 400);
+            }
+
+            return redirect()->route('auth.sessions.index')
+                ->with('status', 'Two-factor authentication is already enabled.');
+        }
+
+        $request->validate([
+            'code' => ['required', 'string'],
+        ]);
 
         $code = (string) $request->input('code');
 
