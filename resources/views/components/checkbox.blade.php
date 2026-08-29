@@ -8,6 +8,7 @@ Deskripsi: Checkbox bersih dan modern untuk 'Ingat Saya' atau 'Syarat Ketentuan'
 @props([
     'name',
     'id' => null,
+    'value' => '1',
     'label' => null,
     'checked' => false,
     'required' => false,
@@ -23,6 +24,7 @@ Deskripsi: Checkbox bersih dan modern untuk 'Ingat Saya' atau 'Syarat Ketentuan'
         {{ $attributes->merge([
             'id' => $checkboxId,
             'name' => $name,
+            'value' => $value,
             'type' => 'checkbox',
             'required' => $required,
             'checked' => (bool) $isChecked,

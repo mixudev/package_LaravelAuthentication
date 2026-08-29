@@ -202,4 +202,20 @@ class ComprehensiveSecurityRemediationTest extends TestCase
         $this->assertTrue($repo->isPreviouslyUsed($user, 'PastPassword123!', 5));
         $this->assertFalse($repo->isPreviouslyUsed($user, 'DifferentPassword123!', 5));
     }
+
+    /**
+     * Checkbox 'on' browser value verification:
+     * Form requests properly accept standard HTML checkbox 'on' without boolean validation error.
+     */
+    public function test_checkbox_remember_accepts_browser_on_value(): void
+    {
+        $response = $this->post('/login', [
+            'identifier' => 'test@example.com',
+            'password'   => 'password123',
+            'remember'   => 'on',
+        ]);
+
+        // It should proceed past validation without "The remember field must be true or false."
+        $response->assertSessionDoesntHaveErrors('remember');
+    }
 }

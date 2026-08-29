@@ -84,6 +84,13 @@ class TwoFactorChallengeController extends Controller
                 : redirect()->route('login');
         }
 
+        if ($request->has('trust_device')) {
+            $request->merge(['trust_device' => $request->boolean('trust_device')]);
+        }
+        if ($request->has('remember')) {
+            $request->merge(['remember' => $request->boolean('remember')]);
+        }
+
         // Accept either TOTP 6-digit code or backup recovery code from separate fields
         $request->validate([
             'code'          => ['nullable', 'string'],
