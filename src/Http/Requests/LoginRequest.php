@@ -50,9 +50,9 @@ class LoginRequest extends FormRequest
         if ($captchaService->isEnabled() && $captchaService->shouldShowCaptcha($identifier ?: null, $ip)) {
             $driver = $captchaService->getDriverName();
             $primaryField = match ($driver) {
-                'turnstile'    => 'cf-turnstile-response',
-                'hcaptcha'     => 'h-captcha-response',
-                default        => 'g-recaptcha-response',
+                'turnstile' => 'cf-turnstile-response',
+                'hcaptcha'  => 'h-captcha-response',
+                default     => 'g-recaptcha-response',
             };
 
             $otherFields = array_diff(['cf-turnstile-response', 'g-recaptcha-response', 'h-captcha-response'], [$primaryField]);
@@ -65,6 +65,46 @@ class LoginRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    /**
+     * Custom validation messages — overrides raw Laravel translation keys like 'validation.required_without_all'.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        $identifierLabel = strtolower((string) __('authentication::messages.identifier_label'));
+        $passwordLabel   = strtolower((string) __('authentication::messages.password_label'));
+
+        return [
+            'identifier.required_without_all' => __('validation.required', ['attribute' => $identifierLabel]),
+            'identifier.required'             => __('validation.required', ['attribute' => $identifierLabel]),
+            'identifier.string'               => __('validation.string', ['attribute' => $identifierLabel]),
+            'password.required'               => __('validation.required', ['attribute' => $passwordLabel]),
+            'password.string'                 => __('validation.string', ['attribute' => $passwordLabel]),
+            'cf-turnstile-response.required_without_all' => (string) __('authentication::messages.captcha_failed'),
+            'g-recaptcha-response.required_without_all'  => (string) __('authentication::messages.captcha_failed'),
+            'h-captcha-response.required_without_all'    => (string) __('authentication::messages.captcha_failed'),
+        ];
+    }
+
+    /**
+     * Custom attribute names for cleaner, user-friendly error messages.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'identifier'            => strtolower((string) __('authentication::messages.identifier_label')),
+            'email'                 => 'email',
+            'username'              => 'username',
+            'password'              => strtolower((string) __('authentication::messages.password_label')),
+            'cf-turnstile-response' => 'CAPTCHA',
+            'g-recaptcha-response'  => 'CAPTCHA',
+            'h-captcha-response'    => 'CAPTCHA',
+        ];
     }
 
     public function toDto(): LoginData

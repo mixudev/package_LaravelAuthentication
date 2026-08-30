@@ -133,6 +133,15 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
             background-color: #1e293b;
         }
 
+        /* Light Mode Divider */
+        html.light .auth-divider {
+            border-color: #e2e8f0;
+        }
+        html.light .auth-divider-text {
+            background-color: #ffffff;
+            color: #94a3b8;
+        }
+
         html.dark body {
             background-color: #09090b;
             color: #f8fafc;
@@ -158,6 +167,15 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
         }
         html.dark .auth-btn-primary:hover {
             background-color: #ffffff;
+        }
+
+        /* Dark Mode Divider */
+        html.dark .auth-divider {
+            border-color: #27272a;
+        }
+        html.dark .auth-divider-text {
+            background-color: #121215;
+            color: #52525b;
         }
     </style>
 

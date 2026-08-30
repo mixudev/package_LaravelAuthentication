@@ -1,21 +1,24 @@
 {{-- 
 =============================================================================
-KOMPONEN: PEMISAH / DIVIDER (MODERN ZINC)
+KOMPONEN: PEMISAH / DIVIDER
 Package: mixudev/laravel-authentication
-Deskripsi: Garis pemisah horizontal bersih dengan teks di tengah.
+Deskripsi: Garis pemisah horizontal dengan teks di tengah.
+           Warna mengikuti konteks tema (light/dark) via class auth-divider-text.
 =============================================================================
 --}}
 @props([
-    'label' => 'ATAU',
+    'label' => null,
 ])
 
-<div class="relative my-4">
-    <div class="absolute inset-0 flex items-center" aria-hidden="true">
-        <div class="auth-divider w-full border-t"></div>
+<div class="relative my-5" role="separator" aria-hidden="true">
+    <div class="absolute inset-0 flex items-center">
+        <div class="auth-divider w-full border-t border-zinc-200 dark:border-zinc-800"></div>
     </div>
-    <div class="relative flex justify-center text-xs uppercase tracking-wider">
-        <span class="auth-divider-text px-2.5 text-[11px] font-medium">
-            {{ $label }}
-        </span>
-    </div>
+    @if ($label)
+        <div class="relative flex justify-center">
+            <span class="auth-divider-text px-3 text-[11px] font-medium uppercase tracking-widest text-zinc-400 dark:text-zinc-500 bg-white dark:bg-zinc-900">
+                {{ $label }}
+            </span>
+        </div>
+    @endif
 </div>
