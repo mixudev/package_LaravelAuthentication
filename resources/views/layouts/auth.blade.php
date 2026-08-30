@@ -177,6 +177,84 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
             background-color: #121215;
             color: #52525b;
         }
+
+        /* ============================================================
+           ALERT COLORS — Light Mode
+           ============================================================ */
+        html.light .auth-alert-success, html:not(.dark) .auth-alert-success {
+            background-color: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #15803d;
+        }
+        html.light .auth-alert-error, html:not(.dark) .auth-alert-error {
+            background-color: #fff1f2;
+            border-color: #fda4af;
+            color: #be123c;
+        }
+        html.light .auth-alert-warning, html:not(.dark) .auth-alert-warning {
+            background-color: #fffbeb;
+            border-color: #fde68a;
+            color: #92400e;
+        }
+        html.light .auth-alert-info, html:not(.dark) .auth-alert-info {
+            background-color: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1d4ed8;
+        }
+
+        /* ============================================================
+           ALERT COLORS — Dark Mode
+           ============================================================ */
+        html.dark .auth-alert-success {
+            background-color: #052e16;
+            border-color: #166534;
+            color: #86efac;
+        }
+        html.dark .auth-alert-error {
+            background-color: #4c0519;
+            border-color: #9f1239;
+            color: #fda4af;
+        }
+        html.dark .auth-alert-warning {
+            background-color: #451a03;
+            border-color: #b45309;
+            color: #fcd34d;
+        }
+        html.dark .auth-alert-info {
+            background-color: #172554;
+            border-color: #1d4ed8;
+            color: #93c5fd;
+        }
+
+        /* ============================================================
+           INPUT ERROR STATE — Border merah tetap ada saat focus
+           ============================================================ */
+        html.light .auth-input.input-error,
+        html:not(.dark) .auth-input.input-error {
+            border-color: #f43f5e;
+            box-shadow: none;
+        }
+        html.light .auth-input.input-error:focus,
+        html:not(.dark) .auth-input.input-error:focus {
+            border-color: #f43f5e;
+            box-shadow: 0 0 0 1px #f43f5e;
+        }
+        html.dark .auth-input.input-error {
+            border-color: #f43f5e;
+            box-shadow: none;
+        }
+        html.dark .auth-input.input-error:focus {
+            border-color: #fb7185;
+            box-shadow: 0 0 0 1px #fb7185;
+        }
+
+        /* Error message text color */
+        .auth-field-error {
+            color: #e11d48;
+        }
+        html.dark .auth-field-error {
+            color: #fb7185;
+        }
     </style>
 
     @stack('styles')

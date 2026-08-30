@@ -34,4 +34,31 @@ class VerifyOtpRequest extends FormRequest
             'remember'   => ['nullable', 'boolean'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        $identifierLabel = strtolower((string) __('authentication::messages.identifier_label'));
+
+        return [
+            'identifier.required' => __('validation.required', ['attribute' => $identifierLabel]),
+            'identifier.string'   => __('validation.string', ['attribute' => $identifierLabel]),
+            'code.required'       => __('validation.required', ['attribute' => 'kode OTP']),
+            'code.min'            => __('validation.min.string', ['attribute' => 'kode OTP', 'min' => 4]),
+            'code.max'            => __('validation.max.string', ['attribute' => 'kode OTP', 'max' => 16]),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'identifier' => strtolower((string) __('authentication::messages.identifier_label')),
+            'code'       => 'kode OTP',
+        ];
+    }
 }

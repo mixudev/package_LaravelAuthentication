@@ -4,38 +4,40 @@ KOMPONEN: FORM INPUT (MODERN ZINC - FULL AUTH SCOPED)
 Package: mixudev/laravel-authentication
 Deskripsi: Input form standar dengan label, error binding, dan toggle password.
            Menggunakan .auth-* scoped CSS untuk penegakan warna light/dark yang konsisten.
+           Class .input-error dipakai untuk border error yang tetap saat focus.
 =============================================================================
 --}}
 @props([
     'name',
-    'id' => null,
-    'type' => 'text',
-    'label' => null,
-    'placeholder' => '',
-    'value' => null,
-    'required' => false,
-    'autocomplete' => null,
-    'autofocus' => false,
-    'hint' => null,
+    'id'                 => null,
+    'type'               => 'text',
+    'label'              => null,
+    'placeholder'        => '',
+    'value'              => null,
+    'required'           => false,
+    'autocomplete'       => null,
+    'autofocus'          => false,
+    'hint'               => null,
     'showTogglePassword' => true,
 ])
 
 @php
-    $inputId = $id ?? $name;
-    $hasError = isset($errors) ? $errors->has($name) : false;
-    $inputValue = old($name, $value);
-    $isPassword = ($type === 'password');
+    $inputId      = $id ?? $name;
+    $hasError     = isset($errors) ? $errors->has($name) : false;
+    $inputValue   = old($name, $value);
+    $isPassword   = ($type === 'password');
     $uniqueToggleId = 'toggle-' . $inputId . '-' . uniqid();
 @endphp
 
 <div class="space-y-1.5">
+
     {{-- Label Input --}}
     @if ($label)
         <div class="flex items-center justify-between">
             <label for="{{ $inputId }}" class="auth-label block font-medium text-xs uppercase tracking-wider">
                 {{ $label }}
                 @if ($required)
-                    <span class="text-red-500">*</span>
+                    <span class="text-rose-500 ml-0.5">*</span>
                 @endif
             </label>
 
@@ -50,18 +52,18 @@ Deskripsi: Input form standar dengan label, error binding, dan toggle password.
     <div class="relative">
         <input 
             {{ $attributes->merge([
-                'id' => $inputId,
-                'name' => $name,
-                'type' => $isPassword ? 'password' : $type,
-                'value' => $inputValue,
-                'placeholder' => $placeholder,
-                'required' => $required,
+                'id'           => $inputId,
+                'name'         => $name,
+                'type'         => $isPassword ? 'password' : $type,
+                'value'        => $inputValue,
+                'placeholder'  => $placeholder,
+                'required'     => $required,
                 'autocomplete' => $autocomplete,
-                'autofocus' => $autofocus,
+                'autofocus'    => $autofocus,
             ]) }}
             class="auth-input block w-full border rounded-lg shadow-xs text-sm px-3.5 py-2.5 outline-none transition duration-150
                 {{ $isPassword && $showTogglePassword ? 'pr-10' : '' }}
-                {{ $hasError ? 'border-red-400!' : '' }}"
+                {{ $hasError ? 'input-error' : '' }}"
         />
 
         {{-- Toggle Password Button - Menggunakan vanilla JS murni, tidak bergantung Alpine --}}
@@ -101,11 +103,12 @@ Deskripsi: Input form standar dengan label, error binding, dan toggle password.
 
     {{-- Pesan Validasi Per-Field --}}
     @if (isset($errors) && $errors->has($name))
-        <p class="auth-field-error text-xs mt-1 font-medium flex items-center gap-1">
-            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        <p class="auth-field-error text-xs mt-1.5 font-medium flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
             </svg>
             <span>{{ $errors->first($name) }}</span>
         </p>
     @endif
+
 </div>

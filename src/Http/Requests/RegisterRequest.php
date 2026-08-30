@@ -34,6 +34,39 @@ class RegisterRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        $passwordLabel = strtolower((string) __('authentication::messages.password_label'));
+
+        return [
+            'name.required'                  => __('validation.required', ['attribute' => 'nama']),
+            'name.string'                    => __('validation.string', ['attribute' => 'nama']),
+            'name.max'                       => __('validation.max.string', ['attribute' => 'nama', 'max' => 255]),
+            'email.required'                 => __('validation.required', ['attribute' => 'email']),
+            'email.email'                    => __('validation.email', ['attribute' => 'email']),
+            'email.unique'                   => (string) __('authentication::messages.email_taken'),
+            'password.required'              => __('validation.required', ['attribute' => $passwordLabel]),
+            'password.confirmed'             => __('validation.confirmed', ['attribute' => $passwordLabel]),
+            'password_confirmation.required' => __('validation.required', ['attribute' => 'konfirmasi kata sandi']),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'name'                  => 'nama',
+            'email'                 => 'email',
+            'password'              => strtolower((string) __('authentication::messages.password_label')),
+            'password_confirmation' => 'konfirmasi kata sandi',
+        ];
+    }
+
     public function toDto(): RegisterData
     {
         return new RegisterData(
