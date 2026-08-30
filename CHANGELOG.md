@@ -5,6 +5,20 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-08-30
+
+### Added
+- **One-Step Artisan Installer (`authentication:install`)**:
+  - Automatically publishes package configuration and migrations.
+  - Automatically detects Tailwind CSS v4 (`resources/css/app.css`) or v3 (`tailwind.config.js`) in the host application and injects `@source "../../vendor/mixudev/laravel-authentication/resources/views";` and `@custom-variant dark (&:where(.dark, .dark *));`.
+  - Prompts to execute database migrations interactively or with `--migrate`.
+- **Dynamic Theme Engine & Dark Mode Isolation**:
+  - Full support for `light`, `dark`, and `auto` themes (`prefers-color-scheme: dark`) with instant, flicker-free client detection and live OS theme change listeners.
+  - Eliminated brittle hardcoded `!important` CSS rules, ensuring clean harmony between Tailwind utility classes and host application styling.
+- **Enhanced 2FA & Session UI Interactivity**:
+  - Built-in Alpine.js CDN loading across all base layouts, resolving modal triggers (e.g. "Matikan 2FA" password confirmation modal and "Cabut Semua Sesi" forms).
+  - Polished high-contrast dark/light mode compatibility for 2FA QR code display, manual secret key boxes, and recovery backup codes.
+
 ## [1.4.0] - 2026-08-26
 
 ### Added

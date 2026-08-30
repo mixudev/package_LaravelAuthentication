@@ -163,6 +163,7 @@ class AuthenticationServiceProvider extends ServiceProvider
 
             // Register CLI Commands
             $this->commands([
+                \Vendor\LaravelAuthentication\Console\InstallCommand::class,
                 \Vendor\LaravelAuthentication\Console\InstallModuleCommand::class,
             ]);
         }

@@ -79,7 +79,16 @@ composer require mixudev/laravel-authentication:@dev
 
 ## 🛠️ Setup & Publishing Modes
 
-### Mode A: Single-Folder Module Mode *(Recommended)*
+### Mode A: One-Step Automatic Setup *(Recommended)*
+Automatically publish config, migrations, execute database migrations, and **inject Tailwind CSS `@source` and dark mode variant** into your application:
+```bash
+php artisan authentication:install
+```
+*Pass `--views` to also publish Blade templates, or `--force` to overwrite existing configuration.*
+
+---
+
+### Mode B: Single-Folder Module Mode
 Export the entire authentication subsystem into a clean, unified `modules/Authentication/` folder:
 ```bash
 php artisan authentication:install-module
@@ -96,7 +105,7 @@ php artisan migrate
 
 ---
 
-### Mode B: Standard Publishing (Individual Folders)
+### Mode C: Manual Publishing (Individual Assets)
 ```bash
 # 1. Publish Configuration
 php artisan vendor:publish --tag=authentication-config

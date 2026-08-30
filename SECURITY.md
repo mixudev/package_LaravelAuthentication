@@ -14,7 +14,7 @@ We actively provide security patches for the following versions:
 We take the security of this authentication package very seriously. If you discover a security vulnerability within `vendor/laravel-authentication`, please follow responsible disclosure practices:
 
 1. **Do NOT open a public GitHub issue.**
-2. Send an email to `security@example.com` describing the vulnerability.
+2. Send an email to `[EMAIL_ADDRESS]` describing the vulnerability.
 3. Include detailed steps to reproduce, sample payloads, and the affected package/Laravel/PHP versions.
 4. Allow up to 48 hours for our security team to acknowledge your report.
 

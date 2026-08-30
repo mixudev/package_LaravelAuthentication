@@ -9,13 +9,14 @@ Package ini menyediakan arsitektur autentikasi modular, portable, enterprise-gra
 ## 📚 Daftar Isi Dokumentasi
 
 1. [**Panduan Memulai (Getting Started)**](getting-started.md)
-   - Cara instalasi via Composer & Path repository
+   - Instalasi otomatis satu langkah via `php artisan authentication:install`
+   - Otomatisasi injeksi Tailwind CSS & dark mode variant
    - Publikasi konfigurasi, migrasi, dan view
    - Struktur database & migrasi otomatis
 
 2. [**Mode Modul Tunggal (Single-Folder Module Mode)**](modular-installation.md)
    - Perintah instan `php artisan authentication:install-module`
-   - Struktur modul rapi di `modules/Authentication/`
+   - Struktur modul mandiri di `modules/Authentication/`
 
 3. [**Fitur & Modul Utama (Features & Modules)**](features.md)
    - Multi-Factor Authentication (MFA/2FA TOTP & Recovery Codes)
