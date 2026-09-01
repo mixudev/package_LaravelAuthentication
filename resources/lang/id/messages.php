@@ -148,6 +148,22 @@ return [
     'passkey_deleted'         => 'Passkey berhasil dihapus.',
     'passkey_failed'          => 'Autentikasi Passkey gagal atau dibatalkan.',
     'passkey_not_supported'   => 'Passkey tidak didukung oleh browser atau perangkat ini.',
+    'passkey_none_registered' => 'Belum ada Passkey yang terdaftar untuk akun ini. Silakan masuk menggunakan kata sandi.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pesan Validasi Form Input
+    |--------------------------------------------------------------------------
+    */
+    'validation_required'     => ':attribute wajib diisi.',
+    'validation_email'        => ':attribute harus berupa alamat email yang valid.',
+    'validation_min'          => ':attribute minimal harus berisikan :min karakter.',
+    'validation_max'          => ':attribute maksimal berisikan :max karakter.',
+    'validation_confirmed'    => 'Konfirmasi :attribute tidak cocok.',
+    'validation_string'       => ':attribute harus berupa teks valid.',
+    'validation_unique'       => ':attribute ini sudah digunakan.',
+    'validation_numeric'      => ':attribute harus berupa angka valid.',
+    'validation_digits'       => ':attribute harus berisikan :digits digit angka.',
 
     'divider'                 => 'ATAU',
 ];

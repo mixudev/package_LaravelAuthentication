@@ -84,17 +84,78 @@ final class SecurityHelper
 
     /**
      * Safely translate a key guaranteeing a strict string return type.
+     * Automatically resolves validation fallback if raw key is returned.
      *
      * @param array<string, mixed> $replace
      */
     public static function trans(string $key, array $replace = []): string
     {
+        // If it's a validation key like 'validation.required'
+        if (str_starts_with($key, 'validation.')) {
+            $rule = substr($key, 11);
+            $attribute = (string) ($replace['attribute'] ?? 'kolom');
+            return self::transValidation($rule, $attribute, $replace);
+        }
+
         $res = trans($key, $replace);
         if (is_array($res)) {
             return implode(' ', \Illuminate\Support\Arr::flatten($res));
         }
 
-        return (string) $res;
+        $str = (string) $res;
+
+        // If untranslated raw key is returned
+        if ($str === $key) {
+            $lastSegment = substr($key, strrpos($key, '.') !== false ? strrpos($key, '.') + 1 : 0);
+            return ucwords(str_replace('_', ' ', $lastSegment));
+        }
+
+        return $str;
+    }
+
+    /**
+     * Safely translate validation rules with package localization priority and fail-safe fallbacks.
+     *
+     * @param array<string, mixed> $replace
+     */
+    public static function transValidation(string $rule, string $attribute, array $replace = []): string
+    {
+        $replace['attribute'] = $attribute;
+        $baseRule = explode('.', $rule)[0];
+        
+        // 1. Try package translation namespace first
+        $packageKey = 'authentication::messages.validation_' . $baseRule;
+        $packageTrans = trans($packageKey, $replace);
+        if (is_string($packageTrans) && $packageTrans !== $packageKey) {
+            return $packageTrans;
+        }
+
+        // 2. Try host application validation key
+        $laravelKey = 'validation.' . $rule;
+        $laravelTrans = trans($laravelKey, $replace);
+        if (is_string($laravelTrans) && $laravelTrans !== $laravelKey && !str_starts_with($laravelTrans, 'validation.')) {
+            return $laravelTrans;
+        }
+
+        $laravelBaseKey = 'validation.' . $baseRule;
+        $laravelBaseTrans = trans($laravelBaseKey, $replace);
+        if (is_string($laravelBaseTrans) && $laravelBaseTrans !== $laravelBaseKey && !str_starts_with($laravelBaseTrans, 'validation.')) {
+            return $laravelBaseTrans;
+        }
+
+        // 3. Robust human-readable localized fallback
+        $attrName = ucfirst(str_replace('_', ' ', $attribute));
+        return match ($baseRule) {
+            'required', 'required_without_all', 'required_with' => "{$attrName} wajib diisi.",
+            'email' => "{$attrName} harus berupa alamat email yang valid.",
+            'min' => "{$attrName} minimal harus " . ($replace['min'] ?? '8') . " karakter.",
+            'max' => "{$attrName} maksimal " . ($replace['max'] ?? '255') . " karakter.",
+            'confirmed' => "Konfirmasi {$attrName} tidak cocok.",
+            'string' => "{$attrName} harus berupa teks.",
+            'unique' => "{$attrName} sudah digunakan.",
+            'numeric', 'digits' => "{$attrName} harus berupa angka.",
+            default => "{$attrName} tidak valid.",
+        };
     }
 }
 

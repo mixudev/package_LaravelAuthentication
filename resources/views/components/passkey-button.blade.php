@@ -2,52 +2,50 @@
 =============================================================================
 KOMPONEN: TOMBOL LOGIN DENGAN PASSKEY (FIDO2 / WEBAUTHN)
 Package: mixudev/laravel-authentication
-Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn — full-width, icon kiri, teks kanan.
+Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn tanpa password.
 =============================================================================
 --}}
 @php
     $isPasskeyEnabled = config('authentication.features.passkey.enabled', true);
-    $optionsRoute = Route::has('passkey.login.options')
-        ? route('passkey.login.options')
+    $optionsRoute = Route::has('passkey.login.options') 
+        ? route('passkey.login.options') 
         : (Route::has('authentication.passkey.login.options') ? route('authentication.passkey.login.options') : url('/auth/passkey/login-options'));
-    $loginRoute = Route::has('passkey.login')
-        ? route('passkey.login')
+    $loginRoute = Route::has('passkey.login') 
+        ? route('passkey.login') 
         : (Route::has('authentication.passkey.login') ? route('authentication.passkey.login') : url('/auth/passkey/login'));
+
+    $btnBase = 'flex items-center justify-center gap-2.5 w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-100 px-4 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer no-underline select-none shadow-xs hover:bg-gray-50 dark:hover:bg-zinc-800 hover:border-gray-400 dark:hover:border-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 active:scale-[0.99]';
 @endphp
 
 @if ($isPasskeyEnabled)
-<div class="w-full">
-    <button
-        type="button"
+<div class="w-full" id="auth-passkey-container">
+    <button 
+        type="button" 
         id="btn-login-passkey"
         onclick="window.startPasskeyLogin()"
-        class="auth-btn-social auth-btn-passkey"
-        aria-label="{{ __('authentication::messages.passkey_btn') }}"
+        class="{{ $btnBase }}"
+        aria-label="Login with Passkey"
     >
-        {{-- Fingerprint / Passkey icon --}}
-        <span class="auth-btn-icon" id="passkey-btn-icon-wrap">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
-                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
-                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
-                <path d="M2 12a10 10 0 0 1 18-6"/>
-                <path d="M2 16h.01"/>
-                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
-                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
-                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
-                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
-            </svg>
-        </span>
+        {{-- Biometric / Fingerprint / Passkey SVG Icon --}}
+        <svg id="passkey-icon-svg" class="w-4 h-4 flex-shrink-0 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+            <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+            <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+            <path d="M2 12a10 10 0 0 1 18-6"/>
+            <path d="M2 16h.01"/>
+            <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+            <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+            <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+            <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+        </svg>
 
-        {{-- Loading spinner (hidden by default) --}}
-        <span class="auth-btn-icon" id="passkey-btn-spinner" style="display: none;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="animate-spin">
-                <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
-                <path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="0.85"/>
-            </svg>
-        </span>
+        {{-- Loading Spinner (Hidden by default) --}}
+        <svg id="passkey-spinner-svg" class="w-4 h-4 flex-shrink-0 animate-spin text-blue-600 dark:text-blue-400" style="display: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
 
-        <span class="auth-btn-label" id="passkey-btn-text">Login with Passkey</span>
+        <span id="passkey-btn-text">Login with Passkey</span>
     </button>
 </div>
 
@@ -57,7 +55,9 @@ Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn — full-width, ico
         function bufferToBase64Url(buffer) {
             var bytes = new Uint8Array(buffer);
             var binary = '';
-            for (var i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+            for (var i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
             return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         }
 
@@ -66,27 +66,22 @@ Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn — full-width, ico
             var base64 = (base64url + padding).replace(/\-/g, '+').replace(/_/g, '/');
             var rawData = atob(base64);
             var buffer = new Uint8Array(rawData.length);
-            for (var i = 0; i < rawData.length; ++i) buffer[i] = rawData.charCodeAt(i);
+            for (var i = 0; i < rawData.length; ++i) {
+                buffer[i] = rawData.charCodeAt(i);
+            }
             return buffer.buffer;
         }
 
-        function setLoading(state) {
-            var icon = document.getElementById('passkey-btn-icon-wrap');
-            var spinner = document.getElementById('passkey-btn-spinner');
-            var text = document.getElementById('passkey-btn-text');
+        function setPasskeyLoading(isLoading) {
             var btn = document.getElementById('btn-login-passkey');
-            if (!icon || !spinner || !btn) return;
-            if (state) {
-                icon.style.display = 'none';
-                spinner.style.display = 'flex';
-                if (text) text.textContent = 'Memverifikasi...';
-                btn.disabled = true;
-            } else {
-                icon.style.display = 'flex';
-                spinner.style.display = 'none';
-                if (text) text.textContent = 'Login with Passkey';
-                btn.disabled = false;
-            }
+            var text = document.getElementById('passkey-btn-text');
+            var icon = document.getElementById('passkey-icon-svg');
+            var spinner = document.getElementById('passkey-spinner-svg');
+
+            if (btn) btn.disabled = isLoading;
+            if (text) text.textContent = isLoading ? 'Memverifikasi...' : 'Login with Passkey';
+            if (icon) icon.style.display = isLoading ? 'none' : 'block';
+            if (spinner) spinner.style.display = isLoading ? 'block' : 'none';
         }
 
         window.startPasskeyLogin = async function() {
@@ -94,29 +89,61 @@ Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn — full-width, ico
                 alert('{{ __("authentication::messages.passkey_not_supported") }}');
                 return;
             }
-            try {
-                setLoading(true);
 
+            try {
+                setPasskeyLoading(true);
+
+                // 1. Ambil request options dari server
                 var identifierInput = document.querySelector('input[name="identifier"]') || document.querySelector('input[name="email"]');
                 var identifier = identifierInput ? identifierInput.value.trim() : '';
-                var url = '{{ $optionsRoute }}' + (identifier ? '?identifier=' + encodeURIComponent(identifier) : '');
 
+                var url = '{{ $optionsRoute }}' + (identifier ? '?identifier=' + encodeURIComponent(identifier) : '');
                 var optRes = await fetch(url, {
                     headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
                 });
-                if (!optRes.ok) throw new Error('Gagal mengambil opsi autentikasi Passkey.');
-                var options = await optRes.json();
 
-                options.challenge = base64UrlToBuffer(options.challenge);
-                if (options.allowCredentials && Array.isArray(options.allowCredentials)) {
-                    options.allowCredentials = options.allowCredentials.map(function(c) {
-                        return { id: base64UrlToBuffer(c.id), type: c.type || 'public-key', transports: c.transports };
-                    });
+                if (!optRes.ok) {
+                    throw new Error('Gagal mengambil opsi autentikasi Passkey.');
                 }
 
-                var credential = await navigator.credentials.get({ publicKey: options });
-                if (!credential) throw new Error('Tidak ada kredensial yang dipilih.');
+                var options = await optRes.json();
 
+                // 2. Format challenge dan allowed credentials
+                options.challenge = base64UrlToBuffer(options.challenge);
+                if (options.allowCredentials && Array.isArray(options.allowCredentials) && options.allowCredentials.length > 0) {
+                    options.allowCredentials = options.allowCredentials.map(function(c) {
+                        return {
+                            id: base64UrlToBuffer(c.id),
+                            type: c.type || 'public-key',
+                            transports: c.transports
+                        };
+                    });
+                } else {
+                    delete options.allowCredentials;
+                }
+
+                // 3. Panggil WebAuthn API browser (TouchID, FaceID, Windows Hello, YubiKey)
+                var credential;
+                try {
+                    credential = await navigator.credentials.get({ publicKey: options });
+                } catch (navErr) {
+                    // Penanganan skenario: User membatalkan dialog biometric atau menutup popup
+                    if (navErr.name === 'NotAllowedError' || navErr.name === 'AbortError') {
+                        // User membatalkan prompt passkey — kembalikan state tombol tanpa menampilkan alert
+                        return;
+                    }
+                    if (navErr.name === 'InvalidStateError' || navErr.name === 'NotFoundError') {
+                        alert('{{ __("authentication::messages.passkey_none_registered") }}');
+                        return;
+                    }
+                    throw navErr;
+                }
+
+                if (!credential) {
+                    return;
+                }
+
+                // 4. Kirim assertion ke server
                 var assertionPayload = {
                     id: credential.id,
                     rawId: bufferToBase64Url(credential.rawId),
@@ -144,21 +171,23 @@ Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn — full-width, ico
                 });
 
                 var loginData = await loginRes.json();
+
                 if (loginRes.ok && loginData.status === 'success') {
                     window.location.href = loginData.redirect || '/dashboard';
                 } else {
                     alert(loginData.message || '{{ __("authentication::messages.passkey_failed") }}');
                 }
             } catch (err) {
-                if (err.name !== 'NotAllowedError') {
+                if (err.name !== 'NotAllowedError' && err.name !== 'AbortError') {
+                    console.error('Passkey authentication error:', err);
                     alert(err.message || '{{ __("authentication::messages.passkey_failed") }}');
                 }
             } finally {
-                setLoading(false);
+                setPasskeyLoading(false);
             }
         };
 
-        // WebAuthn Conditional UI — Autofill support
+        // Autofill / Conditional UI jika didukung oleh browser
         document.addEventListener('DOMContentLoaded', function() {
             if (window.PublicKeyCredential && PublicKeyCredential.isConditionalMediationAvailable) {
                 PublicKeyCredential.isConditionalMediationAvailable().then(function(available) {

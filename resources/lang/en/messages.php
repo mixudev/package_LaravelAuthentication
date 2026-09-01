@@ -148,6 +148,22 @@ return [
     'passkey_deleted'         => 'Passkey deleted successfully.',
     'passkey_failed'          => 'Passkey authentication failed or cancelled.',
     'passkey_not_supported'   => 'Passkeys are not supported on this browser or device.',
+    'passkey_none_registered' => 'No passkeys found for this account. Please log in with your password.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Form Input Validation Messages
+    |--------------------------------------------------------------------------
+    */
+    'validation_required'     => 'The :attribute field is required.',
+    'validation_email'        => 'The :attribute must be a valid email address.',
+    'validation_min'          => 'The :attribute must be at least :min characters.',
+    'validation_max'          => 'The :attribute may not be greater than :max characters.',
+    'validation_confirmed'    => 'The :attribute confirmation does not match.',
+    'validation_string'       => 'The :attribute must be a string.',
+    'validation_unique'       => 'The :attribute has already been taken.',
+    'validation_numeric'      => 'The :attribute must be a number.',
+    'validation_digits'       => 'The :attribute must be :digits digits.',
 
     'divider'                 => 'OR',
 ];
