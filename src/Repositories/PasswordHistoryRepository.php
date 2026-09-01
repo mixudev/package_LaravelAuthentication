@@ -7,6 +7,7 @@ namespace Vendor\LaravelAuthentication\Repositories;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Support\Carbon;
+use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
 use Vendor\LaravelAuthentication\Models\PasswordHistory;
 
@@ -25,7 +26,7 @@ class PasswordHistoryRepository implements PasswordHistoryRepositoryInterface
         ]);
     }
 
-    public function isPreviouslyUsed(Authenticatable $user, #[\SensitiveParameter] string $plainPassword, int $rememberCount = 5): bool
+    public function isPreviouslyUsed(Authenticatable $user, #[SensitiveParameter] string $plainPassword, int $rememberCount = 5): bool
     {
         $histories = PasswordHistory::where('user_id', (string) $user->getAuthIdentifier())
             ->latest('created_at')

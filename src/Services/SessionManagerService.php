@@ -109,7 +109,7 @@ class SessionManagerService
     /**
      * Revoke all other active sessions for the user after validating current password.
      */
-    public function revokeOtherSessions(Authenticatable $user, #[\SensitiveParameter] string $password, ?string $currentSessionId = null): bool
+    public function revokeOtherSessions(Authenticatable $user, #[SensitiveParameter] string $password, ?string $currentSessionId = null): bool
     {
         $passwordColumn = $this->config->getIdentifierColumn('password');
         $userHash = (string) ($user->{$passwordColumn} ?? '');

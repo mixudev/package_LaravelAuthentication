@@ -133,6 +133,11 @@ Berikut adalah daftar seluruh rute Web dan endpoint REST API yang disediakan ole
 | `GET` | `/email/verify` | `verification.notice` | Auth | Halaman Pemberitahuan Verifikasi Email. |
 | `GET` | `/email/verify/{id}/{hash}` | `verification.verify` | Auth | Memvalidasi link verifikasi email bertanda tangan. |
 | `POST` | `/email/verification-notification` | `verification.send` | Auth | Mengirim ulang email verifikasi. |
+| `GET` | `/auth/passkey/login-options` | `passkey.login.options` | Guest | Mengambil challenge options WebAuthn untuk login passkey. |
+| `POST` | `/auth/passkey/login` | `passkey.login` | Guest | Memvalidasi respon biometrik/kredensial passkey untuk login. |
+| `GET` | `/auth/passkey/register-options`| `passkey.register.options` | Auth | Mengambil challenge options untuk mendaftarkan passkey baru. |
+| `POST` | `/auth/passkey/register` | `passkey.register` | Auth | Menyimpan public key passkey baru perangkat user. |
+| `DELETE`| `/auth/passkey/{id}` | `passkey.destroy` | Auth | Menghapus passkey terdaftar berdasarkan ID. |
 
 ---
 
@@ -148,6 +153,11 @@ Berikut adalah daftar seluruh rute Web dan endpoint REST API yang disediakan ole
 | `POST` | `/api/v1/auth/forgot-password` | `api.auth.password.email` | - | Body: `{"email"}`. |
 | `POST` | `/api/v1/auth/reset-password` | `api.auth.password.reset` | - | Body: `{"email", "token", "password", "password_confirmation"}`. |
 | `POST` | `/api/v1/auth/social/{provider}` | `api.auth.social` | - | Body: `{"token"}`. |
+| `GET`  | `/api/v1/auth/passkey/login-options` | `api.auth.passkey.login.options` | - | Mengambil WebAuthn challenge options. |
+| `POST` | `/api/v1/auth/passkey/login` | `api.auth.passkey.login` | - | Body: Assertion response passkey untuk login & token. |
+| `GET`  | `/api/v1/auth/passkey/register-options` | `api.auth.passkey.register.options` | `Authorization: Bearer <token>` | Mengambil challenge registrasi passkey baru. |
+| `POST` | `/api/v1/auth/passkey/register` | `api.auth.passkey.register` | `Authorization: Bearer <token>` | Body: Attestation response & `name` passkey. |
+| `DELETE`| `/api/v1/auth/passkey/{id}` | `api.auth.passkey.destroy` | `Authorization: Bearer <token>` | Menghapus passkey terdaftar. |
 | `POST` | `/api/v1/auth/logout` | `api.auth.logout` | `Authorization: Bearer <token>` | Menghapus token Sanctum aktif. |
 | `POST` | `/api/v1/auth/confirm-password` | `api.auth.password.confirm` | `Authorization: Bearer <token>` | Body: `{"password"}`. |
 | `GET` | `/api/v1/auth/two-factor/setup` | `api.auth.two-factor.setup` | `Authorization: Bearer <token>` | Mendapatkan Secret Key, QR Code URL, dan Backup Codes. |

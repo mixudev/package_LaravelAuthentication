@@ -6,7 +6,7 @@ namespace Vendor\LaravelAuthentication\Services;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Hashing\Hasher;
-use Illuminate\Database\Eloquent\Model;
+use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
@@ -22,12 +22,12 @@ class PasswordService
         private readonly AuthenticationConfig $config
     ) {}
 
-    public function hashPassword(#[\SensitiveParameter] string $plainPassword): string
+    public function hashPassword(#[SensitiveParameter] string $plainPassword): string
     {
         return $this->hasher->make($plainPassword);
     }
 
-    public function updatePassword(Authenticatable $user, #[\SensitiveParameter] string $newPlainPassword): void
+    public function updatePassword(Authenticatable $user, #[SensitiveParameter] string $newPlainPassword): void
     {
         if ($this->config->isPasswordHistoryEnabled()) {
             $rememberCount = $this->config->getPasswordHistoryCount();

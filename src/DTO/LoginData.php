@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\DTO;
 
+use SensitiveParameter;
+
 /**
  * Purpose:
  * Immutable Data Transfer Object encapsulating raw login credentials.
  *
  * Security considerations:
- * Password property is tagged with #[\SensitiveParameter] to prevent exposure in stack traces.
+ * Password property is tagged with #[SensitiveParameter] to prevent exposure in stack traces.
  */
 final class LoginData
 {
@@ -18,7 +20,7 @@ final class LoginData
      */
     public function __construct(
         public readonly string $identifier,
-        #[\SensitiveParameter]
+        #[SensitiveParameter]
         public readonly string $password,
         public readonly bool $remember = false,
         public readonly ?string $strategy = null,

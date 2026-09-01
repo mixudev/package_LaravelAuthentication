@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Contracts;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use SensitiveParameter;
 
 /**
  * Purpose:
@@ -20,5 +21,5 @@ interface PasswordHistoryRepositoryInterface
     /**
      * Check if a candidate plain password matches any of the user's last N recorded passwords.
      */
-    public function isPreviouslyUsed(Authenticatable $user, #[\SensitiveParameter] string $plainPassword, int $rememberCount = 5): bool;
+    public function isPreviouslyUsed(Authenticatable $user, #[SensitiveParameter] string $plainPassword, int $rememberCount = 5): bool;
 }

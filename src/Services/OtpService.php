@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Str;
+use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\CredentialResolverInterface;
 use Vendor\LaravelAuthentication\Contracts\OtpServiceInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
@@ -142,7 +143,7 @@ class OtpService implements OtpServiceInterface
         }
     }
 
-    public function verify(string $identifier, #[\SensitiveParameter] string $code, AuthenticationContext $context): ?Authenticatable
+    public function verify(string $identifier, #[SensitiveParameter] string $code, AuthenticationContext $context): ?Authenticatable
     {
         if (!$this->isEnabled()) {
             throw new AuthenticationException('OTP authentication is currently disabled.');

@@ -92,7 +92,7 @@ class ConfirmPasswordController extends Controller
         return redirect()->intended(config('authentication.redirects.login', '/dashboard'));
     }
 
-    protected function validateUserPassword(mixed $user, #[\SensitiveParameter] string $password): bool
+    protected function validateUserPassword(mixed $user, #[SensitiveParameter] string $password): bool
     {
         $passwordColumn = $this->config->getIdentifierColumn('password');
         $userHash = (string) ($user->{$passwordColumn} ?? '');

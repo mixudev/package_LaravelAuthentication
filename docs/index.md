@@ -1,12 +1,12 @@
 # Laravel Authentication Package Documentation
 
-Selamat datang di dokumentasi resmi **`mixudev/laravel-authentication`** (`Vendor\LaravelAuthentication\`).
+Selamat datang di pusat dokumentasi resmi **`mixudev/laravel-authentication`** (`Vendor\LaravelAuthentication\`).
 
-Package ini menyediakan arsitektur autentikasi modular, portable, enterprise-grade, dan aman untuk aplikasi **Laravel 10.x, 11.x, 12.x, dan 13.x**.
+Package ini menyediakan arsitektur autentikasi modular, portabel, enterprise-grade, dan aman untuk aplikasi **Laravel 10.x, 11.x, 12.x, dan 13.x**.
 
 ---
 
-## 📚 Daftar Isi Dokumentasi
+## 📑 Daftar Isi Dokumentasi
 
 1. [**Panduan Memulai (Getting Started)**](getting-started.md)
    - Instalasi otomatis satu langkah via `php artisan authentication:install`
@@ -19,6 +19,8 @@ Package ini menyediakan arsitektur autentikasi modular, portable, enterprise-gra
    - Struktur modul mandiri di `modules/Authentication/`
 
 3. [**Fitur & Modul Utama (Features & Modules)**](features.md)
+   - **Passkey (FIDO2 / WebAuthn Passwordless Login)**
+   - **Optimasi Skala Besar (10M+ Rows & Composite Indexing)**
    - Multi-Factor Authentication (MFA/2FA TOTP & Recovery Codes)
    - Manajemen Sesi & Perangkat Aktif (Session & Device Management)
    - Rate Limiting Granular per Fitur
@@ -33,35 +35,35 @@ Package ini menyediakan arsitektur autentikasi modular, portable, enterprise-gra
    - Modul pemulihan & reset kata sandi
    - Kebijakan kekuatan password & riwayat password
 
-4. [**Kustomisasi Tampilan & Template UI**](panduan-kustomisasi-view.md) / [🇬🇧 English](views-customization.md)
+4. [**Kustomisasi Tampilan & Template UI**](panduan-kustomisasi-view.md) / [English Guide](views-customization.md)
    - Penggunaan 2 template layout bawaan: `split` (2-kolom) & `card` (kartu tengah)
    - Cara memodifikasi komponen Blade bawaan (`vendor:publish`)
    - Cara membuat tampilan sendiri dari nol (*Bring Your Own UI*)
    - Spesifikasi form, nama input wajib, route actions, dan token CSRF
 
 5. [**Strategi Autentikasi & Ekstensi Kustom**](strategies-and-extending.md)
-   - Strategi bawaan (`username_or_email`, `email_password`, `username_password`, `custom_identifier`)
+   - Strategi bawaan (`username_or_email`, `email_password`, `username_password`, `custom_identifier`, `passkey`)
    - Cara membuat strategi autentikasi kustom (NIP, Nomor HP, RFID, SSO)
    - Event listening & penanganan payload
 
 6. [**Referensi REST API (API Reference)**](api-reference.md)
    - Katalog lengkap endpoint API JSON (`/api/v1/auth/*`)
-   - 2FA Challenge, Session Management, dan Confirm Password endpoints
+   - Passkey endpoints, 2FA Challenge, Session Management, dan Confirm Password
    - Skema payload request & response
 
 7. [**Keamanan & Praktik Terbaik (Security & Best Practices)**](security-and-best-practices.md)
    - Matriks mitigasi ancaman & proteksi zero-trust
    - Rate limiting komposit per fitur & adaptif CAPTCHA
-   - MFA/2FA & Device Trust cookies
+   - MFA/2FA, Passkey WebAuthn, & Device Trust cookies
    - Mitigasi User Enumeration & timing normalization
    - Proteksi session fixation & rehash password otomatis
-   - Audit logging & penyamaran data sensitif (`#[\SensitiveParameter]`)
+   - Audit logging & penyamaran data sensitif (`#[SensitiveParameter]`)
 
-8. [**Panduan Rilis & Publikasi (Publishing Guide)**](publishing-guide.md)
-   - Standar Git commit & Semantic Versioning
-   - Publikasi ke GitHub & Packagist.org
-
-9. [**Checklist Prasyarat & Peta URL (Prerequisites & Sitemap)**](prerequisites-and-checklist.md)
+8. [**Checklist Prasyarat & Peta URL (Prerequisites & Sitemap)**](prerequisites-and-checklist.md)
    - Matriks kebutuhan layanan & kunci API (mana yang butuh daftar vs mandiri)
    - Panduan langkah mendapatkan API keys (Cloudflare Turnstile, Google & GitHub OAuth)
-   - Peta lengkap 49 Rute Web & REST API beserta hak aksesnya
+   - Peta lengkap seluruh Rute Web & REST API beserta hak aksesnya
+
+9. [**Panduan Rilis & Publikasi (Publishing Guide)**](publishing-guide.md)
+   - Standar Git commit & Semantic Versioning
+   - Publikasi ke GitHub & Packagist.org

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\DTO;
 
+use SensitiveParameter;
+
 /**
  * Immutable Data Transfer Object encapsulating registration input data.
  */
@@ -15,7 +17,7 @@ final class RegisterData
     public function __construct(
         public readonly string $name,
         public readonly string $email,
-        #[\SensitiveParameter]
+        #[SensitiveParameter]
         public readonly string $password,
         public readonly array $extra = []
     ) {}

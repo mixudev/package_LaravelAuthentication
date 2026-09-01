@@ -33,7 +33,7 @@ class TotpService
     /**
      * Calculate current TOTP code for a given secret.
      */
-    public function calculateCode(#[\SensitiveParameter] string $secret, ?int $timestamp = null, int $digits = 6, int $period = 30): string
+    public function calculateCode(#[SensitiveParameter] string $secret, ?int $timestamp = null, int $digits = 6, int $period = 30): string
     {
         $time = $timestamp ?? time();
         $timeCounter = (int) floor($time / $period);
@@ -56,7 +56,7 @@ class TotpService
     /**
      * Verify a submitted TOTP code with time drift window tolerance.
      */
-    public function verify(#[\SensitiveParameter] string $secret, string $code, int $window = 1, int $digits = 6, int $period = 30): bool
+    public function verify(#[SensitiveParameter] string $secret, string $code, int $window = 1, int $digits = 6, int $period = 30): bool
     {
         $code = trim($code);
 
@@ -81,7 +81,7 @@ class TotpService
     /**
      * Generate the standard otpauth:// URI.
      */
-    public function getOtpAuthUrl(string $issuer, string $accountName, #[\SensitiveParameter] string $secret, int $digits = 6, int $period = 30): string
+    public function getOtpAuthUrl(string $issuer, string $accountName, #[SensitiveParameter] string $secret, int $digits = 6, int $period = 30): string
     {
         $encodedIssuer = rawurlencode($issuer);
         $encodedAccount = rawurlencode($accountName);
@@ -116,7 +116,7 @@ class TotpService
     /**
      * Base32 decoding helper compliant with RFC 4648.
      */
-    protected function base32Decode(#[\SensitiveParameter] string $base32): string
+    protected function base32Decode(#[SensitiveParameter] string $base32): string
     {
         $base32 = strtoupper(trim($base32));
         $buffer = 0;

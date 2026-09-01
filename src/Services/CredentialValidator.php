@@ -7,6 +7,7 @@ namespace Vendor\LaravelAuthentication\Services;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\Eloquent\Model;
+use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\CredentialValidatorInterface;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
@@ -20,7 +21,7 @@ class CredentialValidator implements CredentialValidatorInterface
         private readonly AuthenticationConfig $config
     ) {}
 
-    public function validatePassword(Authenticatable $user, #[\SensitiveParameter] string $plainPassword): bool
+    public function validatePassword(Authenticatable $user, #[SensitiveParameter] string $plainPassword): bool
     {
         $passwordHash = $user->getAuthPassword();
 
@@ -42,7 +43,7 @@ class CredentialValidator implements CredentialValidatorInterface
         return $this->hasher->needsRehash($user->getAuthPassword());
     }
 
-    public function rehashPassword(Authenticatable $user, #[\SensitiveParameter] string $plainPassword): void
+    public function rehashPassword(Authenticatable $user, #[SensitiveParameter] string $plainPassword): void
     {
         if ($user instanceof Model) {
             $column = $this->config->getIdentifierColumn('password');

@@ -77,11 +77,11 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
 
-        @if ($credentialError)
+        {{-- @if ($credentialError)
             <x-authentication::alert type="error" :autodismiss="true" :message="$credentialError" />
         @elseif ($errors->any())
             <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
-        @endif
+        @endif --}}
 
         {{-- Tombol Login Alternatif: Social (Google/GitHub sebelahan) + Passkey --}}
         @php

@@ -19,6 +19,8 @@ Package `mixudev/laravel-authentication` dibangun dengan arsitektur **Fail-Close
 11. [Lupa & Reset Kata Sandi](#11-lupa--reset-kata-sandi)
 12. [Social / OAuth Login (Google & GitHub)](#12-social--oauth-login-google--github)
 13. [Kebijakan Password & Riwayat Password](#13-kebijakan-password--riwayat-password)
+14. [Autentikasi Kunci Sandi (Passkeys / WebAuthn FIDO2)](#14-autentikasi-kunci-sandi-passkeys--webauthn-fido2)
+15. [Optimasi Skala Besar (10M+ Data & Performa Tinggi)](#15-optimasi-skala-besar-10m-data--performa-tinggi)
 
 ---
 
@@ -413,3 +415,54 @@ Menetapkan standar kompleksitas password, pencegahan pemakaian ulang password la
     ],
 ],
 ```
+
+---
+
+## 14. Autentikasi Kunci Sandi (Passkeys / WebAuthn FIDO2)
+
+Autentikasi biometrik modern tanpa kata sandi menggunakan sensor perangkat (Touch ID, Face ID, Windows Hello, atau Security Key USB/NFC FIDO2) berbasis standar W3C WebAuthn.
+
+### Konfigurasi di `config/authentication.php`:
+```php
+'features' => [
+    'passkey' => [
+        'enabled'           => true,
+        'rp_name'           => env('APP_NAME', 'Laravel'),
+        'rp_id'             => null, // null = auto detect domain/host
+        'user_verification' => 'preferred', // 'required', 'preferred', 'discouraged'
+        'timeout'           => 60000, // 60 detik
+    ],
+],
+```
+
+### Cara Kerja:
+1. **Pendaftaran Passkey**:
+   - User yang sudah login membuka halaman *Pusat Keamanan* (`/auth/sessions`).
+   - Klik *"Daftarkan Passkey Baru"*. Browser akan memanggil `navigator.credentials.create()` untuk menggenerasi pasangan kunci kriptografis di hardware enklaf perangkat.
+   - Public key dan credential ID disimpan di database (`authentication_passkeys`), sedangkan private key tetap aman di hardware perangkat user dan tidak pernah dikirim ke server.
+2. **Login dengan Passkey**:
+   - Klik tombol *"Login with Passkey"* di halaman `/login`.
+   - Browser meminta verifikasi sidik jari / wajah / PIN.
+   - Server memvalidasi signature kriptografis dan secara otomatis mengautentikasi sesi web atau membuat token API.
+3. **Conditional UI / Autofill**:
+   - Field input otomatis mendeteksi passkey yang tersimpan di browser (`autocomplete="webauthn"`).
+
+---
+
+## 15. Optimasi Skala Besar (10M+ Data & Performa Tinggi)
+
+Didesain untuk menangani beban data puluhan juta baris dengan latensi kueri rendah:
+
+### 1. Smart Fast-Path Credential Resolver
+Pada saat proses login, sistem mendeteksi tipe input:
+- Jika input berformat email: Query langsung membidik indeks kolom `email` tunggal ($O(\log N)$).
+- Jika input berformat username: Query langsung membidik indeks kolom `username`.
+- Menghindari kueri `OR` yang lambat atau *table scan* pada tabel dengan jutaan baris data.
+
+### 2. Composite Database Indexing
+Semua tabel log dan sesi dilengkapi composite index:
+- `authentication_attempts`: `idx_attempts_id_time`, `idx_attempts_ip_time`, `idx_attempts_status_time`.
+- `authentication_login_histories`: `idx_histories_user_login`, `idx_histories_user_logout`.
+- `authentication_devices`: `idx_devices_user_last_seen`.
+- `authentication_passkeys`: Indeks unik `credential_id` dan composite `['user_id', 'created_at']`.
+

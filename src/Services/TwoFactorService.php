@@ -122,7 +122,7 @@ class TwoFactorService
     /**
      * Disable 2FA after checking password.
      */
-    public function disable(Authenticatable $user, #[\SensitiveParameter] string $password): bool
+    public function disable(Authenticatable $user, #[SensitiveParameter] string $password): bool
     {
         $passwordColumn = $this->config->getIdentifierColumn('password');
         $userHash = (string) ($user->{$passwordColumn} ?? '');
