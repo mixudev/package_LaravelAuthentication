@@ -39,18 +39,18 @@ class RegisterRequest extends FormRequest
      */
     public function messages(): array
     {
-        $passwordLabel = strtolower((string) __('authentication::messages.password_label'));
+        $passwordLabel = strtolower(\Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.password_label'));
 
         return [
-            'name.required'                  => __('validation.required', ['attribute' => 'nama']),
-            'name.string'                    => __('validation.string', ['attribute' => 'nama']),
-            'name.max'                       => __('validation.max.string', ['attribute' => 'nama', 'max' => 255]),
-            'email.required'                 => __('validation.required', ['attribute' => 'email']),
-            'email.email'                    => __('validation.email', ['attribute' => 'email']),
-            'email.unique'                   => (string) __('authentication::messages.email_taken'),
-            'password.required'              => __('validation.required', ['attribute' => $passwordLabel]),
-            'password.confirmed'             => __('validation.confirmed', ['attribute' => $passwordLabel]),
-            'password_confirmation.required' => __('validation.required', ['attribute' => 'konfirmasi kata sandi']),
+            'name.required'                  => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => 'nama']),
+            'name.string'                    => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.string', ['attribute' => 'nama']),
+            'name.max'                       => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.max.string', ['attribute' => 'nama', 'max' => 255]),
+            'email.required'                 => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => 'email']),
+            'email.email'                    => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.email', ['attribute' => 'email']),
+            'email.unique'                   => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.email_taken'),
+            'password.required'              => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => $passwordLabel]),
+            'password.confirmed'             => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.confirmed', ['attribute' => $passwordLabel]),
+            'password_confirmation.required' => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => 'konfirmasi kata sandi']),
         ];
     }
 
@@ -62,7 +62,7 @@ class RegisterRequest extends FormRequest
         return [
             'name'                  => 'nama',
             'email'                 => 'email',
-            'password'              => strtolower((string) __('authentication::messages.password_label')),
+            'password'              => strtolower(\Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.password_label')),
             'password_confirmation' => 'konfirmasi kata sandi',
         ];
     }

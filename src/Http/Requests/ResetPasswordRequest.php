@@ -31,14 +31,14 @@ class ResetPasswordRequest extends FormRequest
      */
     public function messages(): array
     {
-        $newPasswordLabel = strtolower((string) __('authentication::messages.new_password_label'));
+        $newPasswordLabel = strtolower(\Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.new_password_label'));
 
         return [
             'token.required'     => 'Token reset password tidak valid atau sudah kedaluwarsa.',
-            'email.required'     => __('validation.required', ['attribute' => 'email']),
-            'email.email'        => __('validation.email', ['attribute' => 'email']),
-            'password.required'  => __('validation.required', ['attribute' => $newPasswordLabel]),
-            'password.confirmed' => __('validation.confirmed', ['attribute' => $newPasswordLabel]),
+            'email.required'     => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => 'email']),
+            'email.email'        => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.email', ['attribute' => 'email']),
+            'password.required'  => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => $newPasswordLabel]),
+            'password.confirmed' => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.confirmed', ['attribute' => $newPasswordLabel]),
         ];
     }
 
@@ -50,7 +50,7 @@ class ResetPasswordRequest extends FormRequest
         return [
             'token'    => 'token',
             'email'    => 'email',
-            'password' => strtolower((string) __('authentication::messages.new_password_label')),
+            'password' => strtolower(\Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.new_password_label')),
         ];
     }
 }

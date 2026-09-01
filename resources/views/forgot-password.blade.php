@@ -44,8 +44,8 @@ Deskripsi: Halaman lupa password dengan alert di atas form dan auto-dismiss 3 de
             <x-authentication::input 
                 name="email"
                 type="email"
-                :label="__('Alamat Email')"
-                :placeholder="__('nama@domain.com')"
+                :label="__('authentication::messages.email_label')"
+                :placeholder="__('authentication::messages.email_placeholder')"
                 :required="true"
                 autocomplete="email"
                 :autofocus="true"

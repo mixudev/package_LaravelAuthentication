@@ -53,4 +53,9 @@ final class AuthenticationResult
     {
         return $this->status === AuthenticationStatus::SUCCESS;
     }
+
+    public function isSuccess(): bool
+    {
+        return $this->isSuccessful();
+    }
 }

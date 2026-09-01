@@ -48,9 +48,22 @@ Route::group([
         Route::post('/social/{provider}', [SocialAuthController::class, 'apiCallback'])->name('api.auth.social');
     }
 
+    // Passkey / WebAuthn API (Toggleable)
+    if (config('authentication.features.passkey.enabled', true)) {
+        Route::post('/passkey/login-options', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'loginOptions'])->name('api.auth.passkey.login.options');
+        Route::post('/passkey/login', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'login'])->name('api.auth.passkey.login');
+    }
+
     // Authenticated API Routes
     Route::middleware(config('authentication.routes.api.auth_middleware', ['auth:sanctum']))->group(function () {
         Route::post('/logout', [LogoutController::class, 'apiLogout'])->name('api.auth.logout');
+
+        // Passkey / WebAuthn Management API
+        if (config('authentication.features.passkey.enabled', true)) {
+            Route::post('/passkey/register-options', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'registerOptions'])->name('api.auth.passkey.register.options');
+            Route::post('/passkey/register', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'register'])->name('api.auth.passkey.register');
+            Route::delete('/passkey/{id}', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'destroy'])->name('api.auth.passkey.destroy');
+        }
 
         // Confirm Password API
         if (config('authentication.features.confirm_password.enabled', true)) {

@@ -40,14 +40,14 @@ class VerifyOtpRequest extends FormRequest
      */
     public function messages(): array
     {
-        $identifierLabel = strtolower((string) __('authentication::messages.identifier_label'));
+        $identifierLabel = strtolower(\Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.identifier_label'));
 
         return [
-            'identifier.required' => __('validation.required', ['attribute' => $identifierLabel]),
-            'identifier.string'   => __('validation.string', ['attribute' => $identifierLabel]),
-            'code.required'       => __('validation.required', ['attribute' => 'kode OTP']),
-            'code.min'            => __('validation.min.string', ['attribute' => 'kode OTP', 'min' => 4]),
-            'code.max'            => __('validation.max.string', ['attribute' => 'kode OTP', 'max' => 16]),
+            'identifier.required' => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => $identifierLabel]),
+            'identifier.string'   => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.string', ['attribute' => $identifierLabel]),
+            'code.required'       => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => 'kode OTP']),
+            'code.min'            => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.min.string', ['attribute' => 'kode OTP', 'min' => 4]),
+            'code.max'            => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.max.string', ['attribute' => 'kode OTP', 'max' => 16]),
         ];
     }
 
@@ -57,7 +57,7 @@ class VerifyOtpRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'identifier' => strtolower((string) __('authentication::messages.identifier_label')),
+            'identifier' => strtolower(\Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.identifier_label')),
             'code'       => 'kode OTP',
         ];
     }

@@ -46,7 +46,8 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
             <x-authentication::input 
                 name="email"
                 type="email"
-                :label="__('Alamat Email')"
+                :label="__('authentication::messages.email_label')"
+                :placeholder="__('authentication::messages.email_placeholder')"
                 :value="old('email', $email ?? request()->email)"
                 :required="true"
                 autocomplete="email"

@@ -49,8 +49,8 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
 
             <x-authentication::input 
                 name="name"
-                :label="__('Nama Lengkap')"
-                :placeholder="__('Nama lengkap Anda')"
+                :label="__('authentication::messages.full_name')"
+                :placeholder="__('authentication::messages.full_name_placeholder')"
                 :required="true"
                 autocomplete="name"
                 :autofocus="true"
@@ -59,8 +59,8 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
             <x-authentication::input 
                 name="email"
                 type="email"
-                :label="__('Alamat Email')"
-                :placeholder="__('nama@domain.com')"
+                :label="__('authentication::messages.email_label')"
+                :placeholder="__('authentication::messages.email_placeholder')"
                 :required="true"
                 autocomplete="email"
             />
@@ -68,8 +68,8 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
             @if (in_array(config('authentication.strategies.active'), ['username_password', 'username_or_email']))
                 <x-authentication::input 
                     name="username"
-                    :label="__('Username')"
-                    :placeholder="__('Pilih username unik')"
+                    :label="__('authentication::messages.identifier_label')"
+                    :placeholder="__('authentication::messages.identifier_placeholder')"
                     autocomplete="username"
                 />
             @endif
@@ -78,7 +78,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
                 name="password"
                 type="password"
                 :label="__('authentication::messages.password_label')"
-                :placeholder="__('Minimal 8 karakter')"
+                :placeholder="__('authentication::messages.password_placeholder')"
                 :required="true"
                 autocomplete="new-password"
             />
@@ -86,8 +86,8 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
             <x-authentication::input 
                 name="password_confirmation"
                 type="password"
-                :label="__('Konfirmasi Kata Sandi')"
-                :placeholder="__('Ulangi kata sandi')"
+                :label="__('authentication::messages.confirm_password_label')"
+                :placeholder="__('authentication::messages.confirm_password_placeholder')"
                 :required="true"
                 autocomplete="new-password"
             />

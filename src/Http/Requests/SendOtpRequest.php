@@ -29,11 +29,11 @@ class SendOtpRequest extends FormRequest
      */
     public function messages(): array
     {
-        $identifierLabel = strtolower((string) __('authentication::messages.identifier_label'));
+        $identifierLabel = strtolower(\Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.identifier_label'));
 
         return [
-            'identifier.required' => __('validation.required', ['attribute' => $identifierLabel]),
-            'identifier.string'   => __('validation.string', ['attribute' => $identifierLabel]),
+            'identifier.required' => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => $identifierLabel]),
+            'identifier.string'   => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.string', ['attribute' => $identifierLabel]),
         ];
     }
 
@@ -43,7 +43,7 @@ class SendOtpRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'identifier' => strtolower((string) __('authentication::messages.identifier_label')),
+            'identifier' => strtolower(\Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.identifier_label')),
         ];
     }
 }

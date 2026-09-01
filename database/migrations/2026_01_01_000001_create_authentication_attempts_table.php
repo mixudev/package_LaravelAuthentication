@@ -27,6 +27,11 @@ return new class extends Migration
                 $table->string('strategy', 64)->nullable();
                 $table->string('channel', 32)->default('web'); // web, api, cli
                 $table->timestamp('attempted_at')->useCurrent()->index();
+
+                // High-performance composite indexes for 10M+ rows queries & pruning
+                $table->index(['identifier', 'attempted_at'], 'idx_attempts_id_time');
+                $table->index(['ip_address', 'attempted_at'], 'idx_attempts_ip_time');
+                $table->index(['status', 'attempted_at'], 'idx_attempts_status_time');
             });
         }
     }

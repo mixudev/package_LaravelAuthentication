@@ -52,6 +52,7 @@ final class AuthenticationConfig
             'two_factor'         => 'authentication_two_factors',
             'devices'            => 'authentication_devices',
             'sessions'           => 'authentication_sessions',
+            'passkeys'           => 'authentication_passkeys',
         ];
 
         $fallback = $default ?: ($defaultMap[$key] ?? "authentication_{$key}");
@@ -70,6 +71,7 @@ final class AuthenticationConfig
             'two_factor'         => 'authentication_two_factors',
             'devices'            => 'authentication_devices',
             'sessions'           => 'authentication_sessions',
+            'passkeys'           => 'authentication_passkeys',
         ];
 
         $fallback = $default ?: ($defaultMap[$key] ?? "authentication_{$key}");

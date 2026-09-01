@@ -39,6 +39,7 @@ return [
             'two_factor'         => 'authentication_two_factors',
             'devices'            => 'authentication_devices',
             'sessions'           => 'authentication_sessions',
+            'passkeys'           => 'authentication_passkeys',
         ],
     ],
 
@@ -73,6 +74,7 @@ return [
             'email_password'    => \Vendor\LaravelAuthentication\Strategies\EmailPasswordStrategy::class,
             'username_password' => \Vendor\LaravelAuthentication\Strategies\UsernamePasswordStrategy::class,
             'custom_identifier' => \Vendor\LaravelAuthentication\Strategies\CustomIdentifierStrategy::class,
+            'passkey'           => \Vendor\LaravelAuthentication\Strategies\PasskeyAuthenticationStrategy::class,
         ],
 
         // Mapping nama kolom di database
@@ -290,6 +292,15 @@ return [
                     'scopes'        => ['user:email', 'read:user'],
                 ],
             ],
+        ],
+
+        // Passkey / WebAuthn FIDO2 Passwordless Authentication (Web & API)
+        'passkey' => [
+            'enabled'           => true,
+            'rp_name'           => env('APP_NAME', 'Laravel'),
+            'rp_id'             => null, // null = auto detect host
+            'user_verification' => 'preferred', // 'required', 'preferred', 'discouraged'
+            'timeout'           => 60000, // 60 detik
         ],
     ],
 

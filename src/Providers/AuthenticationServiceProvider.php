@@ -82,9 +82,10 @@ class AuthenticationServiceProvider extends ServiceProvider
         $this->app->singleton(NewDeviceDetectionService::class);
         $this->app->singleton(SessionManagerService::class);
 
-        // 6. Two-Factor Authentication
+        // 6. Two-Factor Authentication & Passkeys
         $this->app->singleton(TotpService::class);
         $this->app->singleton(TwoFactorService::class);
+        $this->app->singleton(\Vendor\LaravelAuthentication\Services\PasskeyService::class);
 
         // 7. Bind Core Interfaces to Concrete Implementations
         $this->app->bind(CredentialResolverInterface::class, CredentialResolver::class);

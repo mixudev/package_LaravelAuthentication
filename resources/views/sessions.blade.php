@@ -152,7 +152,70 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                     @endif
                 </div>
 
-                {{-- Modul 2: Ringkasan Metrik Keamanan --}}
+                {{-- Modul 2: Passkeys / WebAuthn Biometrik --}}
+                @if (config('authentication.features.passkey.enabled', true))
+                    <div class="auth-card bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-xs space-y-4" x-data="{ isRegistering: false }">
+                        <div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+                                    <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+                                    <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+                                    <path d="M2 12a10 10 0 0 1 18-6"/>
+                                    <path d="M2 16h.01"/>
+                                    <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+                                    <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+                                    <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+                                    <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+                                </svg>
+                                <h2 class="text-sm font-bold text-zinc-900 dark:text-zinc-100">Kunci Sandi (Passkeys)</h2>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                                FIDO2
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                            Masuk sekejap tanpa kata sandi menggunakan Touch ID, Face ID, atau Security Key FIDO2.
+                        </p>
+
+                        @if (isset($passkeys) && $passkeys->count() > 0)
+                            <div class="space-y-2 border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                                <p class="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Perangkat Terdaftar</p>
+                                @foreach ($passkeys as $pk)
+                                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800 text-xs">
+                                        <div>
+                                            <p class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $pk->name }}</p>
+                                            <p class="text-[10px] text-zinc-400">Terakhir dipakai: {{ $pk->last_used_at ? \Carbon\Carbon::parse($pk->last_used_at)->diffForHumans() : 'Belum pernah' }}</p>
+                                        </div>
+                                        <form method="POST" action="{{ route('passkey.destroy', $pk->id) }}" onsubmit="return confirm('Hapus kunci sandi ini?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-rose-600 hover:text-rose-700 text-xs font-semibold hover:underline cursor-pointer">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        <div class="pt-1">
+                            <button 
+                                type="button" 
+                                onclick="window.registerNewPasskey()"
+                                class="w-full text-center text-xs font-semibold py-2 px-3 rounded-lg border border-blue-600/30 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition shadow-2xs cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                <span>{{ __('authentication::messages.passkey_register_btn') }}</span>
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Modul 3: Ringkasan Metrik Keamanan --}}
                 <div class="auth-card bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-xs space-y-3">
                     <h2 class="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Kesehatan Keamanan Akun</h2>
                     <ul class="space-y-2 text-xs">
@@ -165,6 +228,10 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                             <span class="font-bold {{ $isTwoFactorEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
                                 {{ $isTwoFactorEnabled ? 'Aktif' : 'Nonaktif' }}
                             </span>
+                        </li>
+                        <li class="flex items-center justify-between py-1 border-b border-zinc-100 dark:border-zinc-800/60">
+                            <span class="text-zinc-600 dark:text-zinc-400">Passkeys Terdaftar</span>
+                            <span class="font-bold text-zinc-900 dark:text-zinc-100">{{ isset($passkeys) ? $passkeys->count() : 0 }}</span>
                         </li>
                         <li class="flex items-center justify-between py-1">
                             <span class="text-zinc-600 dark:text-zinc-400">Perangkat Lain</span>
@@ -228,5 +295,104 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
         </div>
 
     </div>
+
+    @push('scripts')
+    <script>
+        (function() {
+            function bufferToBase64Url(buffer) {
+                var bytes = new Uint8Array(buffer);
+                var binary = '';
+                for (var i = 0; i < bytes.byteLength; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+            }
+
+            function base64UrlToBuffer(base64url) {
+                var padding = '='.repeat((4 - base64url.length % 4) % 4);
+                var base64 = (base64url + padding).replace(/\-/g, '+').replace(/_/g, '/');
+                var rawData = atob(base64);
+                var buffer = new Uint8Array(rawData.length);
+                for (var i = 0; i < rawData.length; ++i) {
+                    buffer[i] = rawData.charCodeAt(i);
+                }
+                return buffer.buffer;
+            }
+
+            window.registerNewPasskey = async function() {
+                if (!window.PublicKeyCredential) {
+                    alert('{{ __("authentication::messages.passkey_not_supported") }}');
+                    return;
+                }
+
+                var passkeyName = prompt('Beri nama Passkey Anda (contoh: Touch ID MacBook, Face ID iPhone):', 'Perangkat Saya');
+                if (!passkeyName) return;
+
+                try {
+                    // 1. Dapatkan creation options dari server
+                    var optRes = await fetch('{{ route("passkey.register.options") }}', {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (!optRes.ok) throw new Error('Gagal menginisiasi registrasi Passkey.');
+                    var options = await optRes.json();
+
+                    // 2. Format challenge dan user ID menjadi ArrayBuffer
+                    options.challenge = base64UrlToBuffer(options.challenge);
+                    options.user.id = base64UrlToBuffer(options.user.id);
+                    if (options.excludeCredentials && Array.isArray(options.excludeCredentials)) {
+                        options.excludeCredentials = options.excludeCredentials.map(function(c) {
+                            return { id: base64UrlToBuffer(c.id), type: c.type || 'public-key' };
+                        });
+                    }
+
+                    // 3. Buat kredensial di hardware authenticator
+                    var credential = await navigator.credentials.create({ publicKey: options });
+                    if (!credential) throw new Error('Pembuatan kredensial dibatalkan.');
+
+                    // 4. Kirim attestation ke server
+                    var payload = {
+                        id: credential.id,
+                        rawId: bufferToBase64Url(credential.rawId),
+                        type: credential.type,
+                        name: passkeyName,
+                        response: {
+                            clientDataJSON: bufferToBase64Url(credential.response.clientDataJSON),
+                            attestationObject: bufferToBase64Url(credential.response.attestationObject),
+                            transports: credential.response.getTransports ? credential.response.getTransports() : []
+                        }
+                    };
+
+                    var csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
+
+                    var regRes = await fetch('{{ route("passkey.register") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    var regData = await regRes.json();
+
+                    if (regRes.ok && regData.status === 'success') {
+                        alert(regData.message || 'Passkey berhasil didaftarkan!');
+                        window.location.reload();
+                    } else {
+                        alert(regData.message || 'Gagal mendaftarkan Passkey.');
+                    }
+                } catch (err) {
+                    if (err.name !== 'NotAllowedError') {
+                        console.error('Passkey registration error:', err);
+                        alert(err.message || 'Gagal mendaftarkan Passkey.');
+                    }
+                }
+            };
+        })();
+    </script>
+    @endpush
 </x-authentication::layouts.auth>
 

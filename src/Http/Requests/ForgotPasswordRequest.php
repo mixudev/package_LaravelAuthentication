@@ -29,9 +29,9 @@ class ForgotPasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => __('validation.required', ['attribute' => 'email']),
-            'email.email'    => __('validation.email', ['attribute' => 'email']),
-            'email.string'   => __('validation.string', ['attribute' => 'email']),
+            'email.required' => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => 'email']),
+            'email.email'    => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.email', ['attribute' => 'email']),
+            'email.string'   => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.string', ['attribute' => 'email']),
         ];
     }
 

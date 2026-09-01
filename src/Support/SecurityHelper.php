@@ -81,4 +81,20 @@ final class SecurityHelper
 
         return substr($identifier, 0, 1) . str_repeat('*', $len - 2) . substr($identifier, -1);
     }
+
+    /**
+     * Safely translate a key guaranteeing a strict string return type.
+     *
+     * @param array<string, mixed> $replace
+     */
+    public static function trans(string $key, array $replace = []): string
+    {
+        $res = trans($key, $replace);
+        if (is_array($res)) {
+            return implode(' ', \Illuminate\Support\Arr::flatten($res));
+        }
+
+        return (string) $res;
+    }
 }
+

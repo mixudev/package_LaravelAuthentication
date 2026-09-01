@@ -33,6 +33,7 @@ return new class extends Migration
                 $table->timestamps();
 
                 $table->unique(['user_id', 'device_fingerprint']);
+                $table->index(['user_id', 'last_seen_at'], 'idx_devices_user_last_seen');
             });
         }
     }

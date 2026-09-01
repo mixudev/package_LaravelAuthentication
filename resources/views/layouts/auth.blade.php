@@ -255,7 +255,103 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
         html.dark .auth-field-error {
             color: #fb7185;
         }
-    </style>
+
+        /* ============================================================
+           ELEVATED SOCIAL & PASSKEY BUTTONS (Modern Aesthetics)
+           ============================================================ */
+        .auth-btn-social {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            letter-spacing: -0.01em;
+            padding: 0.625rem 1rem;
+            border-radius: 0.625rem;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            user-select: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .auth-btn-social:hover {
+            transform: translateY(-1px);
+        }
+        .auth-btn-social:active {
+            transform: translateY(0.5px);
+        }
+
+        /* Light Mode Social Buttons */
+        html.light .auth-btn-social,
+        html:not(.dark) .auth-btn-social {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+        html.light .auth-btn-social:hover,
+        html:not(.dark) .auth-btn-social:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08);
+            color: #0f172a;
+        }
+        html.light .auth-btn-social-google:hover,
+        html:not(.dark) .auth-btn-social-google:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 4px 12px -2px rgb(66 133 244 / 0.15);
+        }
+        html.light .auth-btn-social-github:hover,
+        html:not(.dark) .auth-btn-social-github:hover {
+            border-color: #94a3b8;
+            box-shadow: 0 4px 12px -2px rgb(15 23 42 / 0.12);
+        }
+
+        /* Dark Mode Social Buttons */
+        html.dark .auth-btn-social {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            color: #f4f4f5;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+        }
+        html.dark .auth-btn-social:hover {
+            background-color: #27272a;
+            border-color: #3f3f46;
+            box-shadow: 0 4px 14px -2px rgb(0 0 0 / 0.6);
+            color: #ffffff;
+        }
+        html.dark .auth-btn-social-google:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 14px -2px rgb(59 130 246 / 0.2);
+        }
+        html.dark .auth-btn-social-github:hover {
+            border-color: #71717a;
+            box-shadow: 0 4px 14px -2px rgb(255 255 255 / 0.08);
+        }
+
+        /* Passkey Button */
+        .auth-btn-passkey {
+            border: 1px solid #cbd5e1;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            color: #0f172a;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06);
+        }
+        .auth-btn-passkey:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px -2px rgb(59 130 246 / 0.2);
+            background: #ffffff;
+        }
+        html.dark .auth-btn-passkey {
+            border: 1px solid #3f3f46;
+            background: linear-gradient(180deg, #27272a 0%, #18181b 100%);
+            color: #f8fafc;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.5);
+        }
+        html.dark .auth-btn-passkey:hover {
+            border-color: #60a5fa;
+            background: #27272a;
+            box-shadow: 0 4px 14px -2px rgb(96 165 250 / 0.25);
+        }
 
     @stack('styles')
 </head>

@@ -26,6 +26,10 @@ return new class extends Migration
                 $table->string('channel', 32)->default('web');
                 $table->timestamp('login_at')->useCurrent()->index();
                 $table->timestamp('logout_at')->nullable();
+
+                // High-performance composite indexes for user history lookup & sorting over 10M+ rows
+                $table->index(['user_id', 'login_at'], 'idx_histories_user_login');
+                $table->index(['user_id', 'logout_at'], 'idx_histories_user_logout');
             });
         }
     }

@@ -40,6 +40,27 @@ class CredentialResolver implements CredentialResolverInterface
         /** @var Model $instance */
         $instance = new $userModel();
 
+        // FAST-PATH: If identifier is a valid email format and 'email' is one of the target columns,
+        // use a direct indexed single-column lookup first to avoid expensive OR / Index Merge on massive tables.
+        $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL) !== false;
+        $emailColumn = $this->config->getIdentifierColumn('email');
+        $usernameColumn = $this->config->getIdentifierColumn('username');
+
+        if ($isEmail && in_array($emailColumn, $columns, true)) {
+            /** @var Authenticatable|null $emailResult */
+            $emailResult = $instance->newQuery()->where($emailColumn, $identifier)->first();
+            if ($emailResult !== null) {
+                return $emailResult;
+            }
+        } elseif (!$isEmail && in_array($usernameColumn, $columns, true)) {
+            /** @var Authenticatable|null $usernameResult */
+            $usernameResult = $instance->newQuery()->where($usernameColumn, $identifier)->first();
+            if ($usernameResult !== null) {
+                return $usernameResult;
+            }
+        }
+
+        // Fallback: Multi-column search for custom or edge-case identifiers
         $query = $instance->newQuery();
 
         $query->where(function ($q) use ($columns, $identifier) {

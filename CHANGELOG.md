@@ -5,6 +5,29 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-09-01
+
+### Added
+- **FIDO2 / WebAuthn Passkey Authentication (Passwordless)**:
+  - Standard W3C WebAuthn ceremony implementation (`PasskeyService`, `PasskeyController`, `PasskeyAuthenticationStrategy`).
+  - Table migration `authentication_passkeys` with dynamic prefixing support (`AuthenticationConfig::tableName('passkeys')`).
+  - WebAuthn registration and assertion DTOs (`PasskeyCreationOptions`, `PasskeyRequestOptions`, `PasskeyAssertion`).
+  - Seamless WebAuthn Conditional UI / Autofill support in browser login flows.
+  - Dedicated Passkey Blade component (`<x-authentication::passkey-button />`) and user device management in session security dashboard.
+- **Massive-Scale Database Query & Index Optimization (10M+ Rows)**:
+  - High-performance composite indexes on `authentication_attempts` (`idx_attempts_id_time`, `idx_attempts_ip_time`, `idx_attempts_status_time`).
+  - Composite indexes on `authentication_login_histories` (`idx_histories_user_login`, `idx_histories_user_logout`).
+  - Composite indexes on `authentication_devices` (`idx_devices_user_last_seen`).
+  - Smart indexed fast-path lookup in `CredentialResolver` preventing expensive table scans and multi-column `OR` index merge bottlenecks.
+
+### Fixed
+- **UI Form & Input Error Message Standardization**:
+  - Resolved all string typing and array-to-string conversion bugs across `LoginRequest`, `RegisterRequest`, `ResetPasswordRequest`, `SendOtpRequest`, `VerifyOtpRequest`, and `ForgotPasswordRequest`.
+  - Added safe translation helper `SecurityHelper::trans()` guaranteeing strict string return types and passing PHPStan Level 8 static analysis with 0 errors.
+  - Unified language keys and alert bindings across all forms (`login`, `register`, `forgot-password`, `reset-password`, `otp-verify`, `sessions`).
+- **Elevated Social Login Buttons Aesthetics**:
+  - Redesigned Google and GitHub social authentication buttons with modern borders, subtle shadows, micro-interaction hover lift, active press states, and dark mode obsidian styling.
+
 ## [1.5.0] - 2026-08-30
 
 ### Added

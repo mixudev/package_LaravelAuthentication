@@ -37,6 +37,10 @@ class SessionController extends Controller
         $twoFactorService = app(\Vendor\LaravelAuthentication\Services\TwoFactorService::class);
         $isTwoFactorEnabled = $twoFactorService->isEnabledFor($user);
 
+        /** @var \Vendor\LaravelAuthentication\Services\PasskeyService $passkeyService */
+        $passkeyService = app(\Vendor\LaravelAuthentication\Services\PasskeyService::class);
+        $passkeys = $passkeyService->getUserPasskeys($user);
+
         /** @var \Vendor\LaravelAuthentication\Services\AuthenticationAuditService $auditService */
         $auditService = app(\Vendor\LaravelAuthentication\Services\AuthenticationAuditService::class);
         $recentLogins = $auditService->getRecentLogins($user, 5);
@@ -46,6 +50,7 @@ class SessionController extends Controller
                 'status'             => 'success',
                 'user'               => $user,
                 'is_2fa_enabled'     => $isTwoFactorEnabled,
+                'passkeys'           => $passkeys,
                 'summary'            => $summary,
                 'sessions'           => $sessions,
                 'recent_logins'      => $recentLogins,
@@ -57,6 +62,7 @@ class SessionController extends Controller
         return response()->view($viewName, [
             'user'               => $user,
             'isTwoFactorEnabled' => $isTwoFactorEnabled,
+            'passkeys'           => $passkeys,
             'summary'            => $summary,
             'sessions'           => $sessions,
             'recentLogins'       => $recentLogins,

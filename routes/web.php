@@ -55,11 +55,24 @@ Route::group(['middleware' => config('authentication.routes.web.middleware', ['w
             Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('social.redirect');
             Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
         }
+
+        // Passkey / WebAuthn Login (Toggleable)
+        if (config('authentication.features.passkey.enabled', true)) {
+            Route::match(['get', 'post'], '/auth/passkey/login-options', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'loginOptions'])->name('passkey.login.options');
+            Route::post('/auth/passkey/login', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'login'])->name('passkey.login');
+        }
     });
 
     // Authenticated Routes
     Route::middleware('auth')->group(function () {
         Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
+
+        // Passkey / WebAuthn Management (Toggleable)
+        if (config('authentication.features.passkey.enabled', true)) {
+            Route::match(['get', 'post'], '/auth/passkey/register-options', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'registerOptions'])->name('passkey.register.options');
+            Route::post('/auth/passkey/register', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'register'])->name('passkey.register');
+            Route::delete('/auth/passkey/{id}', [\Vendor\LaravelAuthentication\Http\Controllers\PasskeyController::class, 'destroy'])->name('passkey.destroy');
+        }
 
         // Confirm Password (Re-authentication)
         if (config('authentication.features.confirm_password.enabled', true)) {
