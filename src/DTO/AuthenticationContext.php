@@ -24,11 +24,13 @@ final class AuthenticationContext
         public readonly array $headers = []
     ) {}
 
-    public static function fromRequest(Request $request, ?string $guard = null): self
+    public static function fromRequest(Request $request, ?string $guard = null, ?AuthenticationChannel $channel = null): self
     {
-        $channel = $request->expectsJson() || $request->is('api/*')
-            ? AuthenticationChannel::API
-            : AuthenticationChannel::WEB;
+        if ($channel === null) {
+            $channel = $request->is('api/*')
+                ? AuthenticationChannel::API
+                : AuthenticationChannel::WEB;
+        }
 
         return new self(
             ipAddress: (string) $request->ip(),

@@ -277,14 +277,15 @@ class PasskeyService
         $credential->last_used_at = now();
         $credential->save();
 
-        // Establish session or API token
+        // Establish session and/or API token
         $token = null;
-        if ($context->channel->value === 'web') {
-            $guard = $this->auth->guard($context->guard);
-            if ($guard instanceof StatefulGuard && request()->hasSession()) {
-                $this->sessionSecurity->loginUser($guard, $user, true, request());
-            }
-        } else {
+        $guard = $this->auth->guard($context->guard);
+
+        if ($guard instanceof StatefulGuard && request()->hasSession()) {
+            $this->sessionSecurity->loginUser($guard, $user, true, request());
+        }
+
+        if ($context->channel->value === 'api' || request()->is('api/*')) {
             $token = $this->tokenService->createToken($user);
         }
 
