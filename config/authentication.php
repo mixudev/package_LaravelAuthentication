@@ -373,7 +373,7 @@ return [
     */
     'ui' => [
         'layout' => 'card',
-        'theme'  => 'light',
+        'theme'  => 'auto',
 
         'brand_name'    => env('APP_NAME', 'Laravel'), // Ikut nama aplikasi host
         'brand_tagline' => 'Portal Autentikasi & Masuk Akun',

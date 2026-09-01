@@ -83,15 +83,23 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
-        {{-- Tombol Social Login (Google / GitHub) --}}
-        <x-authentication::social-buttons />
+        {{-- Tombol Login Alternatif: Social (Google/GitHub sebelahan) + Passkey --}}
+        @php
+            $hasSocial  = config('authentication.features.social.enabled', false);
+            $hasPasskey = config('authentication.features.passkey.enabled', true);
+        @endphp
 
-        {{-- Tombol Login Passkey / Biometrik (WebAuthn) --}}
-        @if (config('authentication.features.passkey.enabled', true))
-            <x-authentication::passkey-button />
-        @endif
+        @if ($hasSocial || $hasPasskey)
+            <div class="space-y-2.5">
+                {{-- Google (kiri) + GitHub (kanan) — 2 kolom --}}
+                <x-authentication::social-buttons />
 
-        @if (config('authentication.features.social.enabled', false) || config('authentication.features.passkey.enabled', true))
+                {{-- Login with Passkey — full width di bawah --}}
+                @if ($hasPasskey)
+                    <x-authentication::passkey-button />
+                @endif
+            </div>
+
             <x-authentication::divider :label="__('authentication::messages.divider')" />
         @endif
 
