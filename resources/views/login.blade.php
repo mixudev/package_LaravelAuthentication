@@ -6,7 +6,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
 =============================================================================
 --}}
 @php
-    use Vendor\LaravelAuthentication\Services\CaptchaService;
+    use Vendor\LaravelAuthentication\Services\Security\CaptchaService;
 
     $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
         ? 'authentication::layouts.split' 
