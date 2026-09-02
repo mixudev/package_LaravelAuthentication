@@ -9,7 +9,7 @@ use Vendor\LaravelAuthentication\DTO\LoginData;
 use Vendor\LaravelAuthentication\Rules\LoginIdentifierRule;
 use Vendor\LaravelAuthentication\Rules\SecurityPolicyRule;
 use Vendor\LaravelAuthentication\Rules\ValidCaptcha;
-use Vendor\LaravelAuthentication\Services\CaptchaService;
+use Vendor\LaravelAuthentication\Services\Security\CaptchaService;
 
 class LoginRequest extends FormRequest
 {

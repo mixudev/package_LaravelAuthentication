@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services;
+namespace Vendor\LaravelAuthentication\Services\Core;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
@@ -25,6 +25,13 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidStrategyException;
 use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
+use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
+use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
+use Vendor\LaravelAuthentication\Services\Security\LoginAttemptManager;
+use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
+use Vendor\LaravelAuthentication\Services\Session\NewDeviceDetectionService;
+use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
 

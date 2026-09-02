@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services;
+namespace Vendor\LaravelAuthentication\Services\Security;
 
 use Illuminate\Cache\RateLimiter;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;

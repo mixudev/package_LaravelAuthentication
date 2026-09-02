@@ -17,9 +17,9 @@ use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
-use Vendor\LaravelAuthentication\Services\DeviceTrustService;
-use Vendor\LaravelAuthentication\Services\SessionSecurityService;
-use Vendor\LaravelAuthentication\Services\TwoFactorService;
+use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
+use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 class SocialAuthController extends Controller

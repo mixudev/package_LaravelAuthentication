@@ -11,7 +11,7 @@ use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
-use Vendor\LaravelAuthentication\Services\TwoFactorService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 class TwoFactorSetupController extends Controller

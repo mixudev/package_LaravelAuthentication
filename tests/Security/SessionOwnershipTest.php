@@ -7,7 +7,7 @@ namespace Vendor\LaravelAuthentication\Tests\Security;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Vendor\LaravelAuthentication\Models\AuthenticationDevice;
-use Vendor\LaravelAuthentication\Services\SessionManagerService;
+use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
 use Vendor\LaravelAuthentication\Tests\Fixtures\User;
 use Vendor\LaravelAuthentication\Tests\TestCase;
 

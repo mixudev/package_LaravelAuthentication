@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Tests\Performance;
 
 use Illuminate\Support\Facades\Hash;
-use Vendor\LaravelAuthentication\Services\CredentialResolver;
+use Vendor\LaravelAuthentication\Services\Core\CredentialResolver;
 use Vendor\LaravelAuthentication\Tests\Fixtures\User;
 use Vendor\LaravelAuthentication\Tests\TestCase;
 

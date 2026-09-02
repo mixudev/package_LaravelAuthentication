@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services;
+namespace Vendor\LaravelAuthentication\Services\Social;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -18,7 +18,8 @@ use Vendor\LaravelAuthentication\Events\LoginSucceeded;
 use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
-use Vendor\LaravelAuthentication\Services\AccountLockService;
+use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
+use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 /**

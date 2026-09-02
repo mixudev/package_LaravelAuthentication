@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services;
+namespace Vendor\LaravelAuthentication\Services\Security;
 
 use Vendor\LaravelAuthentication\Contracts\CaptchaDriverInterface;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
-use Vendor\LaravelAuthentication\Services\Captcha\HcaptchaDriver;
-use Vendor\LaravelAuthentication\Services\Captcha\NullCaptchaDriver;
-use Vendor\LaravelAuthentication\Services\Captcha\RecaptchaDriver;
-use Vendor\LaravelAuthentication\Services\Captcha\TurnstileDriver;
+use Vendor\LaravelAuthentication\Services\Security\Captcha\HcaptchaDriver;
+use Vendor\LaravelAuthentication\Services\Security\Captcha\NullCaptchaDriver;
+use Vendor\LaravelAuthentication\Services\Security\Captcha\RecaptchaDriver;
+use Vendor\LaravelAuthentication\Services\Security\Captcha\TurnstileDriver;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 class CaptchaService

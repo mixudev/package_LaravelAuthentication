@@ -6,7 +6,7 @@ namespace Vendor\LaravelAuthentication\Tests\Feature;
 
 use Illuminate\Support\Facades\Hash;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
-use Vendor\LaravelAuthentication\Services\PasswordService;
+use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 use Vendor\LaravelAuthentication\Tests\Fixtures\User;
 use Vendor\LaravelAuthentication\Tests\TestCase;
 

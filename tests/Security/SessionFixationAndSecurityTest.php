@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Session\Store;
 use Vendor\LaravelAuthentication\Http\Middleware\EnsureSessionSecurity;
-use Vendor\LaravelAuthentication\Services\SessionSecurityService;
+use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Tests\TestCase;
 
 class SessionFixationAndSecurityTest extends TestCase

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services;
+namespace Vendor\LaravelAuthentication\Services\Otp;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
@@ -17,6 +17,7 @@ use Vendor\LaravelAuthentication\Events\OtpGenerated;
 use Vendor\LaravelAuthentication\Events\OtpVerified;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
+use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\Normalizers\EmailNormalizer;
 

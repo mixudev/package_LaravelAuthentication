@@ -7,7 +7,7 @@ namespace Vendor\LaravelAuthentication\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Vendor\LaravelAuthentication\Services\AccountLockService;
+use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
 
 /**
  * Validates that the authenticated user is not locked by administrative or automated policies.

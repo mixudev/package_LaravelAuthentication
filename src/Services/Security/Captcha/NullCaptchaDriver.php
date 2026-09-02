@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services\Captcha;
+namespace Vendor\LaravelAuthentication\Services\Security\Captcha;
 
 use Vendor\LaravelAuthentication\Contracts\CaptchaDriverInterface;
 

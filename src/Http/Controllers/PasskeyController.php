@@ -13,7 +13,7 @@ use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
-use Vendor\LaravelAuthentication\Services\PasskeyService;
+use Vendor\LaravelAuthentication\Services\Passkey\PasskeyService;
 
 class PasskeyController extends Controller
 {

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
 use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
-use Vendor\LaravelAuthentication\Services\PasswordService;
+use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 
 class PasswordResetController extends Controller
 {

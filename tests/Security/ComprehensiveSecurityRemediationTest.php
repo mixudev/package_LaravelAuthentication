@@ -13,10 +13,10 @@ use Vendor\LaravelAuthentication\Enums\AuthenticationChannel;
 use Vendor\LaravelAuthentication\Http\Requests\LoginRequest;
 use Vendor\LaravelAuthentication\Models\TwoFactorAuthentication;
 use Vendor\LaravelAuthentication\Rules\PasswordRule;
-use Vendor\LaravelAuthentication\Services\OtpService;
-use Vendor\LaravelAuthentication\Services\PasswordService;
-use Vendor\LaravelAuthentication\Services\TotpService;
-use Vendor\LaravelAuthentication\Services\TwoFactorService;
+use Vendor\LaravelAuthentication\Services\Otp\OtpService;
+use Vendor\LaravelAuthentication\Services\Password\PasswordService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TotpService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\QrCodeGenerator;
 use Vendor\LaravelAuthentication\Tests\Fixtures\User;
 use Vendor\LaravelAuthentication\Tests\TestCase;
@@ -269,14 +269,14 @@ class ComprehensiveSecurityRemediationTest extends TestCase
             'last_seen_at'       => now(),
         ]);
 
-        $sessionService = app(\Vendor\LaravelAuthentication\Services\SessionManagerService::class);
+        $sessionService = app(\Vendor\LaravelAuthentication\Services\Session\SessionManagerService::class);
         $summary = $sessionService->getSummary($user);
 
         $this->assertIsArray($summary);
         $this->assertArrayHasKey('total_sessions', $summary);
         $this->assertGreaterThanOrEqual(1, $summary['total_sessions']);
 
-        $auditService = app(\Vendor\LaravelAuthentication\Services\AuthenticationAuditService::class);
+        $auditService = app(\Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService::class);
         $recentLogins = $auditService->getRecentLogins($user);
         $this->assertIsArray($recentLogins);
     }

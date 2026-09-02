@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Vendor\LaravelAuthentication\Services\TotpService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TotpService;
 
 class TotpServiceTest extends TestCase
 {

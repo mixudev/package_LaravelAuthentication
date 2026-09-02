@@ -17,10 +17,10 @@ use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Events\LoginSucceeded;
-use Vendor\LaravelAuthentication\Services\DeviceTrustService;
-use Vendor\LaravelAuthentication\Services\NewDeviceDetectionService;
-use Vendor\LaravelAuthentication\Services\SessionSecurityService;
-use Vendor\LaravelAuthentication\Services\TwoFactorService;
+use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
+use Vendor\LaravelAuthentication\Services\Session\NewDeviceDetectionService;
+use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 class TwoFactorChallengeController extends Controller

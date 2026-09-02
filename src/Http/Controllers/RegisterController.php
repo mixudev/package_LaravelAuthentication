@@ -15,7 +15,7 @@ use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Http\Requests\RegisterRequest;
-use Vendor\LaravelAuthentication\Services\SessionSecurityService;
+use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 class RegisterController extends Controller

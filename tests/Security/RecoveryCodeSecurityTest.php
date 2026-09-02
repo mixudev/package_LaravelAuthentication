@@ -6,7 +6,8 @@ namespace Vendor\LaravelAuthentication\Tests\Security;
 
 use Illuminate\Support\Facades\Hash;
 use Vendor\LaravelAuthentication\Models\TwoFactorAuthentication;
-use Vendor\LaravelAuthentication\Services\TwoFactorService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TotpService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Tests\Fixtures\User;
 use Vendor\LaravelAuthentication\Tests\TestCase;
 
@@ -54,7 +55,7 @@ class RecoveryCodeSecurityTest extends TestCase
         }
 
         // Confirm 2FA setup with valid TOTP code
-        $validTotp = app(\Vendor\LaravelAuthentication\Services\TotpService::class)->calculateCode($setup['secret']);
+        $validTotp = app(TotpService::class)->calculateCode($setup['secret']);
         $confirmed = $this->twoFactorService->confirm($this->user, $validTotp);
         $this->assertTrue($confirmed);
 

@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services;
+namespace Vendor\LaravelAuthentication\Services\Security;
 
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Contracts\Logging\Log;
 use Psr\Log\LoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
-use Vendor\LaravelAuthentication\DTO\AuthenticationResult;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\DTO\AuthenticationResult;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Repositories\AuthenticationAttemptRepository;
 use Vendor\LaravelAuthentication\Repositories\LoginHistoryRepository;

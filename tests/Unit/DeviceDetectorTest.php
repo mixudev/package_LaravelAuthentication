@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Vendor\LaravelAuthentication\Services\DeviceDetector;
+use Vendor\LaravelAuthentication\Services\Session\DeviceDetector;
 
 class DeviceDetectorTest extends TestCase
 {

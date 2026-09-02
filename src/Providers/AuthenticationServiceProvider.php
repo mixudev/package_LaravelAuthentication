@@ -17,23 +17,27 @@ use Vendor\LaravelAuthentication\Contracts\RegistrationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\SocialAuthServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\Repositories\PasswordHistoryRepository;
-use Vendor\LaravelAuthentication\Services\AuthenticationAuditService;
-use Vendor\LaravelAuthentication\Services\AuthenticationService;
-use Vendor\LaravelAuthentication\Services\CaptchaService;
-use Vendor\LaravelAuthentication\Services\CredentialResolver;
-use Vendor\LaravelAuthentication\Services\CredentialValidator;
-use Vendor\LaravelAuthentication\Services\DeviceDetector;
-use Vendor\LaravelAuthentication\Services\DeviceTrustService;
-use Vendor\LaravelAuthentication\Services\FeatureRateLimiter;
-use Vendor\LaravelAuthentication\Services\LoginAttemptManager;
-use Vendor\LaravelAuthentication\Services\NewDeviceDetectionService;
-use Vendor\LaravelAuthentication\Services\OtpService;
-use Vendor\LaravelAuthentication\Services\RegistrationService;
-use Vendor\LaravelAuthentication\Services\SessionManagerService;
-use Vendor\LaravelAuthentication\Services\SocialAuthService;
-use Vendor\LaravelAuthentication\Services\TokenService;
-use Vendor\LaravelAuthentication\Services\TotpService;
-use Vendor\LaravelAuthentication\Services\TwoFactorService;
+use Vendor\LaravelAuthentication\Services\Core\AuthenticationService;
+use Vendor\LaravelAuthentication\Services\Core\CredentialResolver;
+use Vendor\LaravelAuthentication\Services\Core\CredentialValidator;
+use Vendor\LaravelAuthentication\Services\Core\RegistrationService;
+use Vendor\LaravelAuthentication\Services\Core\TokenService;
+use Vendor\LaravelAuthentication\Services\Otp\OtpService;
+use Vendor\LaravelAuthentication\Services\Passkey\PasskeyService;
+use Vendor\LaravelAuthentication\Services\Password\PasswordService;
+use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
+use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
+use Vendor\LaravelAuthentication\Services\Security\CaptchaService;
+use Vendor\LaravelAuthentication\Services\Security\FeatureRateLimiter;
+use Vendor\LaravelAuthentication\Services\Security\LoginAttemptManager;
+use Vendor\LaravelAuthentication\Services\Session\DeviceDetector;
+use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
+use Vendor\LaravelAuthentication\Services\Session\NewDeviceDetectionService;
+use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
+use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
+use Vendor\LaravelAuthentication\Services\Social\SocialAuthService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TotpService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
 
@@ -75,17 +79,21 @@ class AuthenticationServiceProvider extends ServiceProvider
         $this->app->singleton(FeatureRateLimiterInterface::class, FeatureRateLimiter::class);
         $this->app->singleton(FeatureRateLimiter::class);
         $this->app->singleton(CaptchaService::class);
+        $this->app->singleton(AccountLockService::class);
+        $this->app->singleton(LoginAttemptManager::class);
 
         // 5. Device, Session & Security Services
         $this->app->singleton(DeviceDetector::class);
         $this->app->singleton(DeviceTrustService::class);
         $this->app->singleton(NewDeviceDetectionService::class);
         $this->app->singleton(SessionManagerService::class);
+        $this->app->singleton(SessionSecurityService::class);
 
-        // 6. Two-Factor Authentication & Passkeys
+        // 6. Two-Factor Authentication, Passkeys & Password Services
         $this->app->singleton(TotpService::class);
         $this->app->singleton(TwoFactorService::class);
-        $this->app->singleton(\Vendor\LaravelAuthentication\Services\PasskeyService::class);
+        $this->app->singleton(PasskeyService::class);
+        $this->app->singleton(PasswordService::class);
 
         // 7. Bind Core Interfaces to Concrete Implementations
         $this->app->bind(CredentialResolverInterface::class, CredentialResolver::class);

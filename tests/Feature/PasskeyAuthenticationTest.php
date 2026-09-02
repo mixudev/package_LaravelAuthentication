@@ -6,7 +6,7 @@ namespace Vendor\LaravelAuthentication\Tests\Feature;
 
 use Illuminate\Support\Facades\Hash;
 use Vendor\LaravelAuthentication\Models\PasskeyCredential;
-use Vendor\LaravelAuthentication\Services\PasskeyService;
+use Vendor\LaravelAuthentication\Services\Passkey\PasskeyService;
 use Vendor\LaravelAuthentication\Support\WebAuthn\WebAuthnHelper;
 use Vendor\LaravelAuthentication\Tests\Fixtures\User;
 use Vendor\LaravelAuthentication\Tests\TestCase;

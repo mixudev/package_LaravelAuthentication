@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services;
+namespace Vendor\LaravelAuthentication\Services\Core;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Str;

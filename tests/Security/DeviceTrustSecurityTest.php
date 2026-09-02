@@ -6,7 +6,7 @@ namespace Vendor\LaravelAuthentication\Tests\Security;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Vendor\LaravelAuthentication\Services\DeviceTrustService;
+use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
 use Vendor\LaravelAuthentication\Tests\Fixtures\User;
 use Vendor\LaravelAuthentication\Tests\TestCase;
 

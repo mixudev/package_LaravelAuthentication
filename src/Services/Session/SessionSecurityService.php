@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services;
+namespace Vendor\LaravelAuthentication\Services\Session;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\StatefulGuard;
-use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
-use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 
 /**
  * Manages web session lifecycle: session ID regeneration (fixation protection),

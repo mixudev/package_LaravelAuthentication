@@ -6,7 +6,7 @@ namespace Vendor\LaravelAuthentication\Rules;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Vendor\LaravelAuthentication\Services\CaptchaService;
+use Vendor\LaravelAuthentication\Services\Security\CaptchaService;
 
 class ValidCaptcha implements ValidationRule
 {

@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Vendor\LaravelAuthentication\Services\Captcha;
+namespace Vendor\LaravelAuthentication\Services\Security\Captcha;
 
 use Illuminate\Support\Facades\Http;
 use Vendor\LaravelAuthentication\Contracts\CaptchaDriverInterface;
 
-class TurnstileDriver implements CaptchaDriverInterface
+class RecaptchaDriver implements CaptchaDriverInterface
 {
     public function __construct(
-        private readonly string $secretKey
+        private readonly string $secretKey,
+        private readonly string $version = 'v2'
     ) {}
 
     public function verify(string $token, ?string $ipAddress = null): bool
@@ -29,7 +30,7 @@ class TurnstileDriver implements CaptchaDriverInterface
                 $payload['remoteip'] = $ipAddress;
             }
 
-            $response = Http::asForm()->timeout(5)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', $payload);
+            $response = Http::asForm()->timeout(5)->post('https://www.google.com/recaptcha/api/siteverify', $payload);
 
             return (bool) ($response->json('success') ?? false);
         } catch (\Throwable) {
@@ -37,12 +38,23 @@ class TurnstileDriver implements CaptchaDriverInterface
         }
     }
 
+    public function getVersion(): string
+    {
+        return $this->version;
+    }
+
     public function renderWidget(string $siteKey, array $options = []): string
     {
-        $theme = $options['theme'] ?? 'auto';
+        if ($this->version === 'v3') {
+            return <<<HTML
+<script src="https://www.google.com/recaptcha/api.js?render={$siteKey}" async defer></script>
+HTML;
+        }
+
+        $theme = $options['theme'] ?? 'light';
         return <<<HTML
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-<div class="cf-turnstile" data-sitekey="{$siteKey}" data-theme="{$theme}"></div>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<div class="g-recaptcha" data-sitekey="{$siteKey}" data-theme="{$theme}"></div>
 HTML;
     }
 }

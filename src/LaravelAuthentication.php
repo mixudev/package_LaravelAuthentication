@@ -14,7 +14,7 @@ use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
  * @method static void logout(\Vendor\LaravelAuthentication\DTO\AuthenticationContext $context)
  * @method static bool isEnabled()
  *
- * @see \Vendor\LaravelAuthentication\Services\AuthenticationService
+ * @see \Vendor\LaravelAuthentication\Services\Core\AuthenticationService
  */
 class LaravelAuthentication extends Facade
 {

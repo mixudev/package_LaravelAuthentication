@@ -21,10 +21,11 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Http\Requests\SendOtpRequest;
 use Vendor\LaravelAuthentication\Http\Requests\VerifyOtpRequest;
-use Vendor\LaravelAuthentication\Services\AccountLockService;
-use Vendor\LaravelAuthentication\Services\DeviceTrustService;
-use Vendor\LaravelAuthentication\Services\SessionSecurityService;
-use Vendor\LaravelAuthentication\Services\TwoFactorService;
+use Vendor\LaravelAuthentication\Services\Otp\OtpService;
+use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
+use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
+use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
+use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 class OtpController extends Controller
