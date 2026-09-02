@@ -5,6 +5,13 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.5] - 2026-09-02
+
+### Fixed
+- **Legacy Service Namespace in Blade Views**: Two Blade views still referenced old flat service namespaces that were moved to domain subfolders during the `src/Services/` reorganization, causing `BindingResolutionException` at runtime:
+  - `resources/views/login.blade.php`: `Services\CaptchaService` → `Services\Security\CaptchaService`
+  - `resources/views/components/active-sessions.blade.php`: `Services\SessionManagerService` → `Services\Session\SessionManagerService`
+
 ## [1.5.4] - 2026-09-02
 
 ### Fixed
