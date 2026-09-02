@@ -13,7 +13,7 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
 ])
 
 @php
-    use Vendor\LaravelAuthentication\Services\SessionManagerService;
+    use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
 
     $currentUser = $user ?? auth()->user();
     $sessions = [];
