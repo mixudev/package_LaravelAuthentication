@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Services;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Hashing\Hasher;
+use Illuminate\Database\Eloquent\Model;
 use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
