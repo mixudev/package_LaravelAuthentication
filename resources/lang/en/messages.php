@@ -165,5 +165,33 @@ return [
     'validation_numeric'      => 'The :attribute must be a number.',
     'validation_digits'       => 'The :attribute must be :digits digits.',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Password Rule Validation Messages
+    |--------------------------------------------------------------------------
+    */
+    'password_must_be_string'    => 'The :attribute must be a string.',
+    'password_min_length'        => 'The :attribute must be at least :min characters long.',
+    'password_require_uppercase' => 'The :attribute must contain at least one uppercase letter.',
+    'password_require_lowercase' => 'The :attribute must contain at least one lowercase letter.',
+    'password_require_number'    => 'The :attribute must contain at least one number.',
+    'password_require_symbol'    => 'The :attribute must contain at least one special character (:charset).',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login Identifier Rule Validation Messages
+    |--------------------------------------------------------------------------
+    */
+    'identifier_must_be_string'  => 'The :attribute must be a valid string.',
+    'identifier_length'          => 'The :attribute must be between 3 and 255 characters.',
+    'identifier_invalid_chars'   => 'The :attribute contains invalid characters.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Security Policy Rule Validation Messages
+    |--------------------------------------------------------------------------
+    */
+    'security_null_byte'         => 'The :attribute contains forbidden null byte characters.',
+
     'divider'                 => 'OR',
 ];

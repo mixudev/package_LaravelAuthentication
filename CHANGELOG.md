@@ -5,6 +5,15 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.4] - 2026-09-02
+
+### Fixed
+- **Mixed-Language Validation Messages**: All custom validation `Rule` classes (`PasswordRule`, `LoginIdentifierRule`, `SecurityPolicyRule`, `ValidCaptcha`) previously used hardcoded English strings for error messages. When the host application ran in Indonesian (or any non-English locale), Laravel would translate the `:attribute` placeholder (e.g. `kata sandi`) but leave the surrounding sentence in English, producing broken output like *"The kata sandi must contain at least one uppercase letter."*. All `$fail()` calls now route through the package translation system (`trans('authentication::messages.*')`).
+- **Added Translation Keys**: New keys added to both `resources/lang/en/messages.php` and `resources/lang/id/messages.php`:
+  - `password_must_be_string`, `password_min_length`, `password_require_uppercase`, `password_require_lowercase`, `password_require_number`, `password_require_symbol`
+  - `identifier_must_be_string`, `identifier_length`, `identifier_invalid_chars`
+  - `security_null_byte`
+
 ## [1.6.0] - 2026-09-01
 
 ### Added

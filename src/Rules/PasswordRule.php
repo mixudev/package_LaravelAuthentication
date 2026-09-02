@@ -47,27 +47,30 @@ class PasswordRule implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_string($value)) {
-            $fail('The :attribute must be a string.');
+            $fail((string) trans('authentication::messages.password_must_be_string', ['attribute' => $attribute]));
             return;
         }
 
         if (mb_strlen($value) < $this->minLength) {
-            $fail("The :attribute must be at least {$this->minLength} characters long.");
+            $fail((string) trans('authentication::messages.password_min_length', [
+                'attribute' => $attribute,
+                'min'       => $this->minLength,
+            ]));
             return;
         }
 
         if ($this->requireUppercase && ! preg_match('/[A-Z]/', $value)) {
-            $fail('The :attribute must contain at least one uppercase letter.');
+            $fail((string) trans('authentication::messages.password_require_uppercase', ['attribute' => $attribute]));
             return;
         }
 
         if ($this->requireLowercase && ! preg_match('/[a-z]/', $value)) {
-            $fail('The :attribute must contain at least one lowercase letter.');
+            $fail((string) trans('authentication::messages.password_require_lowercase', ['attribute' => $attribute]));
             return;
         }
 
         if ($this->requireNumbers && ! preg_match('/[0-9]/', $value)) {
-            $fail('The :attribute must contain at least one number.');
+            $fail((string) trans('authentication::messages.password_require_number', ['attribute' => $attribute]));
             return;
         }
 
@@ -84,7 +87,10 @@ class PasswordRule implements ValidationRule
             }
 
             if (! $hasSymbol) {
-                $fail("The :attribute must contain at least one special character ({$charset}).");
+                $fail((string) trans('authentication::messages.password_require_symbol', [
+                    'attribute' => $attribute,
+                    'charset'   => $charset,
+                ]));
             }
         }
     }

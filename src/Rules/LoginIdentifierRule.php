@@ -15,20 +15,20 @@ class LoginIdentifierRule implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (!is_string($value)) {
-            $fail('The identifier must be a valid string.');
+            $fail((string) trans('authentication::messages.identifier_must_be_string', ['attribute' => $attribute]));
             return;
         }
 
         $length = mb_strlen(trim($value));
 
         if ($length < 3 || $length > 255) {
-            $fail('The identifier must be between 3 and 255 characters.');
+            $fail((string) trans('authentication::messages.identifier_length', ['attribute' => $attribute]));
             return;
         }
 
         // Prohibit control characters or null bytes
         if (preg_match('/[\x00-\x1F\x7F]/', $value)) {
-            $fail('The identifier contains invalid characters.');
+            $fail((string) trans('authentication::messages.identifier_invalid_chars', ['attribute' => $attribute]));
         }
     }
 }

@@ -165,5 +165,33 @@ return [
     'validation_numeric'      => ':attribute harus berupa angka valid.',
     'validation_digits'       => ':attribute harus berisikan :digits digit angka.',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pesan Validasi PasswordRule
+    |--------------------------------------------------------------------------
+    */
+    'password_must_be_string'    => ':attribute harus berupa teks yang valid.',
+    'password_min_length'        => ':attribute minimal harus terdiri dari :min karakter.',
+    'password_require_uppercase' => ':attribute harus mengandung setidaknya satu huruf kapital.',
+    'password_require_lowercase' => ':attribute harus mengandung setidaknya satu huruf kecil.',
+    'password_require_number'    => ':attribute harus mengandung setidaknya satu angka.',
+    'password_require_symbol'    => ':attribute harus mengandung setidaknya satu karakter khusus (:charset).',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pesan Validasi LoginIdentifierRule
+    |--------------------------------------------------------------------------
+    */
+    'identifier_must_be_string'  => ':attribute harus berupa teks yang valid.',
+    'identifier_length'          => ':attribute harus terdiri dari 3 hingga 255 karakter.',
+    'identifier_invalid_chars'   => ':attribute mengandung karakter yang tidak diizinkan.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pesan Validasi SecurityPolicyRule
+    |--------------------------------------------------------------------------
+    */
+    'security_null_byte'         => ':attribute mengandung karakter null byte yang dilarang.',
+
     'divider'                 => 'ATAU',
 ];
