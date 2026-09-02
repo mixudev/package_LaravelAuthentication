@@ -35,13 +35,19 @@ class LoginRequest extends FormRequest
         $identifier = (string) ($this->input('identifier') ?? $this->input('email') ?? $this->input('username') ?? '');
         $ip         = (string) $this->ip();
 
+        $availableStrategies = array_keys((array) config('authentication.login.strategies', []));
+        $strategyRules = ['nullable', 'string', 'max:64'];
+        if (!empty($availableStrategies)) {
+            $strategyRules[] = \Illuminate\Validation\Rule::in($availableStrategies);
+        }
+
         $rules = [
             'identifier' => ['required_without_all:email,username', 'string', new LoginIdentifierRule(), new SecurityPolicyRule()],
             'email'      => ['nullable', 'string', new LoginIdentifierRule()],
             'username'   => ['nullable', 'string', new LoginIdentifierRule()],
             'password'   => ['required', 'string'],
             'remember'   => ['nullable', 'boolean'],
-            'strategy'   => ['nullable', 'string', 'max:64'],
+            'strategy'   => $strategyRules,
         ];
 
         // Adaptif: tambahkan validasi CAPTCHA hanya jika service mengharuskannya

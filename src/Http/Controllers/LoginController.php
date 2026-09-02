@@ -62,7 +62,7 @@ class LoginController extends Controller
             throw ValidationException::withMessages([
                 'identifier' => [$e->getMessage()],
             ]);
-        } catch (InvalidCredentialsException) {
+        } catch (InvalidCredentialsException|\Vendor\LaravelAuthentication\Exceptions\InvalidStrategyException) {
             $message = __('authentication::messages.invalid_credentials');
             throw ValidationException::withMessages([
                 'identifier' => [$message ?: 'These credentials do not match our records.'],
@@ -112,7 +112,7 @@ class LoginController extends Controller
                 'status'  => 'locked',
                 'message' => $e->getMessage(),
             ], 423);
-        } catch (InvalidCredentialsException) {
+        } catch (InvalidCredentialsException|\Vendor\LaravelAuthentication\Exceptions\InvalidStrategyException) {
             return response()->json([
                 'status'  => 'invalid_credentials',
                 'message' => 'Invalid credentials.',

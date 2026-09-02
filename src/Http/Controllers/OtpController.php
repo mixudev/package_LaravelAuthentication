@@ -75,7 +75,7 @@ class OtpController extends Controller
             $this->otpService->generate($identifier, $context);
 
             return redirect()->route('otp.verify.form', ['identifier' => $identifier])
-                ->with('status', 'A verification code has been dispatched to your identifier.');
+                ->with('status', 'If an account exists with that identifier, a verification code has been dispatched.');
         } catch (AuthenticationException $e) {
             throw ValidationException::withMessages([
                 'identifier' => [$e->getMessage()],
@@ -179,7 +179,7 @@ class OtpController extends Controller
 
             return response()->json([
                 'status'  => 'success',
-                'message' => 'OTP code dispatched successfully.',
+                'message' => 'If an account exists with that identifier, a verification code has been dispatched.',
             ]);
         } catch (AuthenticationException $e) {
             return response()->json([
@@ -208,15 +208,14 @@ class OtpController extends Controller
         try {
             $user = $this->otpService->verify($identifier, $code, $context);
 
-            // BP-08 FIX: Jika OTP valid tapi user tidak ditemukan, jangan return token null dengan status success.
             if ($user === null) {
                 return response()->json([
                     'status'  => 'error',
-                    'message' => 'OTP verified but no account found for the given identifier.',
-                ], 404);
+                    'message' => 'The provided OTP code is incorrect or has expired.',
+                ], 401);
             }
 
-            // BP-02 FIX: Cek account lockout sebelum issue token — OTP tidak boleh membypass lockout.
+            // Cek account lockout sebelum issue token
             if ($this->lockService->isLocked($user)) {
                 return response()->json([
                     'status'  => 'locked',
@@ -252,7 +251,7 @@ class OtpController extends Controller
         } catch (InvalidCredentialsException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => $e->getMessage(),
+                'message' => 'The provided OTP code is incorrect or has expired.',
             ], 401);
         } catch (AuthenticationException $e) {
             return response()->json([

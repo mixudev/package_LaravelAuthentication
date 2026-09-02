@@ -49,25 +49,27 @@ class TwoFactorService
 
         if ($record === null) {
             $secret = $this->totp->generateSecret(16);
-            $recoveryCodes = $this->generateRecoveryCodes($this->config->getTwoFactorBackupCodesCount());
+            $plainRecoveryCodes = $this->generateRecoveryCodes($this->config->getTwoFactorBackupCodesCount());
+            $hashedRecoveryCodes = array_map(fn(string $code) => $this->hasher->make(str_replace(['-', ' '], '', trim($code))), $plainRecoveryCodes);
 
             TwoFactorAuthentication::create([
                 'user_id'        => $userId,
                 'secret'         => $secret,
-                'recovery_codes' => $recoveryCodes,
+                'recovery_codes' => $hashedRecoveryCodes,
                 'confirmed_at'   => null,
             ]);
         } elseif (!$record->isConfirmed()) {
             $secret = $record->secret ?: $this->totp->generateSecret(16);
-            $recoveryCodes = !empty($record->recovery_codes) ? $record->recovery_codes : $this->generateRecoveryCodes($this->config->getTwoFactorBackupCodesCount());
+            $plainRecoveryCodes = $this->generateRecoveryCodes($this->config->getTwoFactorBackupCodesCount());
+            $hashedRecoveryCodes = array_map(fn(string $code) => $this->hasher->make(str_replace(['-', ' '], '', trim($code))), $plainRecoveryCodes);
 
             $record->update([
                 'secret'         => $secret,
-                'recovery_codes' => $recoveryCodes,
+                'recovery_codes' => $hashedRecoveryCodes,
             ]);
         } else {
             $secret = $record->secret;
-            $recoveryCodes = $record->recovery_codes ?? [];
+            $plainRecoveryCodes = [];
         }
 
         $otpAuthUrl = $this->totp->getOtpAuthUrl(
@@ -86,7 +88,7 @@ class TwoFactorService
             'otpauth_url'    => $otpAuthUrl,
             'qr_code_url'    => $qrCodeUrl,
             'qr_code_svg'    => $qrCodeSvg,
-            'recovery_codes' => $recoveryCodes,
+            'recovery_codes' => $plainRecoveryCodes,
         ];
     }
 
@@ -136,7 +138,7 @@ class TwoFactorService
     }
 
     /**
-     * Verify challenge code during login (either TOTP or one-time recovery code).
+     * Verify challenge code during login (either TOTP or one-time hashed recovery code).
      */
     public function verifyChallenge(Authenticatable $user, string $code): bool
     {
@@ -159,13 +161,27 @@ class TwoFactorService
             return true;
         }
 
-        // 2. Try Recovery Code
-        $cleanCode = str_replace('-', '', trim($code));
-        $recoveryCodes = $record->recovery_codes ?? [];
+        // 2. Try Recovery Code (Secure Hashed comparison with Backward Compatibility)
+        $cleanInput = str_replace(['-', ' '], '', trim($code));
+        $recoveryCodes = (array) ($record->recovery_codes ?? []);
 
         foreach ($recoveryCodes as $index => $storedCode) {
-            $cleanStored = str_replace('-', '', trim($storedCode));
-            if (hash_equals($cleanStored, $cleanCode)) {
+            if (!is_string($storedCode)) {
+                continue;
+            }
+
+            $isMatch = false;
+
+            // Check if stored code is a Bcrypt / Argon2 hash
+            if (str_starts_with($storedCode, '$2y$') || str_starts_with($storedCode, '$argon2id$') || str_starts_with($storedCode, '$2a$')) {
+                $isMatch = $this->hasher->check($cleanInput, $storedCode);
+            } else {
+                // Legacy plaintext comparison for existing users
+                $cleanStored = str_replace(['-', ' '], '', trim($storedCode));
+                $isMatch = hash_equals($cleanStored, $cleanInput);
+            }
+
+            if ($isMatch) {
                 // Consume recovery code (single use)
                 unset($recoveryCodes[$index]);
                 $record->update(['recovery_codes' => array_values($recoveryCodes)]);
@@ -177,7 +193,7 @@ class TwoFactorService
     }
 
     /**
-     * Generate list of formatted recovery codes (e.g. "ABCD-1234").
+     * Generate list of high-entropy formatted recovery codes (e.g. "ABCDE-12345").
      *
      * @return array<string>
      */
@@ -186,8 +202,8 @@ class TwoFactorService
         $codes = [];
 
         for ($i = 0; $i < $count; $i++) {
-            $part1 = strtoupper(Str::random(4));
-            $part2 = strtoupper(Str::random(4));
+            $part1 = strtoupper(Str::random(5));
+            $part2 = strtoupper(Str::random(5));
             $codes[] = "{$part1}-{$part2}";
         }
 

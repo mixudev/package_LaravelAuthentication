@@ -83,9 +83,13 @@ class SocialAuthController extends Controller
         } catch (AccountLockedException $e) {
             return redirect()->route('login')
                 ->withErrors(['identifier' => $e->getMessage()]);
-        } catch (\Throwable $e) {
+        } catch (AuthenticationException $e) {
             return redirect()->route('login')
-                ->withErrors(['identifier' => "Social sign-in with {$provider} failed: " . $e->getMessage()]);
+                ->withErrors(['identifier' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->route('login')
+                ->withErrors(['identifier' => "Social sign-in with {$provider} failed. Please try again."]);
         }
     }
 
@@ -142,9 +146,10 @@ class SocialAuthController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         } catch (\Throwable $e) {
+            report($e);
             return response()->json([
                 'status'  => 'error',
-                'message' => "Social authentication failed: " . $e->getMessage(),
+                'message' => "Social authentication failed. Please try again.",
             ], 500);
         }
     }

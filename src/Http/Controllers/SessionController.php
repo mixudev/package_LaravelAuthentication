@@ -48,7 +48,11 @@ class SessionController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'status'             => 'success',
-                'user'               => $user,
+                'user'               => [
+                    'id'    => $user->getAuthIdentifier(),
+                    'name'  => $user->name ?? null,
+                    'email' => $user->email ?? null,
+                ],
                 'is_2fa_enabled'     => $isTwoFactorEnabled,
                 'passkeys'           => $passkeys,
                 'summary'            => $summary,

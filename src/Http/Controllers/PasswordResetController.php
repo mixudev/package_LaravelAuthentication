@@ -147,7 +147,7 @@ class PasswordResetController extends Controller
 
         return response()->json([
             'status'  => 'failed',
-            'message' => trans($status),
+            'message' => 'Unable to reset password. The reset link is invalid or has expired.',
         ], 400);
     }
 }

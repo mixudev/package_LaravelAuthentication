@@ -25,9 +25,13 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Models\PasskeyCredential;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\WebAuthn\WebAuthnHelper;
 
 /**
  * Enterprise FIDO2 / WebAuthn Passkey Service for passwordless authentication.
+ *
+ * Implements strict, high-assurance WebAuthn Level 2 / Level 3 cryptographic
+ * verification for registration (attestation) and authentication (assertion) ceremonies.
  */
 class PasskeyService
 {
@@ -72,7 +76,7 @@ class PasskeyService
         $challenge = $this->generateRandomBase64Url(32);
         $userId = (string) $user->getAuthIdentifier();
 
-        // Cache challenge for 5 minutes
+        // Cache challenge for 5 minutes (single-use)
         $this->cache->put("passkey_reg_challenge:{$userId}", $challenge, now()->addMinutes(5));
 
         $userEmail = (string) ($user->email ?? $user->username ?? "user-{$userId}");
@@ -125,34 +129,37 @@ class PasskeyService
         $userId = (string) $user->getAuthIdentifier();
         $storedChallenge = $this->cache->get("passkey_reg_challenge:{$userId}");
 
-        if (!$storedChallenge) {
+        if (!$storedChallenge || !is_string($storedChallenge)) {
             throw new AuthenticationException('Passkey registration challenge expired. Please retry.');
         }
 
+        // Invalidate challenge immediately (single-use anti-replay)
         $this->cache->forget("passkey_reg_challenge:{$userId}");
 
         $response = (array) ($payload['response'] ?? []);
         $clientDataJSON = (string) ($response['clientDataJSON'] ?? '');
-        $clientData = json_decode($this->base64UrlDecode($clientDataJSON), true);
+        $clientDataRaw = WebAuthnHelper::base64UrlDecode($clientDataJSON);
 
-        if (!is_array($clientData) || ($clientData['type'] ?? '') !== 'webauthn.create') {
-            throw new AuthenticationException('Invalid WebAuthn client data type.');
-        }
-
-        if (($clientData['challenge'] ?? '') !== $storedChallenge) {
-            throw new AuthenticationException('WebAuthn challenge mismatch.');
-        }
+        // 1. Validate clientDataJSON (ceremony type, challenge, origin)
+        WebAuthnHelper::validateClientData(
+            $clientDataRaw,
+            'webauthn.create',
+            $storedChallenge,
+            $this->getRelyingPartyId()
+        );
 
         $credentialId = (string) ($payload['id'] ?? $payload['rawId'] ?? '');
         if (empty($credentialId)) {
             throw new AuthenticationException('Missing WebAuthn credential ID.');
         }
 
-        // Extract or construct public key data
-        $publicKey = (string) ($response['publicKey'] ?? $response['attestationObject'] ?? '');
-        if (empty($publicKey)) {
-            $publicKey = base64_encode(json_encode($response) ?: '');
+        // 2. Extract and strictly parse/normalize public key
+        $rawPublicKey = (string) ($response['publicKey'] ?? $response['attestationObject'] ?? '');
+        if (empty($rawPublicKey)) {
+            throw new AuthenticationException('WebAuthn registration payload missing public key or attestation object.');
         }
+
+        $normalizedPublicKeyPem = WebAuthnHelper::normalizePublicKeyToPem($rawPublicKey);
 
         $transports = isset($response['transports']) && is_array($response['transports']) 
             ? $response['transports'] 
@@ -163,7 +170,7 @@ class PasskeyService
             'user_id'          => $userId,
             'name'             => $name ?: 'Passkey (' . now()->format('M d, Y') . ')',
             'credential_id'    => $credentialId,
-            'public_key'       => $publicKey,
+            'public_key'       => $normalizedPublicKeyPem,
             'attestation_type' => 'none',
             'sign_count'       => 0,
             'transports'       => $transports,
@@ -180,29 +187,12 @@ class PasskeyService
     {
         $challenge = $this->generateRandomBase64Url(32);
 
-        // Store challenge globally in cache by challenge string
+        // Store challenge globally in cache by challenge string (TTL: 5 mins, single use)
         $this->cache->put("passkey_auth_challenge:{$challenge}", true, now()->addMinutes(5));
 
+        // SA-07 Mitigation: Use discoverable credentials flow (empty allowCredentials) on unauthenticated public requests
+        // to prevent leaking registered credential IDs or enumerating user accounts.
         $allowCredentials = [];
-        if ($identifier !== null && $identifier !== '') {
-            $userModel = $this->config->getUserModel();
-            /** @var Model $instance */
-            $instance = new $userModel();
-            $emailCol = $this->config->getIdentifierColumn('email');
-            $user = $instance->newQuery()->where($emailCol, $identifier)->first();
-
-            if ($user instanceof Authenticatable) {
-                $allowCredentials = PasskeyCredential::query()
-                    ->where('user_id', $user->getAuthIdentifier())
-                    ->pluck('credential_id')
-                    ->map(fn(string $id) => [
-                        'id'   => $id,
-                        'type' => 'public-key',
-                    ])
-                    ->values()
-                    ->toArray();
-            }
-        }
 
         return new PasskeyRequestOptions(
             challenge: $challenge,
@@ -222,25 +212,58 @@ class PasskeyService
     {
         $assertion = PasskeyAssertion::fromArray($payload);
 
-        if (empty($assertion->id) || empty($assertion->clientDataJSON)) {
-            throw new InvalidCredentialsException('Invalid passkey payload received.');
+        if (empty($assertion->id) || empty($assertion->clientDataJSON) || empty($assertion->authenticatorData) || empty($assertion->signature)) {
+            throw new InvalidCredentialsException('Invalid or incomplete passkey assertion payload.');
         }
 
-        $clientData = json_decode($this->base64UrlDecode($assertion->clientDataJSON), true);
+        $clientDataRaw = WebAuthnHelper::base64UrlDecode($assertion->clientDataJSON);
+        $clientData = json_decode($clientDataRaw, true);
 
         if (!is_array($clientData) || ($clientData['type'] ?? '') !== 'webauthn.get') {
             throw new InvalidCredentialsException('Invalid passkey assertion ceremony type.');
         }
 
         $challenge = (string) ($clientData['challenge'] ?? '');
+        if ($challenge === '') {
+            throw new InvalidCredentialsException('Missing challenge in WebAuthn clientDataJSON.');
+        }
+
         $cacheKey = "passkey_auth_challenge:{$challenge}";
 
         if (!$this->cache->has($cacheKey)) {
             throw new InvalidCredentialsException('Passkey challenge expired or invalid.');
         }
 
+        // Consume challenge immediately (anti-replay single use)
         $this->cache->forget($cacheKey);
 
+        // 1. Validate clientDataJSON (type, challenge, origin)
+        try {
+            WebAuthnHelper::validateClientData(
+                $clientDataRaw,
+                'webauthn.get',
+                $challenge,
+                $this->getRelyingPartyId()
+            );
+        } catch (AuthenticationException $e) {
+            throw new InvalidCredentialsException($e->getMessage());
+        }
+
+        // 2. Validate authenticatorData (rpIdHash, UP, UV)
+        $authDataRaw = WebAuthnHelper::base64UrlDecode($assertion->authenticatorData);
+        $uvPolicy = (string) config('authentication.features.passkey.user_verification', 'preferred');
+
+        try {
+            $parsedAuthData = WebAuthnHelper::parseAuthenticatorData(
+                $authDataRaw,
+                $this->getRelyingPartyId(),
+                $uvPolicy
+            );
+        } catch (AuthenticationException $e) {
+            throw new InvalidCredentialsException($e->getMessage());
+        }
+
+        // 3. Locate credential and associated user
         /** @var PasskeyCredential|null $credential */
         $credential = PasskeyCredential::query()
             ->where('credential_id', $assertion->id)
@@ -260,7 +283,7 @@ class PasskeyService
             throw new InvalidCredentialsException();
         }
 
-        // Account Lockout check
+        // 4. Account Lockout check
         if ($this->lockService->isLocked($user)) {
             $this->auditService->logEvent(
                 SecurityEventType::ACCOUNT_LOCKED,
@@ -272,12 +295,26 @@ class PasskeyService
             throw new AccountLockedException($this->config->getLockoutDurationMinutes());
         }
 
-        // Update credential sign count & last used timestamp
-        $credential->sign_count = $credential->sign_count + 1;
+        // 5. Cloned authenticator detection (Sign count check)
+        if ($credential->sign_count > 0 && $parsedAuthData['sign_count'] > 0 && $parsedAuthData['sign_count'] <= $credential->sign_count) {
+            throw new InvalidCredentialsException('WebAuthn cloned authenticator detected: invalid sign counter.');
+        }
+
+        // 6. Cryptographic signature verification over (authenticatorData || SHA256(clientDataJSON))
+        $signatureRaw = WebAuthnHelper::base64UrlDecode($assertion->signature);
+        WebAuthnHelper::verifySignature(
+            $authDataRaw,
+            $clientDataRaw,
+            $signatureRaw,
+            $credential->public_key
+        );
+
+        // 7. Update sign count & last used timestamp upon successful verification
+        $credential->sign_count = $parsedAuthData['sign_count'] > 0 ? $parsedAuthData['sign_count'] : $credential->sign_count + 1;
         $credential->last_used_at = now();
         $credential->save();
 
-        // Establish session and/or API token
+        // 8. Establish session and/or API token
         $token = null;
         $guard = $this->auth->guard($context->guard);
 
@@ -342,16 +379,16 @@ class PasskeyService
      */
     public function generateRandomBase64Url(int $length = 32): string
     {
-        return $this->base64UrlEncode(random_bytes(max(1, $length)));
+        return WebAuthnHelper::base64UrlEncode(random_bytes(max(1, $length)));
     }
 
     public function base64UrlEncode(string $data): string
     {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+        return WebAuthnHelper::base64UrlEncode($data);
     }
 
     public function base64UrlDecode(string $data): string
     {
-        return base64_decode(strtr($data, '-_', '+/')) ?: '';
+        return WebAuthnHelper::base64UrlDecode($data);
     }
 }

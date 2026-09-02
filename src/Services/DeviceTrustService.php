@@ -86,7 +86,7 @@ class DeviceTrustService
             $request->isSecure(),
             true, // HttpOnly
             false,
-            'lax'
+            'strict'
         );
     }
 
