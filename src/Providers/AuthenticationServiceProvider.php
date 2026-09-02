@@ -152,6 +152,14 @@ class AuthenticationServiceProvider extends ServiceProvider
             $modulePublishMap = array_merge(
                 $modulePublishMap,
                 $this->buildPublishMap(
+                    __DIR__ . '/../../routes/web',
+                    base_path('modules/Authentication/Routes/web')
+                ),
+                $this->buildPublishMap(
+                    __DIR__ . '/../../routes/api',
+                    base_path('modules/Authentication/Routes/api')
+                ),
+                $this->buildPublishMap(
                     __DIR__ . '/../../database/migrations',
                     base_path('modules/Authentication/Database/Migrations')
                 ),
