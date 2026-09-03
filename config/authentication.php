@@ -102,14 +102,13 @@ return [
 
         'validation_rules' => [
             'min_length'         => 8,     // Minimal jumlah karakter
-            'require_uppercase'  => true,  // Wajib ada huruf besar
-            'require_lowercase'  => true,  // Wajib ada huruf kecil
-            'require_mixed_case' => true,  // Wajib kombinasi besar & kecil
-            'require_numbers'    => true,  // Wajib ada angka
-            'require_symbols'    => true,  // Wajib ada karakter spesial
+            'require_uppercase'  => false,  // Wajib ada huruf besar
+            'require_lowercase'  => false,  // Wajib ada huruf kecil
+            'require_mixed_case' => false,  // Wajib kombinasi besar & kecil
+            'require_numbers'    => false,  // Wajib ada angka
+            'require_symbols'    => false,  // Wajib ada karakter spesial
             'symbols_charset'    => '@$!%*#?&_-+=[]{}|;:,.<>', // Karakter spesial yang diizinkan
-            'uncompromised'      => false, // Cek ke HaveIBeenPwned (butuh koneksi internet)
-        ],
+         ],
 
         'history' => [
             'enabled'  => false, // Aktifkan pengecekan riwayat password
