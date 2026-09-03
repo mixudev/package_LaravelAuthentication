@@ -26,10 +26,11 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
-        <env name="APP_KEY" value="base64:wA3982hdsjdf823hskdfj823hskdfj823hskdfj82="/>
+        <env name="APP_KEY" value="base64:dGVzdGtleTF0ZXN0a2V5MXRlc3RrZXkxdGVzdGtleTE="/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
         <env name="DB_CONNECTION" value="testing"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="MAIL_MAILER" value="array"/>
     </php>
 </phpunit>

@@ -53,6 +53,8 @@ abstract class TestCase extends OrchestraTestCase
         $app['config']->set('app.cipher', 'AES-256-CBC');
         $app['config']->set('authentication.routes.api.enabled', true);
         $app['config']->set('authentication.routes.api.auth_middleware', ['auth']);
+        $app['config']->set('mail.mailer', 'array');
+        $app['config']->set('mail.default', 'array');
     }
 
     protected function setUpDatabase(): void
