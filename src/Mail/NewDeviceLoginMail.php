@@ -6,14 +6,19 @@ namespace Vendor\LaravelAuthentication\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Vendor\LaravelAuthentication\Models\AuthenticationDevice;
 
-class NewDeviceLoginMail extends Mailable implements ShouldQueue
+/**
+ * New-device login notification.
+ *
+ * NOTE: does NOT implement ShouldQueue. Queueing follows config('authentication.mail.queue');
+ * the dispatcher chooses ->queue() vs ->send(), so mail is only queued when intended.
+ */
+class NewDeviceLoginMail extends Mailable
 {
     use Queueable, SerializesModels;
 

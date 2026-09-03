@@ -44,9 +44,78 @@ final class QrCodeGenerator
     }
 
     /**
-     * Generate a safe data URI representing the SVG QR code.
+     * Generate a safe data URI representing the QR code.
+     *
+     * Prefers a PNG raster (universally scannable by mobile authenticator apps)
+     * when the GD extension is available; falls back to SVG otherwise. Many
+     * camera-based scanners do not render `image/svg+xml` data URIs, which made
+     * the previous SVG-only output unscannable in practice.
      */
     public static function dataUri(string $text, int $size = 220, int $margin = 4): string
+    {
+        if (function_exists('imagepng')) {
+            return self::pngDataUri($text, $size, $margin);
+        }
+
+        $svg = self::svg($text, $size, $margin);
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
+    }
+
+    /**
+     * Render the QR matrix to a PNG data URI using GD, scaling each module
+     * into a block so the raster has enough resolution for reliable scanning.
+     */
+    public static function pngDataUri(string $text, int $size = 220, int $margin = 4): string
+    {
+        $matrix = self::encodeToMatrix($text);
+        $dim = count($matrix);
+
+        // Each QR module becomes a block of $scale x $scale pixels so the PNG
+        // holds enough pixels to scan reliably even at small display sizes.
+        $scale = max(1, (int) floor($size / ($dim + ($margin * 2))));
+        if ($scale < 6) {
+            $scale = 6; // guarantee a sane minimum resolution
+        }
+        $pxW = max(1, ($dim + ($margin * 2)) * $scale);
+        $pxH = max(1, ($dim + ($margin * 2)) * $scale);
+
+        $img = imagecreatetruecolor($pxW, $pxH);
+        if ($img === false) {
+            return self::dataUriSvgFallback($text, $size, $margin);
+        }
+
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $black = imagecolorallocate($img, 0, 0, 0);
+        if ($white === false || $black === false) {
+            imagedestroy($img);
+            return self::dataUriSvgFallback($text, $size, $margin);
+        }
+        imagefill($img, 0, 0, $white);
+
+        for ($y = 0; $y < $dim; $y++) {
+            for ($x = 0; $x < $dim; $x++) {
+                if (!$matrix[$y][$x]) {
+                    continue;
+                }
+                $baseX = ($x + $margin) * $scale;
+                $baseY = ($y + $margin) * $scale;
+                imagefilledrectangle($img, $baseX, $baseY, $baseX + $scale - 1, $baseY + $scale - 1, $black);
+            }
+        }
+
+        ob_start();
+        imagepng($img);
+        $png = (string) ob_get_clean();
+        imagedestroy($img);
+
+        if ($png === '') {
+            return self::dataUriSvgFallback($text, $size, $margin);
+        }
+
+        return 'data:image/png;base64,' . base64_encode($png);
+    }
+
+    protected static function dataUriSvgFallback(string $text, int $size, int $margin): string
     {
         $svg = self::svg($text, $size, $margin);
         return 'data:image/svg+xml;base64,' . base64_encode($svg);

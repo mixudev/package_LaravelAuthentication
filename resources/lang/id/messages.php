@@ -137,6 +137,8 @@ return [
     'email_placeholder'       => 'nama@domain.com',
     'confirm_password_label'  => 'Konfirmasi Kata Sandi',
     'confirm_password_placeholder' => 'Ulangi kata sandi',
+    'new_password_label'      => 'Kata Sandi Baru',
+    'new_password_placeholder' => 'Masukkan kata sandi baru',
 
     'passkey_sign_in'         => 'Masuk dengan Passkey',
     'passkey_btn'             => 'Masuk dengan Passkey / Sidik Jari / Face ID',

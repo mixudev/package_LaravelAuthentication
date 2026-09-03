@@ -60,6 +60,18 @@ if ($currentAttempts + 1 > $data['max_attempts']) {
 
 ---
 
+### SEC-01.5: OTP Email Queue Conflict — ShouldQueue Hardcoded
+
+**File:** `src/Mail/OtpMail.php`, `src/Mail/NewDeviceLoginMail.php`
+
+Both `OtpMail` and `NewDeviceLoginMail` mailables implement `ShouldQueue` directly in their class declaration. This forces all dispatch into the queue regardless of `config('mail.queue')`. When no queue worker is running (common in development, small deployments, or misconfigured production), emails are silently queued but never delivered.
+
+**Impact:** OTP verification emails and new-device-login alert emails silently fail to deliver when no queue worker is active. Users cannot complete OTP-based login or receive security alerts.
+
+**Fix:** Remove the hardcoded `ShouldQueue` interface from both mailables. Queue/sync routing is already driven by `config('mail.queue')` at dispatch time (`Mail::to(...)->queue()` vs `Mail::to(...)->send()`), so removing the interface restores the intended config-driven behavior.
+
+---
+
 ### SEC-02: Timing Attack pada API Password Reset
 
 **File:** `src/Http/Controllers/PasswordResetController.php:107-123`
@@ -150,6 +162,18 @@ Meskipun `attestation: 'none'` dikonfigurasi (yang memang menonaktifkan attestat
 **Impact:** Attacker yang sudah terautentikasi bisa mendaftarkan passkey dari perangkat apa pun (termasuk perangkat curi atau virtual). Ini acceptable untuk consumer apps tapi mungkin tidak untuk enterprise/high-security.
 
 **Recommendation:** Dokumentasikan trade-off. Jika enterprise, set `attestation: 'direct'` dan validasi attestation statement.
+
+---
+
+### SEC-05b: QR Data URI Scan Failure — SVG Unsupported by Mobile Scanners
+
+**File:** `src/Support/QrCodeGenerator.php`
+
+`QrCodeGenerator::dataUri()` produced `data:image/svg+xml;base64` data URIs for 2FA QR codes. Mobile authenticator camera scanners (Google Authenticator, Authy, Microsoft Authenticator) do not support SVG data URIs — the scanner opens the URI in a browser instead of decoding the TOTP secret, causing setup to fail silently on mobile.
+
+**Impact:** Users cannot complete 2FA setup via mobile camera scan. Only manual key entry works, degrading UX and reducing 2FA adoption.
+
+**Fix:** `QrCodeGenerator::dataUri()` now prefers PNG via GD (`imagefilledrectangle` scaling) with SVG fallback only when GD extension is unavailable. The view blade is unchanged — the `src` attribute still receives a data URI, now PNG-encoded.
 
 ---
 

@@ -5,6 +5,12 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.8] - 2026-09-03
+
+### Fixed
+- **OTP Email Queue Conflict (SEC-01.5)**: `OtpMail` and `NewDeviceLoginMail` both implemented `ShouldQueue`, forcing all dispatch into the queue regardless of `config('mail.queue') = false`. When no queue worker is running, emails never deliver. Fix: removed hardcoded `ShouldQueue` from both mailables so config-driven queue/sync routing works as designed.
+- **QR Data URI Scan Failure (SEC-05b)**: `QrCodeGenerator::dataUri()` produced `data:image/svg+xml;base64` URIs — SVG data URIs are not supported by mobile authenticator camera scanners. Fix: `dataUri()` now prefers PNG via GD (`imagefilledrectangle` scaling) with SVG fallback when GD is unavailable. View blade unchanged (`src` attribute still receives data URI, now PNG).
+
 ## [1.5.7] - 2026-09-03
 
 ### Security (Tahap 2 — dari Audit Report)

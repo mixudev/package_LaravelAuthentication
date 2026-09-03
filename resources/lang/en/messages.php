@@ -137,6 +137,8 @@ return [
     'email_placeholder'       => 'name@domain.com',
     'confirm_password_label'  => 'Confirm Password',
     'confirm_password_placeholder' => 'Repeat password',
+    'new_password_label'      => 'New Password',
+    'new_password_placeholder' => 'Enter your new password',
 
     'passkey_sign_in'         => 'Sign In with Passkey',
     'passkey_btn'             => 'Sign in with Passkey / Face ID',

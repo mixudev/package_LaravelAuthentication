@@ -69,8 +69,12 @@ class ComprehensiveSecurityRemediationTest extends TestCase
 
         $qrCodeUrl = $totp->getQrCodeUrl($otpAuthUrl);
 
-        // Must be an inline data URI
-        $this->assertStringStartsWith('data:image/svg+xml;base64,', $qrCodeUrl);
+        // Must be an inline data URI (PNG preferred for universal scan; SVG fallback)
+        $this->assertTrue(
+            str_starts_with($qrCodeUrl, 'data:image/png;base64,')
+            || str_starts_with($qrCodeUrl, 'data:image/svg+xml;base64,'),
+            'QR data URI must be inline PNG or SVG — no external URLs'
+        );
         $this->assertStringNotContainsString('api.qrserver.com', $qrCodeUrl);
         $this->assertStringNotContainsString('http://', $qrCodeUrl);
         $this->assertStringNotContainsString('https://', $qrCodeUrl);
