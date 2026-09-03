@@ -81,8 +81,6 @@ class PasswordResetController extends Controller
 
         return response()->json([
             'message' => 'Please reset password via POST.',
-            'token'   => $token,
-            'email'   => $request->query('email'),
         ]);
     }
 
@@ -113,7 +111,11 @@ class PasswordResetController extends Controller
             ], 403);
         }
 
-        $status = Password::broker()->sendResetLink($request->only('email'));
+        // SEC-02 FIX: Timing normalization identical to web endpoint to prevent user enumeration
+        Password::broker()->sendResetLink($request->only('email'));
+
+        // Normalize timing to prevent timing-based enumeration attacks (match web endpoint)
+        usleep(random_int(50_000, 150_000));
 
         // Always return generic success to prevent user enumeration
         return response()->json([

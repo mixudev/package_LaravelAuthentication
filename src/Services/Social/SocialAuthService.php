@@ -109,6 +109,22 @@ class SocialAuthService implements SocialAuthServiceInterface
             throw new AuthenticationException("Unable to retrieve verified email address from [{$provider}].");
         }
 
+        // SEC-06/14 FIX: When the provider exposes an email-verified claim, require it before
+        // allowing sign-in/linking. Prevents account takeover via an unverified social email
+        // colliding with an existing local account.
+        $emailVerified = null;
+        if (property_exists($socialUser, 'user') || (is_object($socialUser) && isset($socialUser->user))) {
+            $raw = (array) $socialUser->user;
+            if (array_key_exists('email_verified', $raw)) {
+                $emailVerified = (bool) $raw['email_verified'];
+            }
+        }
+        if ($emailVerified === false) {
+            throw new AuthenticationException("Unable to confirm the verified status of the email address from [{$provider}].");
+        }
+        // Note: providers without an email_verified claim (e.g. GitHub public email) fall through —
+        // sign-in proceeds, but auto-registration is gated by the email-exists lookup below.
+
         $emailCol = $this->config->getIdentifierColumn('email');
         $user = $this->resolver->resolveByColumn($emailCol, $email);
 

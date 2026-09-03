@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Services\Security;
 
 use Vendor\LaravelAuthentication\Contracts\CaptchaDriverInterface;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException;
 use Vendor\LaravelAuthentication\Services\Security\Captcha\HcaptchaDriver;
 use Vendor\LaravelAuthentication\Services\Security\Captcha\NullCaptchaDriver;
 use Vendor\LaravelAuthentication\Services\Security\Captcha\RecaptchaDriver;
@@ -96,7 +97,10 @@ class CaptchaService
             'recaptcha_v2' => new RecaptchaDriver($secretKey, 'v2'),
             'recaptcha_v3' => new RecaptchaDriver($secretKey, 'v3'),
             'hcaptcha'     => new HcaptchaDriver($secretKey),
-            default        => new NullCaptchaDriver(),
+            // FAIL-CLOSED: unknown/mistyped driver must not silently disable captcha.
+            default        => throw new AuthenticationConfigurationException(
+                "Unsupported CAPTCHA driver [{$driver}]. Supported: turnstile, recaptcha_v2, recaptcha_v3, hcaptcha."
+            ),
         };
     }
 }

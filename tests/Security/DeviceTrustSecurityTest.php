@@ -56,4 +56,32 @@ class DeviceTrustSecurityTest extends TestCase
         $isTrusted = $this->deviceTrustService->isTrusted($this->user, $request);
         $this->assertFalse($isTrusted);
     }
+
+    public function test_server_side_revocation_invalidates_issued_trust_cookie(): void
+    {
+        $request = Request::create('/test', 'GET', [], [], [], [
+            'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'REMOTE_ADDR'     => '192.168.1.100',
+        ]);
+
+        // Issue a trust cookie
+        $cookie = $this->deviceTrustService->createTrustCookie($this->user, $request);
+        $issuedToken = $cookie->getValue();
+        $this->assertNotEmpty($issuedToken);
+
+        // Cookie token must be accepted now
+        $trustRequest = Request::create('/test', 'GET', [], [
+            'auth_trusted_device' => $issuedToken,
+        ], [], [
+            'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'REMOTE_ADDR'     => '192.168.1.100',
+        ]);
+        $this->assertTrue($this->deviceTrustService->isTrusted($this->user, $trustRequest));
+
+        // Revoke all trust tokens server-side (e.g. on logout)
+        $this->deviceTrustService->revokeUserTrust($this->user);
+
+        // Same cookie must now be rejected
+        $this->assertFalse($this->deviceTrustService->isTrusted($this->user, $trustRequest));
+    }
 }

@@ -194,6 +194,18 @@ class AuthenticationServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'authentication');
         $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', 'authentication');
 
+        // SEC-12 FIX: Enforce secure session cookie defaults (only when not already configured
+        // by the host app — these are safe defaults, never override explicit host choices).
+        foreach ([
+            'session.cookie_secure'   => true,
+            'session.cookie_http_only' => true,
+            'session.cookie_samesite' => 'lax',
+        ] as $key => $value) {
+            if ($this->app['config']->get($key) === null) {
+                $this->app['config']->set($key, $value);
+            }
+        }
+
         // Register package routes
         $this->registerRoutes();
     }

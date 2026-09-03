@@ -70,11 +70,13 @@ class OtpService implements OtpServiceInterface
         $cacheKey = $this->getCacheKey($normalized);
         $payload = [
             'hash'         => hash('sha256', $code),
-            'attempts'     => 0,
             'max_attempts' => $maxAttempts,
         ];
 
         $this->cache->put($cacheKey, $payload, now()->addMinutes($expiryMinutes));
+
+        // SEC-01 FIX: Reset atomic attempt counter for new OTP
+        $this->cache->forget($cacheKey . ':attempts');
 
         // Set cooldown throttle key
         $throttleSeconds = $this->config->getOtpThrottleSeconds();
@@ -158,13 +160,20 @@ class OtpService implements OtpServiceInterface
             throw new InvalidCredentialsException('The OTP code has expired or is invalid.');
         }
 
-        $data['attempts']++;
-        if ($data['attempts'] > $data['max_attempts']) {
-            $this->cache->forget($cacheKey);
-            throw new AuthenticationException('Too many invalid attempts. Please request a new OTP code.');
+        // SEC-01 FIX: Use separate atomic attempt counter to prevent parallel request race condition.
+        // The main cache entry holds the hash; a sibling key tracks attempts atomically via cache->increment().
+        $attemptKey = $cacheKey . ':attempts';
+        $currentAttempt = $this->cache->increment($attemptKey);
+        if ($currentAttempt === 1) {
+            // First miss: set TTL so orphaned counters auto-expire
+            $this->cache->put($attemptKey, 1, now()->addMinutes($this->config->getOtpExpiryMinutes()));
         }
 
-        $this->cache->put($cacheKey, $data, now()->addMinutes($this->config->getOtpExpiryMinutes()));
+        if ($currentAttempt > $data['max_attempts']) {
+            $this->cache->forget($cacheKey);
+            $this->cache->forget($attemptKey);
+            throw new AuthenticationException('Too many invalid attempts. Please request a new OTP code.');
+        }
 
         $inputHash = hash('sha256', trim($code));
         if (!hash_equals($data['hash'], $inputHash)) {
@@ -173,6 +182,7 @@ class OtpService implements OtpServiceInterface
 
         // Successfully verified: Invalidate immediately to prevent reuse
         $this->cache->forget($cacheKey);
+        $this->cache->forget($cacheKey . ':attempts');
         $this->cache->forget($this->getThrottleKey($normalized));
 
         $emailCol = $this->config->getIdentifierColumn('email');

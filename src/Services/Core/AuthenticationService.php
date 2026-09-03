@@ -192,6 +192,12 @@ class AuthenticationService implements AuthenticationServiceInterface
                 $guard->logout();
             }
 
+            // SEC-04 FIX: Invalidate 2FA device trust tokens server-side on logout so a
+            // previously issued (and possibly stolen) trust cookie cannot be replayed.
+            if ($user !== null) {
+                $this->deviceTrustService->revokeUserTrust($user);
+            }
+
             if (request()->hasSession()) {
                 $this->sessionSecurity->invalidate(request());
             }

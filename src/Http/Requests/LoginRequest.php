@@ -122,7 +122,12 @@ class LoginRequest extends FormRequest
             password: (string) $this->input('password'),
             remember: $this->boolean('remember'),
             strategy: $this->input('strategy') ? (string) $this->input('strategy') : null,
-            extra: $this->except(['password'])
+            // SEC-08 FIX: Only carry whitelisted fields into the DTO to prevent arbitrary
+            // attacker-controlled keys from leaking into events/audit logs.
+            extra: [
+                'email'    => $this->input('email'),
+                'username' => $this->input('username'),
+            ]
         );
     }
 }

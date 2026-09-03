@@ -103,7 +103,11 @@ class RegisterController extends Controller
             return response()->json([
                 'status'  => 'success',
                 'message' => 'Account registered successfully.',
-                'user'    => $user,
+                'user'    => [
+                    'id'    => $user->getAuthIdentifier(),
+                    'name'  => $user->name ?? null,
+                    'email' => $user->email ?? null,
+                ],
                 'token'   => $token,
             ], 201);
         } catch (AuthenticationException $e) {

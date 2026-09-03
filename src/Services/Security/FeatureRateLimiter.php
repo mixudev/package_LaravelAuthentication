@@ -84,8 +84,8 @@ class FeatureRateLimiter implements FeatureRateLimiterInterface
 
         return match ($strategy) {
             'ip'         => "auth_rl:{$feature}:ip:{$ipAddress}",
-            'identifier' => "auth_rl:{$feature}:id:" . sha1($normId),
-            default      => "auth_rl:{$feature}:comp:" . sha1("{$normId}|{$ipAddress}"),
+            'identifier' => "auth_rl:{$feature}:id:" . hash('sha256', $normId),
+            default      => "auth_rl:{$feature}:comp:" . hash('sha256', "{$normId}|{$ipAddress}"),
         };
     }
 }

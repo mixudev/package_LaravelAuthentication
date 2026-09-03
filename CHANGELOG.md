@@ -5,6 +5,38 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.7] - 2026-09-03
+
+### Security (Tahap 2 — dari Audit Report)
+- **Persistent Account Lockout (SEC-07)**: Lockout & failure counter kini disimpan di database (model `AccountLockout`, migration `2026_02_01_000008`), bukan hanya di cache. Cache-flush / multi-server tidak lagi bisa me-reset lockout untuk bypass brute-force.
+- **Hardened Config Preset (SEC-17)**: `config/authentication-hardened.php` — preset production (password min 12 + uppercase/lowercase/number/symbol, lockout aktif, captcha aktif, require_email_verify, auto_register=false, dsb).
+- **Fail-Closed CAPTCHA (SEC-22)**: Driver captcha yang tidak dikenal/typo kini melempar `AuthenticationConfigurationException`, bukan diam-diam memakai `NullCaptchaDriver` (yang menonaktifkan captcha tanpa disadari).
+
+### Files changed
+- `src/Services/Security/AccountLockService.php` (cache → DB), `src/Services/Security/CaptchaService.php` (fail-closed), `src/Models/AccountLockout.php` (baru), `config/authentication.php` (tambah `lockouts` table name), `config/authentication-hardened.php` (baru).
+- Migration baru: `database/migrations/2026_02_01_000008_create_authentication_account_lockouts_table.php` — **WAJIB `php artisan migrate`**.
+- Test baru: `tests/Security/AccountLockoutPersistenceTest`.
+
+## [1.5.6] - 2026-09-03
+
+### Security (dari Audit Report SEC-01..SEC-21)
+- **OTP Attempt Counter Race Condition (SEC-01)**: Ganti read-modify-write counter pada OTP verify dengan atomic `cache->increment()` di key terpisah `:attempts`, mencegah parallel request bypass `max_attempts`.
+- **API Password Reset Timing Attack (SEC-02)**: Tambah `usleep(random_int(50_000, 150_000))` pada `apiSendResetLink` — samakan dengan endpoint web untuk cegah user enumeration via timing.
+- **Registration API User Object Leak (SEC-03)**: Filter response `user` hanya id/name/email, tidak lagi mengembalikan seluruh Eloquent model.
+- **2FA Device Trust Cookie Revocation (SEC-04)**: Cookie kini berisi random token tersendiri; hanya SHA-256 hash disimpan di DB (`trust_token_hash`, migration baru `2026_02_01_000007`). Trust token di-revoke server-side saat logout dan revoke-other-sessions. Tambah `DeviceTrustService::revokeUserTrust()`.
+- **OAuth Email-Verified Check (SEC-06/14)**: Tolak social sign-in saat provider menyatakan `email_verified=false`, cegah account takeover via email tak terverifikasi.
+- **LoginData.extra Data Injection (SEC-08)**: Whitelist field hanya `email` dan `username`, bukan seluruh request kecuali password.
+- **Reset Token Exposed di JSON Fallback (SEC-10)**: Hapus `token` dan `email` dari fallback response `showResetForm`.
+- **Session Cookie Flags (SEC-12)**: Provider kini menetapkan `cookie_secure`, `cookie_http_only`, `cookie_samesite` bila belum diset host.
+- **Header Overexposure (SEC-13)**: `AuthenticationContext` hanya menyimpan whitelist header non-sensitif, bukan seluruh header bag.
+- **SHA1 → SHA256 di Rate Limiter Key (SEC-16)**: Ganti hash key rate limiter.
+- **WebAuthn Origin HTTPS Enforcement (SEC-21)**: Tolak origin non-HTTPS kecuali localhost/loopback.
+
+### Files changed
+- `src/Services/Otp/OtpService.php`, `src/Http/Controllers/PasswordResetController.php`, `src/Http/Controllers/RegisterController.php`, `src/Services/Social/SocialAuthService.php`, `src/Http/Requests/LoginRequest.php`, `src/DTO/AuthenticationContext.php`, `src/Services/Session/DeviceTrustService.php`, `src/Services/Core/AuthenticationService.php`, `src/Services/Session/SessionManagerService.php`, `src/Models/AuthenticationDevice.php`, `src/Providers/AuthenticationServiceProvider.php`, `src/Services/Security/FeatureRateLimiter.php`, `src/Support/WebAuthn/WebAuthnHelper.php`, `src/Rules/*` (tidak diubah).
+- Migration baru: `database/migrations/2026_02_01_000007_add_trust_token_to_authentication_devices_table.php` — **WAJIB jalankan `php artisan migrate`** untuk mengambil kolom `trust_token_hash`; tanpa ini, fitur trust-device 2FA tetap berjalan via fallback HMAC lama.
+- Test baru: `tests/Security/DeviceTrustSecurityTest::test_server_side_revocation_invalidates_issued_trust_cookie`.
+
 ## [1.5.5] - 2026-09-02
 
 ### Fixed

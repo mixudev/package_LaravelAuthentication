@@ -123,8 +123,20 @@ class SessionManagerService
             Auth::guard($this->config->getGuard())->logoutOtherDevices($password);
         }
 
-        $sessionDriver = config('session.driver');
         $userId = $user->getAuthIdentifier();
+
+        // SEC-04 FIX: Revoking other sessions should also invalidate all server-side 2FA
+        // trust tokens — a device no longer trusted elsewhere should not keep a working
+        // trust cookie for this account.
+        \Vendor\LaravelAuthentication\Models\AuthenticationDevice::where('user_id', $userId)
+            ->where('is_trusted', true)
+            ->update([
+                'is_trusted'       => false,
+                'trusted_until'    => null,
+                'trust_token_hash' => null,
+            ]);
+
+        $sessionDriver = config('session.driver');
 
         if ($sessionDriver === 'database' && $currentSessionId !== null) {
             $tableName = config('session.table', 'sessions');

@@ -40,6 +40,7 @@ return [
             'devices'            => 'authentication_devices',
             'sessions'           => 'authentication_sessions',
             'passkeys'           => 'authentication_passkeys',
+            'lockouts'           => 'authentication_account_lockouts',
         ],
     ],
 

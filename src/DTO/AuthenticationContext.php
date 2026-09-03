@@ -37,7 +37,22 @@ final class AuthenticationContext
             userAgent: $request->userAgent(),
             channel: $channel,
             guard: $guard ?? (string) config('authentication.guard', 'web'),
-            headers: $request->headers->all()
+            // SEC-13 FIX: Only carry non-sensitive, useful headers instead of the entire header bag
+            // to avoid leaking internal auth headers into events/audit logs.
+            headers: array_intersect_key(
+                $request->headers->all(),
+                array_flip([
+                    'user-agent',
+                    'accept',
+                    'accept-language',
+                    'accept-encoding',
+                    'origin',
+                    'referer',
+                    'sec-fetch-site',
+                    'sec-fetch-mode',
+                    'sec-fetch-dest',
+                ])
+            )
         );
     }
 }

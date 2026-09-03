@@ -20,6 +20,7 @@ use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
  * @property string|null $browser
  * @property string|null $location
  * @property bool $is_trusted
+ * @property string|null $trust_token_hash
  * @property \Illuminate\Support\Carbon|null $trusted_until
  * @property \Illuminate\Support\Carbon $last_seen_at
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -37,6 +38,7 @@ class AuthenticationDevice extends Model
         'browser',
         'location',
         'is_trusted',
+        'trust_token_hash',
         'trusted_until',
         'last_seen_at',
     ];

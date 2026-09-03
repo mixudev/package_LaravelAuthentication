@@ -80,6 +80,17 @@ final class WebAuthnHelper
 
         if ($expectedRpHost !== null && $expectedRpHost !== '') {
             $parsedOriginHost = parse_url($origin, PHP_URL_HOST) ?? $origin;
+            // SEC-21 FIX: Validate the origin scheme — production RP must be served over HTTPS.
+            $originScheme = parse_url($origin, PHP_URL_SCHEME);
+            if ($originScheme === null) {
+                throw new AuthenticationException('WebAuthn origin missing scheme.');
+            }
+            $isLocalhost = strtolower((string) $parsedOriginHost) === 'localhost' || str_ends_with(strtolower((string) $parsedOriginHost), '.localhost');
+            $isLoopback = $parsedOriginHost === '127.0.0.1' || $parsedOriginHost === '::1';
+            if ($originScheme !== 'https' && !$isLocalhost && !$isLoopback) {
+                throw new AuthenticationException('WebAuthn origin must be HTTPS for non-localhost hosts.');
+            }
+
             // Clean ports / protocols if needed
             if (is_string($parsedOriginHost)) {
                 $cleanExpected = strtolower(explode(':', $expectedRpHost)[0]);

@@ -7,6 +7,7 @@ namespace Vendor\LaravelAuthentication\Services\Session;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
 use Vendor\LaravelAuthentication\Models\AuthenticationDevice;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
@@ -43,6 +44,13 @@ class DeviceTrustService
             return false;
         }
 
+        // SEC-04 FIX: Prefer the server-side random trust token (per-device, revocable).
+        $tokenHash = hash('sha256', $token);
+        if (!empty($device->trust_token_hash)) {
+            return hash_equals($device->trust_token_hash, $tokenHash);
+        }
+
+        // Legacy fallback (cookie issued before migration): valid but non-revocable HMAC.
         $expectedHash = hash_hmac('sha256', "{$userId}|{$detection['fingerprint']}", config('app.key'));
 
         return hash_equals($expectedHash, $token);
@@ -68,14 +76,17 @@ class DeviceTrustService
             ]
         );
 
+        // SEC-04 FIX: Issue a fresh random token each time a trust cookie is (re)created.
+        // Store only its SHA-256 hash server-side so a stolen cookie can be revoked by clearing it.
+        $token = Str::random(64);
         $device->update([
-            'is_trusted'    => true,
-            'trusted_until' => $expiresAt,
-            'last_seen_at'  => now(),
+            'is_trusted'       => true,
+            'trusted_until'    => $expiresAt,
+            'trust_token_hash' => hash('sha256', $token),
+            'last_seen_at'     => now(),
         ]);
 
         $cookieName = $this->config->getDeviceTrustCookieName();
-        $token = hash_hmac('sha256', "{$userId}|{$detection['fingerprint']}", config('app.key'));
 
         return Cookie::make(
             $cookieName,
@@ -88,6 +99,24 @@ class DeviceTrustService
             false,
             'strict'
         );
+    }
+
+    /**
+     * SEC-04 FIX: Server-side revocation of a user's trust tokens (e.g. on logout or
+     * "revoke all devices"). Leaves the device records but clears the trust markers so
+     * any previously issued trust cookies immediately become invalid.
+     */
+    public function revokeUserTrust(Authenticatable $user): void
+    {
+        $userId = $user->getAuthIdentifier();
+
+        AuthenticationDevice::where('user_id', $userId)
+            ->where('is_trusted', true)
+            ->update([
+                'is_trusted'       => false,
+                'trusted_until'    => null,
+                'trust_token_hash' => null,
+            ]);
     }
 
     public function forgetTrustCookie(): SymfonyCookie
