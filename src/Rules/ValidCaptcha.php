@@ -39,7 +39,8 @@ class ValidCaptcha implements ValidationRule
         $token = is_string($value) ? $value : '';
 
         if (!$captchaService->verify($token, $ip)) {
-            $fail(__('authentication::messages.captcha_failed', ['attribute' => $attribute]));
+            $message = __('authentication::messages.captcha_failed', ['attribute' => $attribute]);
+            $fail(is_string($message) ? $message : 'Captcha verification failed.');
         }
     }
 }

@@ -31,7 +31,7 @@ class InstallModuleCommand extends Command
 
     public function handle(Filesystem $filesystem): int
     {
-        $targetRelativePath = (string) $this->option('path');
+        $targetRelativePath = is_string($this->option('path')) ? $this->option('path') : 'modules/Authentication';
         $targetFullPath = base_path($targetRelativePath);
         $force = (bool) $this->option('force');
 

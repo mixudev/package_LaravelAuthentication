@@ -115,7 +115,8 @@ class SessionManagerService
         $userHash = (string) ($user->{$passwordColumn} ?? '');
 
         if (!$this->hasher->check($password, $userHash)) {
-            throw new InvalidCredentialsException(__('authentication::messages.invalid_password'));
+            $msg = __('authentication::messages.invalid_password');
+            throw new InvalidCredentialsException(is_string($msg) ? $msg : 'Invalid password.');
         }
 
         // Use Laravel's built-in logoutOtherDevices if available
