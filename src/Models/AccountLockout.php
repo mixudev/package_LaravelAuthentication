@@ -33,17 +33,24 @@ class AccountLockout extends Model
     }
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'failed_attempts' => 'integer',
+        'locked_until'    => 'datetime',
+        'last_failure_at' => 'datetime',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return [
-            'failed_attempts' => 'integer',
-            'locked_until'    => 'datetime',
-            'last_failure_at' => 'datetime',
-        ];
+        return $this->casts;
     }
 
     public function isLocked(): bool

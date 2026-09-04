@@ -33,17 +33,24 @@ class TwoFactorAuthentication extends Model
     }
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'secret'         => 'encrypted',
+        'recovery_codes' => 'encrypted:array',
+        'confirmed_at'   => 'datetime',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return [
-            'secret'         => 'encrypted',
-            'recovery_codes' => 'encrypted:array',
-            'confirmed_at'   => 'datetime',
-        ];
+        return $this->casts;
     }
 
     public function isConfirmed(): bool

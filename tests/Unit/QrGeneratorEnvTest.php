@@ -20,9 +20,17 @@ class QrGeneratorEnvTest extends TestCase
         // PNG signature
         $this->assertSame("\x89PNG\r\n\x1a\n", substr($png, 0, 8));
 
-        // Write to workspace for external decode verification
-        file_put_contents('D:/WEBSITE/PACKAGE/LaravelAuthentication/tests/_qrout.png', $png);
-        fwrite(STDERR, "\nQR_PNG_WRITTEN\n");
+        // Write to temporary file for verification and ensure cross-platform cleanup
+        $tempFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'qr_test_' . uniqid('', true) . '.png';
+        try {
+            file_put_contents($tempFile, $png);
+            $this->assertFileExists($tempFile);
+            $this->assertGreaterThan(0, filesize($tempFile));
+        } finally {
+            if (file_exists($tempFile)) {
+                @unlink($tempFile);
+            }
+        }
     }
 
     public function test_svg_fallback_still_valid(): void

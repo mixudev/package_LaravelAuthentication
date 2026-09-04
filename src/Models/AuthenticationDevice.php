@@ -49,17 +49,24 @@ class AuthenticationDevice extends Model
     }
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'is_trusted'    => 'boolean',
+        'trusted_until' => 'datetime',
+        'last_seen_at'  => 'datetime',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return [
-            'is_trusted'    => 'boolean',
-            'trusted_until' => 'datetime',
-            'last_seen_at'  => 'datetime',
-        ];
+        return $this->casts;
     }
 
     public function isCurrentlyTrusted(): bool

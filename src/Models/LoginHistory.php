@@ -39,15 +39,22 @@ class LoginHistory extends Model
     }
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'login_at'  => 'datetime',
+        'logout_at' => 'datetime',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return [
-            'login_at'  => 'datetime',
-            'logout_at' => 'datetime',
-        ];
+        return $this->casts;
     }
 }

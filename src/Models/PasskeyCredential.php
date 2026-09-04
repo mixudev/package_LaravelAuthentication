@@ -43,16 +43,23 @@ class PasskeyCredential extends Model
     }
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'sign_count'   => 'integer',
+        'transports'   => 'array',
+        'last_used_at' => 'datetime',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return [
-            'sign_count'   => 'integer',
-            'transports'   => 'array',
-            'last_used_at' => 'datetime',
-        ];
+        return $this->casts;
     }
 }

@@ -5,6 +5,12 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.9] - 2026-09-04
+
+### Fixed
+- **Laravel 10 Eloquent Model Casting Compatibility**: In Laravel 10.x, Eloquent does not call the `casts(): array` method (introduced in Laravel 11.x), which caused all models to have empty `$casts`. This led to `QueryException: Array to string conversion` when persisting arrays (`TwoFactorAuthentication::$recovery_codes`, `PasskeyCredential::$transports`) and `Call to a member function isFuture() on string` on uncast datetime attributes (`AccountLockout::$locked_until`, `AuthenticationDevice::$trusted_until`). Defined explicit `protected $casts = [...]` property on all Eloquent models (`AccountLockout`, `AuthenticationAttempt`, `AuthenticationDevice`, `LoginHistory`, `PasskeyCredential`, `PasswordHistory`, `TwoFactorAuthentication`) ensuring full backward and forward compatibility across Laravel 10.x, 11.x, 12.x, and 13.x.
+- **Cross-Platform QR Generator Test File Path**: Replaced hardcoded Windows file path (`D:/WEBSITE/...`) in `QrGeneratorEnvTest` and `tests/_qrlong_gen.php` with portable `sys_get_temp_dir()` and guaranteed teardown cleanup in a `finally` block, resolving CI test failures on Linux/GitHub Actions runners.
+
 ## [1.5.8] - 2026-09-03
 
 ### Fixed
