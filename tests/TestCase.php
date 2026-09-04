@@ -12,6 +12,13 @@ use Vendor\LaravelAuthentication\Tests\Fixtures\User;
 
 abstract class TestCase extends OrchestraTestCase
 {
+    /**
+     * Compatibility shim for Orchestra Testbench versions referencing static::$latestResponse.
+     *
+     * @var mixed
+     */
+    public static $latestResponse;
+
     protected function setUp(): void
     {
         parent::setUp();

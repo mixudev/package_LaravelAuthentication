@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: PHP ${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
+    name: PHP ${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -16,7 +16,6 @@ jobs:
         os: [ubuntu-latest]
         php: [8.2, 8.3, 8.4]
         laravel: ['11.*', '12.*']
-        dependency-version: [prefer-lowest, prefer-stable]
 
     steps:
       - name: Checkout Code
@@ -32,7 +31,7 @@ jobs:
       - name: Install Dependencies
         run: |
           composer require "illuminate/support:${{ matrix.laravel }}" --no-interaction --no-update
-          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-progress
+          composer update --prefer-dist --no-interaction --no-progress
 
       - name: Validate Composer
         run: composer validate --strict
