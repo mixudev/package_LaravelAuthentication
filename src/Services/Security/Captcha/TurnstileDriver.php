@@ -29,6 +29,7 @@ class TurnstileDriver implements CaptchaDriverInterface
                 $payload['remoteip'] = $ipAddress;
             }
 
+            /** @var \Illuminate\Http\Client\Response $response */
             $response = Http::asForm()->timeout(5)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', $payload);
 
             return (bool) ($response->json('success') ?? false);

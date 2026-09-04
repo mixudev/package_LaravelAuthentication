@@ -29,6 +29,7 @@ class HcaptchaDriver implements CaptchaDriverInterface
                 $payload['remoteip'] = $ipAddress;
             }
 
+            /** @var \Illuminate\Http\Client\Response $response */
             $response = Http::asForm()->timeout(5)->post('https://hcaptcha.com/siteverify', $payload);
 
             return (bool) ($response->json('success') ?? false);

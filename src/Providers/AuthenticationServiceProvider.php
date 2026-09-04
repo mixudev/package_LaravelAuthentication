@@ -232,6 +232,7 @@ class AuthenticationServiceProvider extends ServiceProvider
      */
     protected function buildPublishMap(string $sourceDir, string $destDir): array
     {
+        /** @var array<string, string> $map */
         $map = [];
 
         $resolvedSource = realpath($sourceDir);
