@@ -25,8 +25,9 @@ final class QrCodeGenerator
      */
     public static function svg(string $text, int $size = 220, int $margin = 4): string
     {
-        $options = self::options(QRCode::OUTPUT_MARKUP_SVG, $size, $margin);
-        $options->outputBase64 = false;
+        $options = self::options(QRCode::OUTPUT_MARKUP_SVG, $size, $margin, [
+            'outputBase64' => false,
+        ]);
 
         $svg = (string) (new QRCode($options))->render($text);
 
@@ -65,12 +66,13 @@ final class QrCodeGenerator
             return self::dataUriSvgFallback($text, $size, $margin);
         }
 
-        $options = self::options(QRCode::OUTPUT_IMAGE_PNG, $size, $margin);
-        $options->outputBase64 = false;
-        $options->returnResource = true;
+        $options = self::options(QRCode::OUTPUT_IMAGE_PNG, $size, $margin, [
+            'outputBase64' => false,
+            'returnResource' => true,
+        ]);
         $image = (new QRCode($options))->render($text);
 
-        if (!is_object($image) && !is_resource($image)) {
+        if (!($image instanceof \GdImage)) {
             return self::dataUriSvgFallback($text, $size, $margin);
         }
 
@@ -83,16 +85,18 @@ final class QrCodeGenerator
             : 'data:image/png;base64,' . base64_encode($png);
     }
 
-    private static function options(string $outputType, int $size, int $margin): QROptions
+    /**
+     * @param array<string, mixed> $overrides
+     */
+    private static function options(string $outputType, int $size, int $margin, array $overrides = []): QROptions
     {
-        $options = new QROptions();
-        $options->outputType = $outputType;
-        $options->outputBase64 = true;
-        $options->eccLevel = QRCode::ECC_M;
-        $options->quietzoneSize = max(4, $margin);
-        $options->scale = max(6, (int) floor($size / 40));
-
-        return $options;
+        return new QROptions(array_merge([
+            'outputType' => $outputType,
+            'outputBase64' => true,
+            'eccLevel' => QRCode::ECC_M,
+            'quietzoneSize' => max(4, $margin),
+            'scale' => max(6, (int) floor($size / 40)),
+        ], $overrides));
     }
 
     protected static function dataUriSvgFallback(string $text, int $size, int $margin): string

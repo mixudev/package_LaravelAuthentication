@@ -16,7 +16,8 @@ parameters:
         - '#Call to method driver\(\) on an unknown class Laravel\\Socialite\\Contracts\\Factory#'
         # Socialite method chains on unresolved class-string|object
         - '#Cannot call method (driver|scopes|stateless|redirectUrl|user)\(\) on class-string\|object#'
-        # Pre-existing: array|string header() return value from Illuminate Request::header()
+        # Pre-existing: array|string header() return value from Illuminate Request::header() and trans()
+        - '#Cannot cast array\|string to string#'
         - '#Cannot cast array\|string\|null to string#'
         - '#Cannot cast array\|bool\|float\|int\|string\|null to string#'
         # Pre-existing: cannot cast object to string (TokenService)

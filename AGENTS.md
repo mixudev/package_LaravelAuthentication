@@ -8,7 +8,7 @@ This document serves as the canonical knowledge base and operating manual for AI
 
 - **Composer Package Name**: `mixudev/laravel-authentication`
 - **Root Namespace**: `Vendor\LaravelAuthentication\`
-- **Target Environments**: PHP 8.1 - 8.5+ | Laravel 10.x, 11.x, 12.x, 13.x
+- **Target Environments**: PHP 8.2 - 8.5+ | Laravel 11.x, 12.x, 13.x
 - **Distribution Model**: Canonical Git repository powering Packagist, Private Git VCS, Local Path Repositories, and Tagged ZIPs from the exact same codebase.
 
 ### Strict Architectural Invariants (DO NOT VIOLATE):
