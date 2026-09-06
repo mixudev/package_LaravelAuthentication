@@ -27,10 +27,11 @@ docs/
 │   └── api-reference.md            # Katalog endpoint + sitemap 49 rute
 ├── security/                       # Keamanan
 │   ├── architecture.md             # Threat model & mitigasi
-│   ├── hardening-notes.md          # Changelog remediasi SA-01..SA-13
+│   ├── hardening-notes.md          # Changelog remediasi SA-01..SA-32
 │   └── vulnerability-reporting.md  # Kebijakan lapor kerentanan
 └── operations/                     # Operasional
-    └── publishing-guide.md         # Rilis, SemVer, Packagist
+    ├── publishing-guide.md         # Rilis, SemVer, Packagist
+    └── pruning-audit-logs.md       # Prune audit trail (authentication:prune)
 ```
 
 ---
@@ -103,3 +104,6 @@ docs/
 
 14. **[Publishing & Release](operations/publishing-guide.md)**
     Conventional commits, SemVer tagging, sinkronisasi Packagist.
+
+15. **[Pruning Audit Logs](operations/pruning-audit-logs.md)**
+    `authentication:prune` — retensi data audit (attempts, login histories, password histories).
