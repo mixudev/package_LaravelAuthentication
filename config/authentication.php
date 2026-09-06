@@ -164,7 +164,10 @@ return [
                 'enabled'       => true,
                 'max_attempts'  => 5,
                 'decay_minutes' => 5,
-                'strategy'      => 'ip',
+                // Composite (user+IP): mencegah attacker dengan pending token
+                // dari user tertentu membanjiri percobaan dari banyak IP — tetap
+                // mengunci per-user, sementara user valid di IP baru tidak diblokir total.
+                'strategy'      => 'composite',
             ],
             'confirm_password' => [
                 'enabled'       => true,
@@ -255,6 +258,10 @@ return [
                 'duration_days' => 30,
                 'cookie_name'   => 'auth_trusted_device',
             ],
+
+            // TTL token pending 2FA untuk alur API stateless (menit).
+            // Token ini single-use; TTL pendek membatasi window serangan.
+            'pending_token_ttl_minutes' => 10,
         ],
 
         // Konfirmasi Password untuk Aksi Sensitif (Re-authentication)

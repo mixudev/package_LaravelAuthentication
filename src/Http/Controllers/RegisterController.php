@@ -113,7 +113,8 @@ class RegisterController extends Controller
         } catch (AuthenticationException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => $e->getMessage(),
+                // Jangan bocorkan detail internal (mis. "registration disabled") — pesan generik.
+                'message' => 'Unable to register an account right now. Please try again later.',
             ], 422);
         }
     }

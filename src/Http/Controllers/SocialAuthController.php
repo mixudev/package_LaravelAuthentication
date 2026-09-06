@@ -22,6 +22,7 @@ use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
+use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
 class SocialAuthController extends Controller
 {
@@ -83,10 +84,10 @@ class SocialAuthController extends Controller
                 ->with('status', "Successfully signed in with " . ucfirst($provider) . ".");
         } catch (AccountLockedException $e) {
             return redirect()->route('login')
-                ->withErrors(['identifier' => $e->getMessage()]);
+                ->withErrors(['identifier' => 'Your account has been temporarily locked for security reasons. Please try again later.']);
         } catch (AuthenticationException $e) {
             return redirect()->route('login')
-                ->withErrors(['identifier' => $e->getMessage()]);
+                ->withErrors(['identifier' => "Social sign-in with {$provider} failed. Please try again."]);
         } catch (\Throwable $e) {
             report($e);
             return redirect()->route('login')
@@ -115,9 +116,7 @@ class SocialAuthController extends Controller
             if ($this->twoFactorService->isEnabledFor($user)) {
                 $isDeviceTrusted = $this->deviceTrustService->isTrusted($user, $request);
                 if (!$isDeviceTrusted) {
-                    $pendingToken = \Illuminate\Support\Str::random(64);
-                    $cacheKey     = '2fa.pending.' . hash('sha256', $pendingToken);
-                    $this->cache->put($cacheKey, $user->getAuthIdentifier(), now()->addMinutes(10));
+                    $pendingToken = app(TwoFactorPendingToken::class)->issue($user->getAuthIdentifier());
 
                     return response()->json([
                         'status'              => 'two_factor_required',
@@ -140,12 +139,13 @@ class SocialAuthController extends Controller
         } catch (AccountLockedException $e) {
             return response()->json([
                 'status'  => 'locked',
-                'message' => $e->getMessage(),
+                // Pesan standar — jangan bocorkan detail lockout yang bisa membantu attacker.
+                'message' => 'Your account has been temporarily locked for security reasons. Please try again later.',
             ], 423);
         } catch (AuthenticationException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => $e->getMessage(),
+                'message' => "Social authentication failed. Please try again.",
             ], 422);
         } catch (\Throwable $e) {
             report($e);

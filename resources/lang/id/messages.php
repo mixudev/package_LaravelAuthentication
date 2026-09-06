@@ -149,6 +149,7 @@ return [
     'passkey_registered'      => 'Passkey berhasil didaftarkan.',
     'passkey_deleted'         => 'Passkey berhasil dihapus.',
     'passkey_failed'          => 'Autentikasi Passkey gagal atau dibatalkan.',
+    'passkey_registration_failed' => 'Gagal mendaftarkan passkey ini. Silakan coba lagi atau gunakan authenticator lain.',
     'passkey_not_supported'   => 'Passkey tidak didukung oleh browser atau perangkat ini.',
     'passkey_none_registered' => 'Belum ada Passkey yang terdaftar untuk akun ini. Silakan masuk menggunakan kata sandi.',
 

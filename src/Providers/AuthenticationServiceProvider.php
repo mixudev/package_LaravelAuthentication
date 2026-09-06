@@ -40,6 +40,7 @@ use Vendor\LaravelAuthentication\Services\TwoFactor\TotpService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
+use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
 /**
  * Main package Service Provider responsible for DI registrations,
@@ -88,6 +89,7 @@ class AuthenticationServiceProvider extends ServiceProvider
         $this->app->singleton(NewDeviceDetectionService::class);
         $this->app->singleton(SessionManagerService::class);
         $this->app->singleton(SessionSecurityService::class);
+        $this->app->singleton(TwoFactorPendingToken::class);
 
         // 6. Two-Factor Authentication, Passkeys & Password Services
         $this->app->singleton(TotpService::class);

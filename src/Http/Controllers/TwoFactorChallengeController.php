@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Http\Controllers;
 
 use Illuminate\Contracts\Auth\StatefulGuard;
-use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +22,7 @@ use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
+use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
 class TwoFactorChallengeController extends Controller
 {
@@ -33,8 +33,7 @@ class TwoFactorChallengeController extends Controller
         private readonly FeatureRateLimiterInterface $rateLimiter,
         private readonly SessionSecurityService $sessionSecurity,
         private readonly TokenManagerInterface $tokenService,
-        private readonly AuthenticationConfig $config,
-        private readonly CacheRepository $cache
+        private readonly AuthenticationConfig $config
     ) {}
 
     public function show(Request $request): HttpResponse|JsonResponse|RedirectResponse
@@ -65,17 +64,18 @@ class TwoFactorChallengeController extends Controller
         //   - Web: session yang diset oleh AuthenticationService (server-side, tidak dapat dimanipulasi user)
         //   - API: pending_token yang merupakan opaque cache key ber-TTL pendek (diset oleh LoginController)
         $userId = null;
+        $usedPendingToken = null;
 
         if ($request->hasSession()) {
             $userId = $request->session()->get('auth.2fa.user_id');
         }
 
         if ($userId === null && $request->expectsJson()) {
-            // Resolusi via pending_token untuk API stateless
+            // Resolusi via pending_token untuk API stateless (opaque, single-use, ber-TTL)
             $pendingToken = (string) $request->input('pending_token', '');
             if ($pendingToken !== '') {
-                $cacheKey = '2fa.pending.' . hash('sha256', $pendingToken);
-                $userId   = $this->cache->get($cacheKey);
+                $userId = app(TwoFactorPendingToken::class)->resolve($pendingToken);
+                $usedPendingToken = $pendingToken;
             }
         }
 
@@ -140,12 +140,9 @@ class TwoFactorChallengeController extends Controller
             $request->session()->forget('auth.2fa.user_id');
         }
 
-        // Invalidate API pending token immediately (single-use)
-        if ($request->expectsJson()) {
-            $pendingToken = (string) $request->input('pending_token', '');
-            if ($pendingToken !== '') {
-                $this->cache->forget('2fa.pending.' . hash('sha256', $pendingToken));
-            }
+        // Invalidate API pending token immediately (single-use, anti-replay)
+        if ($request->expectsJson() && !empty($usedPendingToken)) {
+            app(TwoFactorPendingToken::class)->consume($usedPendingToken);
         }
 
         $context = AuthenticationContext::fromRequest(

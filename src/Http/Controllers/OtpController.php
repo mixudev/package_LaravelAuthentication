@@ -28,6 +28,7 @@ use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
+use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
 class OtpController extends Controller
 {
@@ -79,8 +80,10 @@ class OtpController extends Controller
             return redirect()->route('otp.verify.form', ['identifier' => $identifier])
                 ->with('status', 'If an account exists with that identifier, a verification code has been dispatched.');
         } catch (AuthenticationException $e) {
+            // Jangan bocorkan detail internal exception ke user.
+            // Pesan generik untuk mencegah user enumeration & info disclosure.
             throw ValidationException::withMessages([
-                'identifier' => [$e->getMessage()],
+                'identifier' => ['Unable to send an OTP code right now. Please try again later.'],
             ]);
         }
     }
@@ -152,11 +155,12 @@ class OtpController extends Controller
                 ->with('status', 'Authentication successful.');
         } catch (AccountLockedException $e) {
             throw ValidationException::withMessages([
-                'identifier' => [$e->getMessage()],
+                'identifier' => ['Your account has been temporarily locked for security reasons. Please try again later.'],
             ]);
         } catch (InvalidCredentialsException|AuthenticationException $e) {
+            // Jangan bocorkan detail internal exception ke user.
             throw ValidationException::withMessages([
-                'code' => [$e->getMessage()],
+                'code' => ['The provided OTP code is incorrect or has expired.'],
             ]);
         }
     }
@@ -184,9 +188,11 @@ class OtpController extends Controller
                 'message' => 'If an account exists with that identifier, a verification code has been dispatched.',
             ]);
         } catch (AuthenticationException $e) {
+            // Jangan bocorkan detail internal (mis. "OTP was recently requested") —
+            // pesan ini bisa dipakai attacker untuk mengkonfirmasi identifier valid.
             return response()->json([
                 'status'  => 'error',
-                'message' => $e->getMessage(),
+                'message' => 'Unable to send an OTP code right now. Please try again later.',
             ], 429);
         }
     }
@@ -229,9 +235,7 @@ class OtpController extends Controller
             if ($this->twoFactorService->isEnabledFor($user)) {
                 $isDeviceTrusted = $this->deviceTrustService->isTrusted($user, $request);
                 if (!$isDeviceTrusted) {
-                    $pendingToken = \Illuminate\Support\Str::random(64);
-                    $cacheKey     = '2fa.pending.' . hash('sha256', $pendingToken);
-                    $this->cache->put($cacheKey, $user->getAuthIdentifier(), now()->addMinutes(10));
+                    $pendingToken = app(TwoFactorPendingToken::class)->issue($user->getAuthIdentifier());
 
                     return response()->json([
                         'status'              => 'two_factor_required',
@@ -257,9 +261,10 @@ class OtpController extends Controller
                 'message' => 'The provided OTP code is incorrect or has expired.',
             ], 401);
         } catch (AuthenticationException $e) {
+            // Jangan bocorkan detail internal exception ke client.
             return response()->json([
                 'status'  => 'error',
-                'message' => $e->getMessage(),
+                'message' => 'Unable to verify the OTP code right now. Please request a new code and try again.',
             ], 422);
         }
     }

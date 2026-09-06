@@ -149,6 +149,7 @@ return [
     'passkey_registered'      => 'Passkey registered successfully.',
     'passkey_deleted'         => 'Passkey deleted successfully.',
     'passkey_failed'          => 'Passkey authentication failed or cancelled.',
+    'passkey_registration_failed' => 'Unable to register this passkey. Please try again or use a different authenticator.',
     'passkey_not_supported'   => 'Passkeys are not supported on this browser or device.',
     'passkey_none_registered' => 'No passkeys found for this account. Please log in with your password.',
 

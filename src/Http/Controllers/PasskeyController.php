@@ -55,7 +55,8 @@ class PasskeyController extends Controller
         } catch (AccountLockedException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => $e->getMessage(),
+                // Jangan bocorkan detail lockout — cukup pesan standar.
+                'message' => 'Your account has been temporarily locked for security reasons. Please try again later.',
             ], 423);
         } catch (InvalidCredentialsException $e) {
             return response()->json([
@@ -65,7 +66,8 @@ class PasskeyController extends Controller
         } catch (AuthenticationException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => $e->getMessage(),
+                // Jangan bocorkan internal WebAuthn helper messages (rpIdHash mismatch, origin, dll).
+                'message' => __('authentication::messages.passkey_failed'),
             ], 400);
         }
     }
@@ -115,7 +117,8 @@ class PasskeyController extends Controller
         } catch (AuthenticationException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => $e->getMessage(),
+                // Jangan bocorkan internal WebAuthn helper messages ke client.
+                'message' => __('authentication::messages.passkey_registration_failed'),
             ], 422);
         }
     }

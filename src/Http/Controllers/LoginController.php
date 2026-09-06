@@ -10,7 +10,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
@@ -20,6 +19,7 @@ use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
 use Vendor\LaravelAuthentication\Http\Requests\LoginRequest;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
+use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
 class LoginController extends Controller
 {
@@ -93,9 +93,8 @@ class LoginController extends Controller
             // BP-01 FIX: Ganti user_id langsung dengan opaque pending_token ber-TTL pendek.
             // Token ini disimpan di cache dan divalidasi oleh TwoFactorChallengeController.
             // Attacker tidak dapat menyuntikkan user_id sembarangan ke endpoint 2FA verify.
-            $pendingToken = Str::random(64);
-            $cacheKey     = '2fa.pending.' . hash('sha256', $pendingToken);
-            $this->cache->put($cacheKey, $e->user->getAuthIdentifier(), now()->addMinutes(10));
+            $pendingTokenService = app(TwoFactorPendingToken::class);
+            $pendingToken = $pendingTokenService->issue($e->user->getAuthIdentifier());
 
             return response()->json([
                 'status'              => 'two_factor_required',
