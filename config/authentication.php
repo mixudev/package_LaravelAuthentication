@@ -345,12 +345,14 @@ return [
         'web' => [
             'enabled'    => true,
             'prefix'     => '',
-            'middleware' => ['web'],
+            // EnsureSessionSecurity menambahkan security headers (nosniff,
+            // X-Frame-Options, Referrer-Policy) ke semua halaman auth package.
+            'middleware' => ['web', 'authentication.session-security'],
         ],
         'api' => [
             'enabled'    => true,
             'prefix'     => 'api/v1/auth',
-            'middleware' => ['api'],
+            'middleware' => ['api', 'authentication.session-security'],
         ],
     ],
 

@@ -232,6 +232,13 @@ class AuthenticationServiceProvider extends ServiceProvider
             );
         }
 
+        // Register middleware aliases so host apps can attach package guards
+        // (e.g. ->middleware(['auth:authentication.web']) or in routes config).
+        $router = $this->app->make('router');
+        $router->aliasMiddleware('authentication.lockout', \Vendor\LaravelAuthentication\Http\Middleware\CheckAccountLockout::class);
+        $router->aliasMiddleware('authentication.session-security', \Vendor\LaravelAuthentication\Http\Middleware\EnsureSessionSecurity::class);
+        $router->aliasMiddleware('authentication.guard', \Vendor\LaravelAuthentication\Http\Middleware\AuthenticateWithCustomGuard::class);
+
         // Register package routes
         $this->registerRoutes();
     }
