@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Services\Password;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\Eloquent\Model;
 use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
+use Vendor\LaravelAuthentication\Events\PasswordChanged;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
@@ -20,7 +22,8 @@ class PasswordService
     public function __construct(
         private readonly Hasher $hasher,
         private readonly PasswordHistoryRepositoryInterface $historyRepo,
-        private readonly AuthenticationConfig $config
+        private readonly AuthenticationConfig $config,
+        private readonly Dispatcher $events
     ) {}
 
     public function hashPassword(#[SensitiveParameter] string $plainPassword): string
@@ -48,5 +51,7 @@ class PasswordService
         if ($this->config->isPasswordHistoryEnabled()) {
             $this->historyRepo->recordPassword($user, $hash);
         }
+
+        $this->events->dispatch(new PasswordChanged($user));
     }
 }

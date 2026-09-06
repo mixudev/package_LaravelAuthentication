@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\Events;
 
+use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 
@@ -13,7 +14,7 @@ use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
  */
 class LoginAttempted
 {
-    use SerializesModels;
+    use Dispatchable, SerializesModels;
 
     public function __construct(
         public readonly string $identifier,

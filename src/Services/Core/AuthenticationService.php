@@ -219,7 +219,7 @@ class AuthenticationService implements AuthenticationServiceInterface
         $strategyName = $data->strategy ?: $this->config->getDefaultStrategy();
 
         if (!$this->strategyRegistry->has($strategyName)) {
-            throw new InvalidStrategyException("The requested authentication strategy [{$strategyName}] is not registered.");
+            throw new InvalidStrategyException('The requested authentication strategy is not supported.');
         }
 
         return $this->strategyRegistry->get($strategyName);

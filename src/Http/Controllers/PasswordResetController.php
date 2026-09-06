@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Http\Controllers;
 
 use Illuminate\Contracts\Auth\PasswordBroker;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -14,12 +15,15 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
 use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
+use Vendor\LaravelAuthentication\Events\PasswordResetCompleted;
+use Vendor\LaravelAuthentication\Events\PasswordResetRequested;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 
 class PasswordResetController extends Controller
 {
     public function __construct(
-        protected readonly PasswordService $passwordService
+        protected readonly PasswordService $passwordService,
+        protected readonly Dispatcher $events
     ) {}
 
     public function showLinkRequestForm(): View|JsonResponse
@@ -46,7 +50,13 @@ class PasswordResetController extends Controller
         // Intentionally discard the broker status result.
         // We ALWAYS return the same generic success message to prevent user enumeration
         // (an attacker must not learn whether the submitted email exists in the database).
-        Password::broker()->sendResetLink($request->only('email'));
+        $status = Password::broker()->sendResetLink($request->only('email'));
+
+        // Dispatch event regardless of status (user enumeration: no difference in response)
+        $this->events->dispatch(new PasswordResetRequested(
+            (string) $request->input('email', ''),
+            \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+        ));
 
         // Normalize timing to prevent timing-based enumeration attacks
         usleep(random_int(50_000, 150_000));
@@ -92,8 +102,12 @@ class PasswordResetController extends Controller
 
         $status = Password::broker()->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
+            function ($user, $password) use ($request) {
                 $this->passwordService->updatePassword($user, $password);
+                $this->events->dispatch(new PasswordResetCompleted(
+                    $user,
+                    \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+                ));
             }
         );
 
@@ -113,6 +127,11 @@ class PasswordResetController extends Controller
 
         // SEC-02 FIX: Timing normalization identical to web endpoint to prevent user enumeration
         Password::broker()->sendResetLink($request->only('email'));
+
+        $this->events->dispatch(new PasswordResetRequested(
+            (string) $request->input('email', ''),
+            \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+        ));
 
         // Normalize timing to prevent timing-based enumeration attacks (match web endpoint)
         usleep(random_int(50_000, 150_000));
@@ -135,8 +154,12 @@ class PasswordResetController extends Controller
 
         $status = Password::broker()->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
+            function ($user, $password) use ($request) {
                 $this->passwordService->updatePassword($user, $password);
+                $this->events->dispatch(new PasswordResetCompleted(
+                    $user,
+                    \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+                ));
             }
         );
 

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\Http\Controllers;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
+use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\Events\SessionRevoked;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Services\Passkey\PasskeyService;
 use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
@@ -21,7 +24,8 @@ class SessionController extends Controller
 {
     public function __construct(
         private readonly SessionManagerService $sessionManager,
-        private readonly AuthenticationConfig $config
+        private readonly AuthenticationConfig $config,
+        private readonly Dispatcher $events
     ) {}
 
     public function index(Request $request): HttpResponse|JsonResponse
@@ -87,6 +91,12 @@ class SessionController extends Controller
         }
 
         $this->sessionManager->revokeSession($user, $sessionId);
+
+        $this->events->dispatch(new SessionRevoked(
+            $user,
+            AuthenticationContext::fromRequest($request),
+            $sessionId
+        ));
 
         if ($request->expectsJson()) {
             return response()->json([
