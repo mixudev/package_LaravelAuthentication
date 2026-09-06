@@ -23,7 +23,7 @@ use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Models\PasskeyCredential;
-use Vendor\LaravelAuthentication\Services\Core\TokenService;
+use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
 use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
 use Vendor\LaravelAuthentication\Services\Session\NewDeviceDetectionService;
@@ -45,7 +45,7 @@ class PasskeyService
         private readonly AuthFactory $auth,
         private readonly AccountLockService $lockService,
         private readonly SessionSecurityService $sessionSecurity,
-        private readonly TokenService $tokenService,
+        private readonly TokenManagerInterface $tokenService,
         private readonly AuthenticationAuditService $auditService,
         private readonly NewDeviceDetectionService $newDeviceService,
         private readonly AuthenticationConfig $config

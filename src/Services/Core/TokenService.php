@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Services\Core;
 
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Support\Str;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException;
 
 /**
  * Manages API bearer tokens with Laravel Sanctum or fallback token generation.
@@ -22,8 +22,13 @@ class TokenService implements TokenManagerInterface
             return $tokenResult->plainTextToken ?? (string) $tokenResult;
         }
 
-        // Fallback cryptographically secure random token
-        return Str::random(64);
+        // Fail-closed: tanpa Sanctum, package TIDAK boleh mengembalikan token dummy
+        // yang tidak pernah di-persist — client akan menerima "token sukses" yang
+        // langsung invalid (broken contract) dan tidak bisa di-revoke.
+        // Host app HARUS memasang laravel/sanctum untuk fitur API token.
+        throw new AuthenticationConfigurationException(
+            'API token generation requires laravel/sanctum. Install it and add the HasApiTokens trait to your user model, or disable API authentication.'
+        );
     }
 
     public function revokeAllTokens(Authenticatable $user): void

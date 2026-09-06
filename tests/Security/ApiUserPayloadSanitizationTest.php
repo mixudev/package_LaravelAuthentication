@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Tests\Security;
 
 use Illuminate\Support\Facades\Hash;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
+use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\DTO\LoginData;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
@@ -21,6 +22,23 @@ use Vendor\LaravelAuthentication\Tests\TestCase;
  */
 class ApiUserPayloadSanitizationTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Test ini fokus pada sanitasi payload — bind token fake supaya
+        // API login/OTP tidak butuh Sanctum (fixture User tanpa HasApiTokens).
+        $this->app->instance(TokenManagerInterface::class, new class implements TokenManagerInterface {
+            public function createToken($user, string $tokenName = 'auth_token', array $abilities = ['*']): string
+            {
+                return 'fake_token_' . $user->getAuthIdentifier();
+            }
+
+            public function revokeAllTokens($user): void {}
+
+            public function revokeCurrentToken($user): void {}
+        });
+    }
     public function test_safe_user_presenter_exposes_only_whitelisted_fields(): void
     {
         $user = User::create([

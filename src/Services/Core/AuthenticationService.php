@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Contracts\Events\Dispatcher;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationStrategyInterface;
+use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\DTO\AuthenticationResult;
 use Vendor\LaravelAuthentication\DTO\LoginData;
@@ -53,7 +54,7 @@ class AuthenticationService implements AuthenticationServiceInterface
         private readonly LoginAttemptManager $attemptManager,
         private readonly AccountLockService $lockService,
         private readonly SessionSecurityService $sessionSecurity,
-        private readonly TokenService $tokenService,
+        private readonly TokenManagerInterface $tokenService,
         private readonly AuthenticationAuditService $auditService,
         private readonly TwoFactorService $twoFactorService,
         private readonly DeviceTrustService $deviceTrustService,
