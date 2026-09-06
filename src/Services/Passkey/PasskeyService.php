@@ -250,7 +250,9 @@ class PasskeyService
                 $this->getRelyingPartyId()
             );
         } catch (AuthenticationException $e) {
-            throw new InvalidCredentialsException($e->getMessage());
+            // SA-15: jangan sebarkan detail WebAuthn (origin/rpIdHash/ceremony) ke pemanggil.
+            report($e);
+            throw new InvalidCredentialsException();
         }
 
         // 2. Validate authenticatorData (rpIdHash, UP, UV)
@@ -264,7 +266,9 @@ class PasskeyService
                 $uvPolicy
             );
         } catch (AuthenticationException $e) {
-            throw new InvalidCredentialsException($e->getMessage());
+            // SA-15: jangan sebarkan detail WebAuthn (rpIdHash/UV) ke pemanggil.
+            report($e);
+            throw new InvalidCredentialsException();
         }
 
         // 3. Locate credential and associated user
@@ -326,7 +330,7 @@ class PasskeyService
             $this->sessionSecurity->loginUser($guard, $user, true, request());
         }
 
-        if ($context->channel->value === 'api' || request()->is('api/*')) {
+        if ($context->channel->value === 'api') {
             $token = $this->tokenService->createToken($user);
         }
 

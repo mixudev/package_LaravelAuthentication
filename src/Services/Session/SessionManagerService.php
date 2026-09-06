@@ -180,4 +180,62 @@ class SessionManagerService
             'other_sessions_count' => $otherCount,
         ];
     }
+
+    /**
+     * Enforce the configured maximum number of active sessions.
+     *
+     * When a user already has more active sessions than
+     * `features.session_management.max_active_sessions` allows, the OLDEST
+     * sessions (by last_activity) are revoked — never the current one.
+     *
+     * Previously (SA-28): config + getter existed but nothing enforced the
+     * limit — the "max active sessions" feature was silently disconnected.
+     *
+     * @return int number of revoked (pruned) sessions
+     */
+    public function enforceMaxActiveSessions(Authenticatable $user, ?string $currentSessionId = null): int
+    {
+        if (!$this->config->isSessionManagementEnabled()) {
+            return 0;
+        }
+
+        $maxSessions = $this->config->getMaxActiveSessions();
+
+        if ($maxSessions < 1) {
+            return 0;
+        }
+
+        $sessionDriver = config('session.driver');
+
+        if ($sessionDriver === 'database') {
+            $tableName = config('session.table', 'sessions');
+            $userId = $user->getAuthIdentifier();
+
+            if (!DB::getSchemaBuilder()->hasTable($tableName)) {
+                return 0;
+            }
+
+            $total = DB::table($tableName)
+                ->where('user_id', $userId)
+                ->count();
+
+            $excess = $total - $maxSessions;
+
+            if ($excess <= 0) {
+                return 0;
+            }
+
+            // Revoke oldest sessions first, preserving the current one.
+            return DB::table($tableName)
+                ->where('user_id', $userId)
+                ->when($currentSessionId !== null, fn ($q) => $q->where('id', '!=', $currentSessionId))
+                ->orderBy('last_activity', 'asc')
+                ->limit($excess)
+                ->delete();
+        }
+
+        // Non-database session driver: nothing to prune (devices are not
+        // 1:1 with active sessions). Feature is a no-op there.
+        return 0;
+    }
 }

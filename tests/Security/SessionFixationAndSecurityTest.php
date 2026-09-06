@@ -22,7 +22,7 @@ class SessionFixationAndSecurityTest extends TestCase
         $request = Request::create('/login', 'POST');
         $request->setLaravelSession($session);
 
-        $service = new SessionSecurityService();
+        $service = app(SessionSecurityService::class);
         $service->regenerate($request);
 
         $this->assertNotEquals($initialId, $request->session()->getId());

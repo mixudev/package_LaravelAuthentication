@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SA-25 — Dead code dihapus & fitur diwiring**: hapus 4 file tak ber-referensi (`Enums/LoginMethod.php`, `Contracts/IdentityResolverInterface.php`, `Contracts/SecurityPolicyInterface.php`, `Providers/AuthenticationRouteServiceProvider.php`). `RequirePasswordConfirmation` kini ter-register sebagai alias `authentication.password-confirm` (sebelumnya tidak bisa dipasang host app).
 - **SA-26 — Interface injection menyeluruh**: 6 service (`AuthenticationService`, `RegistrationService`, `OtpService`, `PasskeyService`, `SocialAuthService`, `SessionController`) inject `AuditLoggerInterface` dan `LoginAttemptManagerInterface` alih-alih implementasi konkret — binding container kini benar-benar terpakai. `AuditLoggerInterface::getRecentLogins()` ditambahkan ke kontrak. `ServiceProviderTest` kini assert semua 11 binding kontrak resolve.
 - **SA-27 — Config keys mati ditandai @deprecated**: `audit.retention_days`, `ui.brand_badge`, `views.otp_email` (pakai `features.otp.email_view`), `password.validation_rules.require_mixed_case` (pakai `require_uppercase`+`require_lowercase`) — tidak dibaca kode mana pun; ditandai di config, tidak dihapus demi backward-compat.
+- **SA-28 — Max active sessions kini di-enforce**: config `max_active_sessions` ada tapi tidak pernah ditegakkan — user bisa punya sesi aktif tak terbatas. `SessionManagerService::enforceMaxActiveSessions()` memangkas sesi tertua saat login melebihi limit (current session tidak pernah dihapus). Dipanggil dari `SessionSecurityService::loginUser()`.
+- **SA-29 — Passkey service tidak lagi bocorkan detail WebAuthn**: `PasskeyService::authenticate` re-throw `$e->getMessage()` dari `WebAuthnHelper` (detail origin/rpIdHash/UV) → sekarang `report($e)` + exception generik. Redundan `request()->is('api/*')` dihapus (channel dari `$context`).
 
 ### Tests (Red-Team)
 
@@ -37,8 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | `PasskeyRateLimitTest` (2 test): loginOptions kena 429 melewati limit; normal sebelum limit.
 - `PasswordConfirmMiddlewareTest` (3 test): alias middleware resolve; aksi tanpa konfirmasi → 423; dengan konfirmasi → 200.
 - `ServiceProviderTest` (3 test): semua 11 kontrak binding resolve + audit logger ter-bind ke concrete.
+- `TrustedDevicePipelineTest` (3 test): tanpa cookie trust → 2FA required; cookie valid → login langsung; cookie di-revoke → 2FA lagi.
+- `MaxActiveSessionsEnforcementTest` (4 test): over-limit memangkas sesi tertua; at-limit no-op; current session tidak pernah dihapus; feature disabled no-op.
 
-Total: 138 tests, 381 assertions, PHPStan level 8 bersih.
+Total: 148 tests, 397 assertions, PHPStan level 8 bersih.
 
 ## [1.6.1] - 2026-09-06
 
