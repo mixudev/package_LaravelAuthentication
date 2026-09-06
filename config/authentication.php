@@ -339,7 +339,7 @@ return [
         'enabled'        => true,
         'driver'         => 'database', // 'database', 'log', atau 'null'
         'log_channel'    => 'stack',
-        'retention_days' => 90, // @deprecated key belum dipakai — pruning log belum di-implement
+        'retention_days' => 90, // Konsumen: php artisan authentication:prune (hapus attempts/login_histories/password_histories lebih tua dari N hari)
     ],
 
     // Listener bawaan package untuk menulis audit trail ke log (opsional).

@@ -184,6 +184,7 @@ class AuthenticationServiceProvider extends ServiceProvider
             $this->commands([
                 \Vendor\LaravelAuthentication\Console\InstallCommand::class,
                 \Vendor\LaravelAuthentication\Console\InstallModuleCommand::class,
+                \Vendor\LaravelAuthentication\Console\Commands\PruneAuditLogsCommand::class,
             ]);
         }
 

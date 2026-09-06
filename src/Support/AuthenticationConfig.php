@@ -304,6 +304,12 @@ final class AuthenticationConfig
         return (string) $this->config->get('authentication.features.two_factor.trust_device.cookie_name', 'auth_trusted_device');
     }
 
+    // Audit retention
+    public function getAuditRetentionDays(): int
+    {
+        return (int) $this->config->get('authentication.audit.retention_days', 90);
+    }
+
     // Confirm Password
     public function isConfirmPasswordEnabled(): bool
     {
