@@ -11,11 +11,17 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\EmailVerified;
 
 class EmailVerificationController extends Controller
 {
+    public function __construct(
+        private readonly AuditLoggerInterface $auditService
+    ) {}
+
     public function notice(): View|JsonResponse
     {
         if (view()->exists('authentication::verify-email')) {
@@ -61,6 +67,12 @@ class EmailVerificationController extends Controller
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
             event(new EmailVerified($user, AuthenticationContext::fromRequest($request)));
+
+            $this->auditService->logEvent(
+                SecurityEventType::EMAIL_VERIFIED,
+                (string) $user->getAuthIdentifier(),
+                AuthenticationContext::fromRequest($request)
+            );
         }
 
         return $request->expectsJson()

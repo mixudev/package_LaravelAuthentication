@@ -44,7 +44,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MaxActiveSessionsEnforcementTest` (4 test): over-limit memangkas sesi tertua; at-limit no-op; current session tidak pernah dihapus; feature disabled no-op.
 - `PruneAuditLogsCommandTest` (3 test): hapus data tua > retensi; dry-run no-op; `--days` override menang atas config.
 
-Total: 148 tests, 413 assertions, PHPStan level 8 bersih.
+Total: 151 tests, 417 assertions, PHPStan level 8 bersih.
+
+## [1.7.3] - 2026-09-06
+
+### Security (Red-Team lanjutan — SA-31)
+
+- **SA-31 — Audit trail tidak lengkap (nilai enum diam)**: `SecurityEventType` punya 18 kasus tapi hanya 6 yang pernah ditulis ke trail audit — `PASSWORD_CHANGED`, `EMAIL_VERIFIED`, `ACCOUNT_LOCKED`, dll. defined tapi tanpa konsumen; event ter-dispatch namun audit DB (rekam forensik) melewatkan momen siklus hidup ini.
+- **Fix**: audit logging di-wire ke 3 jalur siklus hidup yang sama sekali tidak punya konsumen:
+  - `PasswordService::updatePassword` → log `PASSWORD_CHANGED` (context null-safe untuk CLI/queue — `request()` bisa null).
+  - `EmailVerificationController::verify` → log `EMAIL_VERIFIED`.
+  - `AccountLockService::recordFailureAndCheckLockout` → log `ACCOUNT_LOCKED` (sebelumnya hanya dispatch event, tidak pernah di-audit).
+  - Semua lewat kontrak `AuditLoggerInterface` (SA-26); redaksi identifier tetap (`SecurityHelper::maskIdentifier`).
+- `AuditTrailCompletenessTest` (3 test): trail DB merekam `PASSWORD_CHANGED` dan `ACCOUNT_LOCKED`; kontrak logger resolve dari container.
+- Sisa kasus senyap (`PASSWORD_RESET_*`, `SESSION_REVOKED`, `TOKEN_REVOKED`, `OTP_*`, `USER_REGISTERED`, `SOCIAL_LOGIN`, `ACCOUNT_UNLOCKED`) sudah di-cover oleh listener event saat `default_audit_enabled=true` — fix ini menutup jalur yang TIDAK punya audit write sama sekali.
 
 ## [1.6.1] - 2026-09-06
 

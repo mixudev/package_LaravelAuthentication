@@ -6,7 +6,9 @@ namespace Vendor\LaravelAuthentication\Services\Security;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\AccountLocked;
 use Vendor\LaravelAuthentication\Models\AccountLockout;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
@@ -22,7 +24,8 @@ class AccountLockService
 {
     public function __construct(
         private readonly Dispatcher $events,
-        private readonly AuthenticationConfig $config
+        private readonly AuthenticationConfig $config,
+        private readonly AuditLoggerInterface $auditService
     ) {}
 
     public function isLocked(Authenticatable $user): bool
@@ -59,6 +62,13 @@ class AccountLockService
             $record->save();
 
             $this->events->dispatch(new AccountLocked($user, $context, $lockoutMinutes));
+
+            $this->auditService->logEvent(
+                SecurityEventType::ACCOUNT_LOCKED,
+                (string) $user->getAuthIdentifier(),
+                $context
+            );
+
             return true;
         }
 
