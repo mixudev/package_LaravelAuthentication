@@ -46,6 +46,12 @@ Package ini menyediakan arsitektur autentikasi modular, portabel, enterprise-gra
    - Cara membuat strategi autentikasi kustom (NIP, Nomor HP, RFID, SSO)
    - Event listening & penanganan payload
 
+5b. [**Events & Listeners**](events-and-listeners.md)
+   - Katalog lengkap 15 domain events (login, 2FA, OTP, passkey, session, password)
+   - Cara daftarkan listener di host app (EventServiceProvider / manual / queue)
+   - Payload redaction & larangan write password ke log
+   - Listener default bawaan package (`SecurityAuditEventListener`, opt-in)
+
 6. [**Referensi REST API (API Reference)**](api-reference.md)
    - Katalog lengkap endpoint API JSON (`/api/v1/auth/*`)
    - Passkey endpoints, 2FA Challenge, Session Management, dan Confirm Password
