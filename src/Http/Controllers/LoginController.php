@@ -19,6 +19,7 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
 use Vendor\LaravelAuthentication\Http\Requests\LoginRequest;
+use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 
 class LoginController extends Controller
 {
@@ -85,7 +86,8 @@ class LoginController extends Controller
                 'status'  => 'success',
                 'message' => 'Authenticated successfully.',
                 'token'   => $result->token,
-                'user'    => $result->user,
+                // SEC-03: safe user payload — jangan expose Eloquent model mentah.
+                'user'    => SafeUserPresenter::present($result->user),
             ]);
         } catch (TwoFactorChallengeRequiredException $e) {
             // BP-01 FIX: Ganti user_id langsung dengan opaque pending_token ber-TTL pendek.

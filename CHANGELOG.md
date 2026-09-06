@@ -5,6 +5,18 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-09-06
+
+### Security (SEC-03 extension — API User Payload Sanitization)
+- **Kebocoran hash password di response JSON**: 5 endpoint API mengembalikan Eloquent model mentah (`$user` / `$result->user`) yang menserialize SELURUH kolom termasuk `password` hash, `remember_token`, `created_at`, dan atribut internal lain:
+  - `LoginController::apiLogin`
+  - `PasskeyController::authenticate`
+  - `TwoFactorChallengeController::verify`
+  - `OtpController::verify`
+  - `SocialAuthController::handleProviderCallback`
+- **Fix**: Ditambahkan `Support\SafeUserPresenter` — presenter whitelist yang hanya mengekspos `id`, `name`, `email`, `username`. Semua 5 endpoint kini memakai presenter ini.
+- Test baru: `tests/Security/ApiUserPayloadSanitizationTest` (4 test) — memverifikasi presenter whitelist, login API tidak mengandung hash password di response, OTP verify API tidak mengandung hash, dan presenter menangani field `name`/`username` nullable.
+
 ## [1.6.0] - 2026-09-06
 
 ### Added

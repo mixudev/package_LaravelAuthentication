@@ -14,6 +14,7 @@ use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Services\Passkey\PasskeyService;
+use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 
 class PasskeyController extends Controller
 {
@@ -48,7 +49,8 @@ class PasskeyController extends Controller
                 'message'  => __('authentication::messages.sign_in_btn'),
                 'redirect' => config('authentication.redirects.login', '/dashboard'),
                 'token'    => $result->token,
-                'user'     => $result->user,
+                // SEC-03: safe user payload — jangan expose Eloquent model mentah.
+                'user'     => SafeUserPresenter::present($result->user),
             ]);
         } catch (AccountLockedException $e) {
             return response()->json([

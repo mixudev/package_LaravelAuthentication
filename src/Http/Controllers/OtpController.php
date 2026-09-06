@@ -27,6 +27,7 @@ use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 
 class OtpController extends Controller
 {
@@ -247,7 +248,8 @@ class OtpController extends Controller
                 'status'  => 'success',
                 'message' => 'OTP verified successfully.',
                 'token'   => $token,
-                'user'    => $user,
+                // SEC-03: safe user payload — jangan expose Eloquent model mentah (hash password dll).
+                'user'    => SafeUserPresenter::present($user),
             ]);
         } catch (InvalidCredentialsException $e) {
             return response()->json([

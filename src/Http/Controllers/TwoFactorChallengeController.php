@@ -22,6 +22,7 @@ use Vendor\LaravelAuthentication\Services\Session\NewDeviceDetectionService;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 
 class TwoFactorChallengeController extends Controller
 {
@@ -173,7 +174,8 @@ class TwoFactorChallengeController extends Controller
             ? response()->json([
                 'message' => 'Two-factor authentication successful.',
                 'token'   => $token,
-                'user'    => $user,
+                // SEC-03: Jangan kembalikan Eloquent model mentah — bocorkan hash password & kolom internal.
+                'user'    => SafeUserPresenter::present($user),
             ])
             : redirect()->intended($this->config->getRedirect('two_factor', '/dashboard'));
 
