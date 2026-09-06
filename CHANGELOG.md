@@ -15,13 +15,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SA-18 — Middleware mati dihidupkan**: `EnsureSessionSecurity`, `CheckAccountLockout`, `AuthenticateWithCustomGuard` sebelumnya dead code (tidak ter-register). Kini alias `authentication.session-security`, `authentication.lockout`, `authentication.guard`. `authentication.session-security` otomatis terpasang di route web + api package — semua halaman auth kini kirim `X-Frame-Options`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`.
 - **SA-19 — Catatan timing recovery code**: ditinjau, tidak eksploitable karena rate limit composite.
 
+### Security (Red-Team Sweep lanjutan — SA-20..SA-24)
+
+- **SA-20 — Brute force `sessions/revoke-others` diblokir**: endpoint password-gated tanpa rate limit → sekarang share limiter `confirm_password` (5/1min, user+IP), hit saat password salah, clear saat sukses.
+- **SA-21 — Brute force setup 2FA diblokir**: `TwoFactorSetupController::confirm` (TOTP setup pra-aktivasi) dan `destroy` (disable butuh password) kini di-rate-limit — attacker tidak bisa brute TOTP setup atau password untuk mematikan 2FA.
+- **SA-22 — Passkey options cache-flood dicegah**: `loginOptions` menyimpan challenge 5 menit per request tanpa limit → feature rate limit baru `passkeys` (60/min per IP) dipasang.
+- **SA-23 — Registration DTO dibersihkan**: `RegisterRequest::toDto()` tidak lagi meneruskan semua field request ke `RegisterData::extra` — hanya `name`/`email`/`password`.
+- **SA-24 — Catatan rotasi secret 2FA setup**: `setup()` berulang pada record unconfirmed me-regenerate secret + recovery codes (bisa meng-orphan kode yang sudah disimpan user). Tidak eksploitable (butuh auth + rate limit), dicatat untuk hardening.
+
 ### Tests (Red-Team)
 
 - `TwoFactorPendingTokenTest` (8 test): opacity token, single-use, replay gagal, TTL config, cache-key hashing, collision.
 - `TokenServiceFailClosedTest` (2 test): throw tanpa Sanctum; revoke no-op aman.
 - `SecurityHeadersTest` (3 test): headers keamanan di login/register/api routes.
+- `RegistrationInjectionTest` (3 test): extra-field injection tidak ter-persist; duplicate email ditolak.
+- `SessionRevokeOthersRateLimitTest` (2 test): brute-force password via revoke-others kena throttle; password benar sukses.
+- `TwoFactorSetupBruteForceTest` (2 test): TOTP setup confirm + disable 2FA kena throttle.
+- `PasskeyRateLimitTest` (2 test): loginOptions kena 429 melewati limit; normal sebelum limit.
 
-Total: 124 tests, 343 assertions, PHPStan level 8 bersih.
+Total: 133 tests, 368 assertions, PHPStan level 8 bersih.
 
 ## [1.6.1] - 2026-09-06
 

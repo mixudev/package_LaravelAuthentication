@@ -57,3 +57,13 @@ All security audit findings have been systematically resolved across all package
   - Host apps should attach `authentication.lockout` to their authenticated route groups.
 - **SA-19 (INFO) — TwoFactor Recovery Code Timing Note**:
   - Reviewed: bcrypt check vs legacy plaintext comparison in recovery-code loop is not exploitable due to composite rate limiting; noted for future hardening.
+- **SA-20 (MEDIUM) — Session Revoke-Others Brute Force**:
+  - `SessionController::destroyOthers` (password-gated) had no rate limit — attacker could brute-force passwords via this endpoint. Now shares the `confirm_password` limiter (5/1min per user+IP): hit on wrong password, clear on success.
+- **SA-21 (MEDIUM) — 2FA Setup Confirm/Disable Brute Force**:
+  - `TwoFactorSetupController::confirm` (TOTP setup, pre-activation) and `destroy` (password-gated disable) lacked rate limits. Both now use the `confirm_password` limiter — brute-forcing TOTP setup or passwords to disable 2FA is throttled.
+- **SA-22 (LOW) — Passkey Options Cache-Flood DoS**:
+  - `PasskeyController::loginOptions` stored a 5-minute cache challenge per request with no limit — a flood could fill the cache store. New `passkeys` rate limit feature (60/min per IP) applied to the endpoint.
+- **SA-23 (INFO) — Registration Extra-Field Passthrough**:
+  - `RegisterRequest::toDto()` forwarded every request field (minus password fields) into `RegisterData::extra`; `RegistrationService` ignores it but custom/host registration paths could mass-assign. DTO now carries only `name`/`email`/`password`.
+- **SA-24 (INFO) — 2FA Setup Secret Rotation**:
+  - Repeated `setup()` calls on an unconfirmed record regenerate the TOTP secret + recovery codes, invalidating codes a user may already have saved. Not exploitable (authenticated, rate-limited) but noted: refresh during setup can orphan earlier recovery codes.
