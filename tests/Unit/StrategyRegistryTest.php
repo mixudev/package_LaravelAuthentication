@@ -17,7 +17,7 @@ class StrategyRegistryTest extends BaseTestCase
         $container = new Container();
         $registry = new AuthenticationStrategyRegistry($container);
 
-        $mockStrategy = $this->createMock(AuthenticationStrategyInterface::class);
+        $mockStrategy = $this->createStub(AuthenticationStrategyInterface::class);
         $mockStrategy->method('name')->willReturn('mock_strategy');
 
         $registry->register('mock', $mockStrategy);

@@ -72,8 +72,7 @@ class RegisterRequest extends FormRequest
         return new RegisterData(
             name: (string) $this->input('name'),
             email: (string) $this->input('email'),
-            password: (string) $this->input('password'),
-            extra: $this->except(['password', 'password_confirmation'])
+            password: (string) $this->input('password')
         );
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
+use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Events\SessionRevoked;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
@@ -25,7 +26,8 @@ class SessionController extends Controller
     public function __construct(
         private readonly SessionManagerService $sessionManager,
         private readonly AuthenticationConfig $config,
-        private readonly Dispatcher $events
+        private readonly Dispatcher $events,
+        private readonly FeatureRateLimiterInterface $rateLimiter
     ) {}
 
     public function index(Request $request): HttpResponse|JsonResponse
@@ -120,14 +122,29 @@ class SessionController extends Controller
         }
 
         $currentSessionId = $request->hasSession() ? $request->session()->getId() : null;
+        $ip = (string) $request->ip();
+
+        // Rate limit: endpoint ini menerima password — tanpa limit, attacker bisa
+        // brute-force password via revoke-others (confirm_password punya rate limit,
+        // ini harus setara).
+        if ($this->rateLimiter->tooManyAttempts('confirm_password', (string) $user->getAuthIdentifier(), $ip)) {
+            $seconds = $this->rateLimiter->availableIn('confirm_password', (string) $user->getAuthIdentifier(), $ip);
+            throw ValidationException::withMessages([
+                'password' => [__('authentication::messages.throttle_error', ['seconds' => $seconds])],
+            ]);
+        }
 
         try {
             $this->sessionManager->revokeOtherSessions($user, (string) $request->input('password'), $currentSessionId);
         } catch (InvalidCredentialsException) {
+            $this->rateLimiter->hit('confirm_password', (string) $user->getAuthIdentifier(), $ip);
+
             throw ValidationException::withMessages([
                 'password' => [__('authentication::messages.invalid_password')],
             ]);
         }
+
+        $this->rateLimiter->clear('confirm_password', (string) $user->getAuthIdentifier(), $ip);
 
         if ($request->expectsJson()) {
             return response()->json([
