@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
@@ -19,7 +20,8 @@ use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 class PasskeyController extends Controller
 {
     public function __construct(
-        protected readonly PasskeyService $passkeyService
+        protected readonly PasskeyService $passkeyService,
+        protected readonly FeatureRateLimiterInterface $rateLimiter
     ) {}
 
     /**
@@ -27,6 +29,19 @@ class PasskeyController extends Controller
      */
     public function loginOptions(Request $request): JsonResponse
     {
+        $ip = (string) $request->ip();
+
+        // Rate limit per IP: tiap request menyimpan challenge di cache 5 menit —
+        // tanpa limit, attacker bisa membanjiri cache (DoS).
+        if ($this->rateLimiter->tooManyAttempts('passkeys', null, $ip)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Too many passkey requests. Please try again later.',
+            ], 429);
+        }
+
+        $this->rateLimiter->hit('passkeys', null, $ip);
+
         $identifier = $request->query('identifier') ?: $request->input('identifier');
         $options = $this->passkeyService->generateRequestOptions($identifier ? (string) $identifier : null);
 

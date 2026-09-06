@@ -169,6 +169,14 @@ return [
                 // mengunci per-user, sementara user valid di IP baru tidak diblokir total.
                 'strategy'      => 'composite',
             ],
+            'passkeys' => [
+                'enabled'       => true,
+                'max_attempts'  => 60,
+                'decay_minutes' => 1,
+                // Anti cache-flooding pada passkey loginOptions
+                // (challenge disimpan di cache 5 menit per request).
+                'strategy'      => 'ip',
+            ],
             'confirm_password' => [
                 'enabled'       => true,
                 'max_attempts'  => 5,
