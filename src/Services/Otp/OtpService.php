@@ -17,7 +17,7 @@ use Vendor\LaravelAuthentication\Events\OtpGenerated;
 use Vendor\LaravelAuthentication\Events\OtpVerified;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
-use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\Normalizers\EmailNormalizer;
 
@@ -30,7 +30,7 @@ class OtpService implements OtpServiceInterface
         private readonly CacheRepository $cache,
         private readonly Dispatcher $events,
         private readonly CredentialResolverInterface $resolver,
-        private readonly AuthenticationAuditService $auditService,
+        private readonly AuditLoggerInterface $auditService,
         private readonly AuthenticationConfig $config
     ) {}
 

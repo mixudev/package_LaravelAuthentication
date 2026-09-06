@@ -16,7 +16,7 @@ use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Events\SessionRevoked;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Services\Passkey\PasskeyService;
-use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
@@ -50,8 +50,8 @@ class SessionController extends Controller
         $passkeyService = app(PasskeyService::class);
         $passkeys = $passkeyService->getUserPasskeys($user);
 
-        /** @var AuthenticationAuditService $auditService */
-        $auditService = app(AuthenticationAuditService::class);
+        /** @var AuditLoggerInterface $auditService */
+                $auditService = app(AuditLoggerInterface::class);
         $recentLogins = $auditService->getRecentLogins($user, 5);
 
         if ($request->expectsJson()) {

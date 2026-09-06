@@ -27,8 +27,8 @@ use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidStrategyException;
 use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
 use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
-use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
-use Vendor\LaravelAuthentication\Services\Security\LoginAttemptManager;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
+use Vendor\LaravelAuthentication\Contracts\LoginAttemptManagerInterface;
 use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
 use Vendor\LaravelAuthentication\Services\Session\NewDeviceDetectionService;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
@@ -51,11 +51,11 @@ class AuthenticationService implements AuthenticationServiceInterface
         private readonly AuthFactory $auth,
         private readonly Dispatcher $events,
         private readonly AuthenticationStrategyRegistry $strategyRegistry,
-        private readonly LoginAttemptManager $attemptManager,
+        private readonly LoginAttemptManagerInterface $attemptManager,
         private readonly AccountLockService $lockService,
         private readonly SessionSecurityService $sessionSecurity,
         private readonly TokenManagerInterface $tokenService,
-        private readonly AuthenticationAuditService $auditService,
+        private readonly AuditLoggerInterface $auditService,
         private readonly TwoFactorService $twoFactorService,
         private readonly DeviceTrustService $deviceTrustService,
         private readonly NewDeviceDetectionService $newDeviceService,

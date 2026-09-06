@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SA-23 — Registration DTO dibersihkan**: `RegisterRequest::toDto()` tidak lagi meneruskan semua field request ke `RegisterData::extra` — hanya `name`/`email`/`password`.
 - **SA-24 — Catatan rotasi secret 2FA setup**: `setup()` berulang pada record unconfirmed me-regenerate secret + recovery codes (bisa meng-orphan kode yang sudah disimpan user). Tidak eksploitable (butuh auth + rate limit), dicatat untuk hardening.
 - **SA-25 — Dead code dihapus & fitur diwiring**: hapus 4 file tak ber-referensi (`Enums/LoginMethod.php`, `Contracts/IdentityResolverInterface.php`, `Contracts/SecurityPolicyInterface.php`, `Providers/AuthenticationRouteServiceProvider.php`). `RequirePasswordConfirmation` kini ter-register sebagai alias `authentication.password-confirm` (sebelumnya tidak bisa dipasang host app).
+- **SA-26 — Interface injection menyeluruh**: 6 service (`AuthenticationService`, `RegistrationService`, `OtpService`, `PasskeyService`, `SocialAuthService`, `SessionController`) inject `AuditLoggerInterface` dan `LoginAttemptManagerInterface` alih-alih implementasi konkret — binding container kini benar-benar terpakai. `AuditLoggerInterface::getRecentLogins()` ditambahkan ke kontrak. `ServiceProviderTest` kini assert semua 11 binding kontrak resolve.
+- **SA-27 — Config keys mati ditandai @deprecated**: `audit.retention_days`, `ui.brand_badge`, `views.otp_email` (pakai `features.otp.email_view`), `password.validation_rules.require_mixed_case` (pakai `require_uppercase`+`require_lowercase`) — tidak dibaca kode mana pun; ditandai di config, tidak dihapus demi backward-compat.
 
 ### Tests (Red-Team)
 
@@ -32,9 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RegistrationInjectionTest` (3 test): extra-field injection tidak ter-persist; duplicate email ditolak.
 - `SessionRevokeOthersRateLimitTest` (2 test): brute-force password via revoke-others kena throttle; password benar sukses.
 - `TwoFactorSetupBruteForceTest` (2 test): TOTP setup confirm + disable 2FA kena throttle.
-- `PasskeyRateLimitTest` (2 test): loginOptions kena 429 melewati limit; normal sebelum limit.
+| `PasskeyRateLimitTest` (2 test): loginOptions kena 429 melewati limit; normal sebelum limit.
+- `PasswordConfirmMiddlewareTest` (3 test): alias middleware resolve; aksi tanpa konfirmasi → 423; dengan konfirmasi → 200.
+- `ServiceProviderTest` (3 test): semua 11 kontrak binding resolve + audit logger ter-bind ke concrete.
 
-Total: 133 tests, 368 assertions, PHPStan level 8 bersih.
+Total: 138 tests, 381 assertions, PHPStan level 8 bersih.
 
 ## [1.6.1] - 2026-09-06
 

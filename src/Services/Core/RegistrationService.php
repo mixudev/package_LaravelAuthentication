@@ -15,7 +15,7 @@ use Vendor\LaravelAuthentication\DTO\RegisterData;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\UserRegistered;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
-use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 /**
@@ -27,7 +27,7 @@ class RegistrationService implements RegistrationServiceInterface
         private readonly Hasher $hasher,
         private readonly Dispatcher $events,
         private readonly AuthenticationConfig $config,
-        private readonly AuthenticationAuditService $auditService,
+        private readonly AuditLoggerInterface $auditService,
         private readonly PasswordHistoryRepositoryInterface $passwordHistoryRepo
     ) {}
 

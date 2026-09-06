@@ -19,7 +19,7 @@ use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
-use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 /**
@@ -31,7 +31,7 @@ class SocialAuthService implements SocialAuthServiceInterface
         private readonly CredentialResolverInterface $resolver,
         private readonly Dispatcher $events,
         private readonly Hasher $hasher,
-        private readonly AuthenticationAuditService $auditService,
+        private readonly AuditLoggerInterface $auditService,
         private readonly AuthenticationConfig $config,
         private readonly AccountLockService $lockService
     ) {}

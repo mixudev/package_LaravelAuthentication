@@ -105,7 +105,7 @@ return [
             'min_length'         => 8,     // Minimal jumlah karakter
             'require_uppercase'  => false,  // Wajib ada huruf besar
             'require_lowercase'  => false,  // Wajib ada huruf kecil
-            'require_mixed_case' => false,  // Wajib kombinasi besar & kecil
+            'require_mixed_case' => false,  // @deprecated gunakan require_uppercase + require_lowercase terpisah
             'require_numbers'    => false,  // Wajib ada angka
             'require_symbols'    => false,  // Wajib ada karakter spesial
             'symbols_charset'    => '@$!%*#?&_-+=[]{}|;:,.<>', // Karakter spesial yang diizinkan
@@ -339,7 +339,7 @@ return [
         'enabled'        => true,
         'driver'         => 'database', // 'database', 'log', atau 'null'
         'log_channel'    => 'stack',
-        'retention_days' => 90,
+        'retention_days' => 90, // @deprecated key belum dipakai — pruning log belum di-implement
     ],
 
     // Listener bawaan package untuk menulis audit trail ke log (opsional).
@@ -378,7 +378,7 @@ return [
         'reset_password'       => 'authentication::reset-password',
         'otp_request'          => 'authentication::otp-request',
         'otp_verify'           => 'authentication::otp-verify',
-        'otp_email'            => 'authentication::emails.otp',
+        'otp_email'            => 'authentication::emails.otp', // @deprecated gunakan features.otp.email_view
         'two_factor_challenge' => 'authentication::two-factor-challenge',
         'two_factor_setup'     => 'authentication::two-factor-setup',
         'confirm_password'     => 'authentication::confirm-password',
@@ -400,7 +400,7 @@ return [
 
         'brand_name'    => env('APP_NAME', 'Laravel'), // Ikut nama aplikasi host
         'brand_tagline' => 'Portal Autentikasi & Masuk Akun',
-        'brand_badge'   => null,
+        'brand_badge'   => null, // @deprecated key belum dipakai — brand pakai brand_name/logo_url/tagline
         'logo_url'      => null,
 
         // Pakai aset Vite dari aplikasi host (false = pakai CDN fallback)
