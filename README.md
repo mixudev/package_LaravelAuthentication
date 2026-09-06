@@ -135,15 +135,19 @@ return [
 
 Dokumentasi teknis mendalam telah disusun rapi di dalam direktori [`docs/`](docs/index.md):
 
-* [**1. Panduan Memulai & Instalasi**](docs/getting-started.md)
-* [**2. Mode Modul Mandiri (Single-Folder)**](docs/modular-installation.md)
-* [**3. Penjelasan Lengkap Fitur & Saklar Konfigurasi**](docs/features.md)
-* [**4. Panduan Kustomisasi Tampilan (Blade UI)**](docs/panduan-kustomisasi-view.md) / [English Guide](docs/views-customization.md)
-* [**5. Strategi Autentikasi & Cara Membuat Custom Strategy**](docs/strategies-and-extending.md)
-* [**6. Katalog Lengkap REST API JSON**](docs/api-reference.md)
-* [**7. Keamanan & Mitigasi Ancaman Siber**](docs/security-and-best-practices.md)
-* [**8. Daftar Kebutuhan Kunci API & Peta 49 Rute URL**](docs/prerequisites-and-checklist.md)
-* [**9. Panduan Rilis & Standar Versioning**](docs/publishing-guide.md)
+* [**1. Instalasi & Setup Lengkap**](docs/getting-started/installation.md) — composer → publish → migrate → Tailwind → verifikasi
+* [**2. Prerequisites & API Keys**](docs/getting-started/prerequisites.md) — kredensial CAPTCHA, OAuth, SMTP + checklist produksi
+* [**3. Mode Modul Mandiri (Single-Folder)**](docs/getting-started/modular-installation.md)
+* [**4. Penjelasan Lengkap Fitur & Saklar Konfigurasi**](docs/features/overview.md)
+* [**5. Passkey FIDO2 / WebAuthn**](docs/features/passkey.md)
+* [**6. Custom Controller Guide**](docs/development/custom-controller-guide.md)
+* [**7. Custom Authentication Strategies**](docs/development/custom-strategies.md)
+* [**8. Events & Listeners**](docs/development/events-and-listeners.md)
+* [**9. Kustomisasi Tampilan (Blade UI)**](docs/development/views-customization.md) / [Bahasa Indonesia](docs/development/views-customization-id.md)
+* [**10. Katalog Lengkap REST API + Sitemap 49 Rute**](docs/api/api-reference.md)
+* [**11. Keamanan & Mitigasi Ancaman Siber**](docs/security/architecture.md)
+* [**12. Hardening Notes (SA-01..SA-13)**](docs/security/hardening-notes.md)
+* [**13. Panduan Rilis & Standar Versioning**](docs/operations/publishing-guide.md)
 
 ---
 

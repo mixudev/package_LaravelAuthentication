@@ -5,6 +5,32 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-09-06
+
+### Added
+- **Event Dispatch Completeness**: `PasswordService::updatePassword()` kini mem-dispatch `PasswordChanged`; `PasswordResetController` mem-dispatch `PasswordResetRequested` (web & API, selalu dipicu walau email tidak terdaftar — anti user enumeration) dan `PasswordResetCompleted`; `SessionController::destroy()` mem-dispatch `SessionRevoked`.
+- **Optional Default Security Audit Listener**: `src/Listeners/SecurityAuditEventListener.php` menulis audit trail JSON terredaksi (IP, channel, user agent terpotong, tanpa password/hash) ke log channel yang dapat dikonfigurasi. Diaktifkan via `authentication.listeners.default_audit_enabled` (default `false` — opt-in; host app bebas mendaftarkan listener sendiri).
+- **Consistent `Dispatchable` Trait**: Semua event package kini menggunakan `Illuminate\Foundation\Events\Dispatchable` (sebelumnya hanya sebagian), memungkinkan dispatch facade-style dan konsistensi dengan framework events.
+- **Nullable `AuthenticationContext` pada Password Events**: `PasswordChanged` dan `PasswordResetCompleted` menerima `?AuthenticationContext` sehingga aman di-dispatch dari queue worker / CLI tanpa HTTP request.
+- **Dokumentasi Events & Listeners**: `docs/development/events-and-listeners.md` — katalog 15 domain events, cara mendaftarkan listener (EventServiceProvider / manual / queue), aturan redaction payload, contoh alert AccountLocked.
+
+### Fixed
+- **Strategy Name Disclosure (Security)**: Pesan `InvalidStrategyException` tidak lagi memuat nama strategi yang diminta — mencegah bocornya FQCN internal namespace package (`Vendor\LaravelAuthentication\Strategies\...`) ke attacker.
+
+### Security Tests (68 → 107 tests, 290 assertions)
+- **RateLimitingAndBruteForceTest**: IP rotation bypass, isolasi composite rate-limit key (IP A throttled, IP B tidak), uppercase identifier bypass, correct-password-setelah-lockout tetap diblokir, `secondsRemaining` pada throttle exception.
+- **SQLInjectionAndInputSanitizationTest**: 15 payload data provider (UNION, stacked query, null byte, CRLF injection, unicode lookalike, oversized 10K input, format string) + injeksi pada field password user nyata.
+- **UserEnumerationProtectionTest**: timing delta < 50ms (multi-sampel + warm-up), respon identik untuk case-sensitive email, whitespace-padded identifier.
+- **EventIntegrityTest**: urutan event (Attempted → Succeeded/Failed), payload event tidak mengandung password/hash saat di-serialize, `PasswordChanged` ter-dispatch, non-existent user tetap memicu `LoginFailed`.
+- **AnomalyAndEdgeCaseSecurityTest**: service disabled memblokir semua attempt, strategi FQCN injection ditolak, oversized user agent (64KB) tidak crash, 20 rapid sequential attempts tidak pernah sukses dengan password salah.
+
+### Documentation Restructure
+- Direktori `docs/` ditata ulang ke hierarki: `getting-started/`, `features/`, `development/`, `api/`, `security/`, `operations/`.
+- **`docs/getting-started/installation.md`** (baru): panduan end-to-end — composer require → setup otomatis/manual → publish config/migrasi/views → Tailwind → user model → verifikasi instalasi → langkah berikutnya.
+- `docs/getting-started/prerequisites.md` (baru): matriks kebutuhan layanan, cara mendapatkan API keys (Turnstile, Google/GitHub OAuth, SMTP), checklist produksi.
+- Sitemap 49 rute dipindah ke `docs/api/api-reference.md` sebagai lampiran.
+- README daftar dokumen diperbarui ke path baru.
+
 ## [1.5.9] - 2026-09-04
 
 ### Fixed

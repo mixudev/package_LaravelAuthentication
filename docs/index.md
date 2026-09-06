@@ -1,75 +1,105 @@
-# Laravel Authentication Package Documentation
+# Dokumentasi Laravel Authentication
 
-Selamat datang di pusat dokumentasi resmi **`mixudev/laravel-authentication`** (`Vendor\LaravelAuthentication\`).
-
-Package ini menyediakan arsitektur autentikasi modular, portabel, enterprise-grade, dan aman untuk aplikasi **Laravel 10.x, 11.x, 12.x, dan 13.x**.
+Pusat dokumentasi resmi **`mixudev/laravel-authentication`**
+(`Vendor\LaravelAuthentication\`) — arsitektur autentikasi enterprise untuk
+Laravel 10.x - 13.x: modular, portable, fail-closed, dan siap produksi.
 
 ---
 
-## 📑 Daftar Isi Dokumentasi
+## 📁 Struktur Dokumentasi
 
-1. [**Panduan Memulai (Getting Started)**](getting-started.md)
-   - Instalasi otomatis satu langkah via `php artisan authentication:install`
-   - Otomatisasi injeksi Tailwind CSS & dark mode variant
-   - Publikasi konfigurasi, migrasi, dan view
-   - Struktur database & migrasi otomatis
+```
+docs/
+├── index.md                        # Portal ini
+├── getting-started/                # Instalasi & persiapan
+│   ├── installation.md             # Setup lengkap: composer → publish → migrate → Tailwind → verifikasi
+│   ├── prerequisites.md            # API keys (CAPTCHA, OAuth, SMTP) & checklist produksi
+│   └── modular-installation.md     # Mode single-folder (modules/Authentication)
+├── features/                       # Fitur & konfigurasi
+│   ├── overview.md                 # 15 fitur + saklar config
+│   └── passkey.md                  # FIDO2 / WebAuthn detail kriptografi
+├── development/                    # Ekstensi & kustomisasi untuk developer
+│   ├── custom-controller-guide.md  # Controller/view custom (login, 2FA, API, roles)
+│   ├── custom-strategies.md        # Strategi autentikasi kustom
+│   ├── events-and-listeners.md     # 15 domain events + cara listen
+│   └── views-customization.md      # Kustomisasi tampilan (ID/EN)
+├── api/                            # REST API
+│   └── api-reference.md            # Katalog endpoint + sitemap 49 rute
+├── security/                       # Keamanan
+│   ├── architecture.md             # Threat model & mitigasi
+│   ├── hardening-notes.md          # Changelog remediasi SA-01..SA-13
+│   └── vulnerability-reporting.md  # Kebijakan lapor kerentanan
+└── operations/                     # Operasional
+    └── publishing-guide.md         # Rilis, SemVer, Packagist
+```
 
-2. [**Mode Modul Tunggal (Single-Folder Module Mode)**](modular-installation.md)
-   - Perintah instan `php artisan authentication:install-module`
-   - Struktur modul mandiri di `modules/Authentication/`
+---
 
-3. [**Fitur & Modul Utama (Features & Modules)**](features.md)
-   - **Passkey (FIDO2 / WebAuthn Passwordless Login)**
-   - **Optimasi Skala Besar (10M+ Rows & Composite Indexing)**
-   - Multi-Factor Authentication (MFA/2FA TOTP & Recovery Codes)
-   - Manajemen Sesi & Perangkat Aktif (Session & Device Management)
-   - Rate Limiting Granular per Fitur
-   - Notifikasi Login dari Perangkat Baru / Mencurigakan
-   - Konfigurasi Nama Tabel Database & Migrasi Dinamis
-   - CAPTCHA & Proteksi Bot Adaptif (Turnstile, reCAPTCHA, hCaptcha)
-   - Konfirmasi Password untuk Aksi Sensitif (Re-Auth)
-   - Pengiriman Email & OTP Asinkron (Queue)
-   - Modul registrasi akun & auto-login
-   - Modul autentikasi tanpa password via Kode OTP
-   - Modul OAuth Social Login (Google & GitHub)
-   - Modul pemulihan & reset kata sandi
-   - Kebijakan kekuatan password & riwayat password
+## 🚀 Panduan Memulai
 
-4. [**Kustomisasi Tampilan & Template UI**](panduan-kustomisasi-view.md) / [English Guide](views-customization.md)
-   - Penggunaan 2 template layout bawaan: `split` (2-kolom) & `card` (kartu tengah)
-   - Cara memodifikasi komponen Blade bawaan (`vendor:publish`)
-   - Cara membuat tampilan sendiri dari nol (*Bring Your Own UI*)
-   - Spesifikasi form, nama input wajib, route actions, dan token CSRF
+1. **[Instalasi & Setup Lengkap](getting-started/installation.md)**
+   `composer require` → publish config → migrate → Tailwind → verifikasi.
 
-5. [**Strategi Autentikasi & Ekstensi Kustom**](strategies-and-extending.md)
-   - Strategi bawaan (`username_or_email`, `email_password`, `username_password`, `custom_identifier`, `passkey`)
-   - Cara membuat strategi autentikasi kustom (NIP, Nomor HP, RFID, SSO)
-   - Event listening & penanganan payload
+2. **[Prerequisites & API Keys](getting-started/prerequisites.md)**
+   Daftar layanan pihak ketiga (CAPTCHA, OAuth, SMTP) & cara mendapatkannya.
 
-5b. [**Events & Listeners**](events-and-listeners.md)
-   - Katalog lengkap 15 domain events (login, 2FA, OTP, passkey, session, password)
-   - Cara daftarkan listener di host app (EventServiceProvider / manual / queue)
-   - Payload redaction & larangan write password ke log
-   - Listener default bawaan package (`SecurityAuditEventListener`, opt-in)
+3. **[Mode Modul Mandiri](getting-started/modular-installation.md)**
+   Semua file package dalam satu folder `modules/Authentication/`.
 
-6. [**Referensi REST API (API Reference)**](api-reference.md)
-   - Katalog lengkap endpoint API JSON (`/api/v1/auth/*`)
-   - Passkey endpoints, 2FA Challenge, Session Management, dan Confirm Password
-   - Skema payload request & response
+---
 
-7. [**Keamanan & Praktik Terbaik (Security & Best Practices)**](security-and-best-practices.md)
-   - Matriks mitigasi ancaman & proteksi zero-trust
-   - Rate limiting komposit per fitur & adaptif CAPTCHA
-   - MFA/2FA, Passkey WebAuthn, & Device Trust cookies
-   - Mitigasi User Enumeration & timing normalization
-   - Proteksi session fixation & rehash password otomatis
-   - Audit logging & penyamaran data sensitif (`#[SensitiveParameter]`)
+## ⚙️ Fitur
 
-8. [**Checklist Prasyarat & Peta URL (Prerequisites & Sitemap)**](prerequisites-and-checklist.md)
-   - Matriks kebutuhan layanan & kunci API (mana yang butuh daftar vs mandiri)
-   - Panduan langkah mendapatkan API keys (Cloudflare Turnstile, Google & GitHub OAuth)
-   - Peta lengkap seluruh Rute Web & REST API beserta hak aksesnya
+4. **[Fitur & Konfigurasi](features/overview.md)**
+   2FA TOTP, session manager, rate limiting granular, CAPTCHA adaptif,
+   OTP passwordless, registrasi, reset password, social login, passkey,
+   kebijakan password, optimasi skala 10M+.
 
-9. [**Panduan Rilis & Publikasi (Publishing Guide)**](publishing-guide.md)
-   - Standar Git commit & Semantic Versioning
-   - Publikasi ke GitHub & Packagist.org
+5. **[Passkey WebAuthn FIDO2](features/passkey.md)**
+   Verifikasi kriptografi ES256/RS256/EdDSA, anti-replay, cloned-authenticator
+   detection.
+
+---
+
+## 🛠️ Pengembangan
+
+6. **[Custom Controller Guide](development/custom-controller-guide.md)**
+   Bangun controller/view sendiri di atas service package.
+
+7. **[Custom Authentication Strategies](development/custom-strategies.md)**
+   Tambah strategi baru (NIP, HP, RFID, SSO) tanpa ubah source.
+
+8. **[Events & Listeners](development/events-and-listeners.md)**
+   Katalog 15 event (login, 2FA, OTP, passkey, session, password),
+   cara daftarkan listener, payload redaction.
+
+9. **[Views Customization](development/views-customization.md)**
+   Template split/card, dark mode, publish & edit Blade, BYO UI.
+
+---
+
+## 🔌 API Reference
+
+10. **[REST API Reference](api/api-reference.md)**
+    Endpoint `/api/v1/auth/*` lengkap + sitemap 49 rute Web & API.
+
+---
+
+## 🔐 Keamanan
+
+11. **[Security Architecture](security/architecture.md)**
+    Threat matrix & mitigasi: brute force, enumeration, session hijacking,
+    fixation, timing attack, credential stuffing.
+
+12. **[Hardening Notes](security/hardening-notes.md)**
+    Log remediasi audit SA-01..SA-13.
+
+13. **[Vulnerability Reporting](security/vulnerability-reporting.md)**
+    Cara melaporkan kerentanan.
+
+---
+
+## 📦 Operasional
+
+14. **[Publishing & Release](operations/publishing-guide.md)**
+    Conventional commits, SemVer tagging, sinkronisasi Packagist.
