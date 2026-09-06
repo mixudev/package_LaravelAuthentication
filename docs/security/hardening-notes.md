@@ -1,6 +1,6 @@
 # Security Changelog — Comprehensive Remediation
 
-All 13 security audit findings have been systematically resolved across all package layers.
+All security audit findings have been systematically resolved across all package layers.
 
 ---
 
@@ -37,3 +37,23 @@ All 13 security audit findings have been systematically resolved across all pack
   - Replaced raw Eloquent model serialization in `SessionController::index()` with a safe, whitelisted user attribute representation.
 - **SA-13 (INFO) — Device Trust Cookie SameSite Hardening**:
   - Upgraded cookie `SameSite` attribute to `Strict`.
+- **SA-14 (MEDIUM) — API User Payload Sanitization (SEC-03 sweep)**:
+  - `LoginController`, `PasskeyController`, `TwoFactorChallengeController`, `OtpController`, `SocialAuthController` no longer serialize raw Eloquent models (which exposed `password` hash + `remember_token`) in JSON responses.
+  - New `Support\SafeUserPresenter` whitelist: `id`, `name`, `email`, `username` only.
+- **SA-15 (MEDIUM) — Internal Exception Message Leaks Stopped**:
+  - Removed `$e->getMessage()` passthrough from OTP, Social Auth, Passkey, and Registration controllers (web + API). Clients now receive generic messages; internals go to `report()`.
+  - Added `passkey_registration_failed` lang key (en + id).
+- **SA-16 (MEDIUM) — Fail-Closed API Token Generation**:
+  - `TokenService` no longer returns a dummy `Str::random(64)` token that was never persisted. Without Sanctum `HasApiTokens` it throws `AuthenticationConfigurationException` (fail-closed per AGENTS.md invariant).
+  - `AuthenticationService` + `PasskeyService` now type-hint `TokenManagerInterface` (decoupled, testable).
+- **SA-17 (MEDIUM) — Opaque Single-Use 2FA Pending Token**:
+  - New `Support\TwoFactorPendingToken` replaces inline `Str::random` + raw cache keys in `LoginController`, `OtpController`, `SocialAuthController`, `TwoFactorChallengeController`.
+  - Cache key is `sha256(token)` — raw token never used as key; token consumed after verification (anti-replay).
+  - TTL configurable via `authentication.features.two_factor.pending_token_ttl_minutes` (default 10).
+  - `two_factor` rate limit strategy upgraded from `ip` to `composite` (user+IP) to stop brute force across rotating IPs.
+- **SA-18 (MEDIUM) — Dead Middleware Revived**:
+  - `EnsureSessionSecurity`, `CheckAccountLockout`, `AuthenticateWithCustomGuard` existed but were never registered/attached (dead code). Now aliased as `authentication.session-security`, `authentication.lockout`, `authentication.guard`.
+  - `authentication.session-security` auto-attached to package web + api route groups — all auth pages now send `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`.
+  - Host apps should attach `authentication.lockout` to their authenticated route groups.
+- **SA-19 (INFO) — TwoFactor Recovery Code Timing Note**:
+  - Reviewed: bcrypt check vs legacy plaintext comparison in recovery-code loop is not exploitable due to composite rate limiting; noted for future hardening.

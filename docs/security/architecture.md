@@ -80,3 +80,21 @@ Route::middleware(['auth', 'password.confirm'])->group(function () {
 ```
 
 The middleware checks the `auth.password_confirmed_at` session timestamp against the configured timeout (default: 900 seconds / 15 minutes). If expired, Web users are smoothly redirected to `/confirm-password` and returned to their intended URL upon success, while API clients receive a `423 Locked` status code with `password_confirmation_required: true`.
+
+## 6. Package Middleware Aliases (v1.7.0+)
+
+Tiga middleware package ter-register otomatis dan bisa dipasang di route group host app:
+
+| Alias | Class | Fungsi |
+|---|---|---|
+| `authentication.session-security` | `EnsureSessionSecurity` | Tambah headers `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`. Auto-terpasang di route package (web + api). |
+| `authentication.lockout` | `CheckAccountLockout` | Blokir akses user yang sedang di-lock walau sesi masih aktif. Pasang di route group terautentikasi. |
+| `authentication.guard` | `AuthenticateWithCustomGuard` | Enforce guard dari config (`authentication.guard`), redirect ke login / 401 untuk unauthenticated. |
+
+Contoh pemakaian untuk area terproteksi:
+
+```php
+Route::middleware(['auth', 'authentication.lockout'])->group(function () {
+    // Area terproteksi: user yang kena account lockout langsung diblokir,
+    // tidak menunggu percobaan login berikutnya.
+});

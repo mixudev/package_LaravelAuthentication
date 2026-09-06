@@ -5,6 +5,24 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-09-06
+
+### Security (Red-Team Sweep — SA-15..SA-19)
+
+- **SA-15 — Internal exception leak dihentikan**: `$e->getMessage()` di `OtpController` (web + API), `SocialAuthController` (web + API), `PasskeyController`, `RegisterController` diganti pesan generik. Detail internal hanya ke `report()`. Lang key baru: `passkey_registration_failed` (en + id).
+- **SA-16 — Fail-closed token API**: `TokenService` tidak lagi mengembalikan token dummy `Str::random(64)` yang tidak pernah di-persist (client menerima token "sukses" yang langsung invalid dan tidak bisa di-revoke). Tanpa Sanctum `HasApiTokens` kini throw `AuthenticationConfigurationException`. `AuthenticationService` + `PasskeyService` injeksi `TokenManagerInterface` (decoupled).
+- **SA-17 — Pending token 2FA opaque + single-use**: `Support\TwoFactorPendingToken` menggantikan kode inline di 4 controller. Cache key = `sha256(token)`, token dikonsumsi setelah verifikasi (anti-replay), TTL configurable `authentication.features.two_factor.pending_token_ttl_minutes` (default 10). Rate limit `two_factor` di-upgrade dari `ip` ke `composite` (user+IP) — memblokir brute force via rotasi IP.
+- **SA-18 — Middleware mati dihidupkan**: `EnsureSessionSecurity`, `CheckAccountLockout`, `AuthenticateWithCustomGuard` sebelumnya dead code (tidak ter-register). Kini alias `authentication.session-security`, `authentication.lockout`, `authentication.guard`. `authentication.session-security` otomatis terpasang di route web + api package — semua halaman auth kini kirim `X-Frame-Options`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`.
+- **SA-19 — Catatan timing recovery code**: ditinjau, tidak eksploitable karena rate limit composite.
+
+### Tests (Red-Team)
+
+- `TwoFactorPendingTokenTest` (8 test): opacity token, single-use, replay gagal, TTL config, cache-key hashing, collision.
+- `TokenServiceFailClosedTest` (2 test): throw tanpa Sanctum; revoke no-op aman.
+- `SecurityHeadersTest` (3 test): headers keamanan di login/register/api routes.
+
+Total: 124 tests, 343 assertions, PHPStan level 8 bersih.
+
 ## [1.6.1] - 2026-09-06
 
 ### Security (SEC-03 extension — API User Payload Sanitization)
