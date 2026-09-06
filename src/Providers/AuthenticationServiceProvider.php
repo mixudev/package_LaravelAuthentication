@@ -206,6 +206,30 @@ class AuthenticationServiceProvider extends ServiceProvider
             }
         }
 
+        // Register default security audit listener when enabled in config.
+        // Host applications can disable it and register their own listeners instead.
+        if ((bool) $this->app['config']->get('authentication.listeners.default_audit_enabled', false)) {
+            /** @var \Illuminate\Contracts\Events\Dispatcher $events */
+            $events = $this->app->make('events');
+
+            $events->listen(
+                \Vendor\LaravelAuthentication\Events\LoginSucceeded::class,
+                \Vendor\LaravelAuthentication\Listeners\SecurityAuditEventListener::class . '@handleLoginSucceeded'
+            );
+            $events->listen(
+                \Vendor\LaravelAuthentication\Events\LoginFailed::class,
+                \Vendor\LaravelAuthentication\Listeners\SecurityAuditEventListener::class . '@handleLoginFailed'
+            );
+            $events->listen(
+                \Vendor\LaravelAuthentication\Events\AccountLocked::class,
+                \Vendor\LaravelAuthentication\Listeners\SecurityAuditEventListener::class . '@handleAccountLocked'
+            );
+            $events->listen(
+                \Vendor\LaravelAuthentication\Events\NewDeviceLoginDetected::class,
+                \Vendor\LaravelAuthentication\Listeners\SecurityAuditEventListener::class . '@handleNewDeviceLogin'
+            );
+        }
+
         // Register package routes
         $this->registerRoutes();
     }

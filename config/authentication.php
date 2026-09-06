@@ -327,6 +327,12 @@ return [
         'retention_days' => 90,
     ],
 
+    // Listener bawaan package untuk menulis audit trail ke log (opsional).
+    // Host application bisa set false dan daftarkan listener kustomnya sendiri.
+    'listeners' => [
+        'default_audit_enabled' => false,
+    ],
+
     // Route bawaan package untuk Web (session) dan API (token)
     'routes' => [
         'web' => [
