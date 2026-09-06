@@ -13,6 +13,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\SessionRevoked;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Services\Passkey\PasskeyService;
@@ -99,6 +100,16 @@ class SessionController extends Controller
             AuthenticationContext::fromRequest($request),
             $sessionId
         ));
+
+        /** @var AuditLoggerInterface $auditService */
+        $auditService = app(AuditLoggerInterface::class);
+        $auditService->logEvent(
+            SecurityEventType::SESSION_REVOKED,
+            (string) $user->getAuthIdentifier(),
+            AuthenticationContext::fromRequest($request),
+            null,
+            ['session_id' => $sessionId]
+        );
 
         if ($request->expectsJson()) {
             return response()->json([

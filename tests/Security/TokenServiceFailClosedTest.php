@@ -24,7 +24,7 @@ class TokenServiceFailClosedTest extends TestCase
 {
     public function test_create_token_throws_when_user_model_has_no_sanctum(): void
     {
-        $service = new TokenService();
+        $service = $this->app->make(TokenService::class);
 
         $user = new class implements Authenticatable {
             public function getAuthIdentifierName(): string { return 'id'; }
@@ -44,7 +44,7 @@ class TokenServiceFailClosedTest extends TestCase
 
     public function test_revoke_current_token_noops_without_sanctum_but_does_not_crash(): void
     {
-        $service = new TokenService();
+        $service = $this->app->make(TokenService::class);
 
         $user = new class implements Authenticatable {
             public function getAuthIdentifierName(): string { return 'id'; }

@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Services\Core;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
+use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\Enums\AuthenticationChannel;
+use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException;
 
 /**
@@ -13,6 +17,10 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException
  */
 class TokenService implements TokenManagerInterface
 {
+    public function __construct(
+        private readonly AuditLoggerInterface $auditService
+    ) {}
+
     public function createToken(Authenticatable $user, string $tokenName = 'auth_token', array $abilities = ['*']): string
     {
         // Support Laravel Sanctum if available on user model
@@ -36,6 +44,8 @@ class TokenService implements TokenManagerInterface
         if (method_exists($user, 'tokens')) {
             $user->tokens()->delete();
         }
+
+        $this->auditRevocation($user, 'all');
     }
 
     public function revokeCurrentToken(Authenticatable $user): void
@@ -43,5 +53,30 @@ class TokenService implements TokenManagerInterface
         if (method_exists($user, 'currentAccessToken') && $user->currentAccessToken() !== null) {
             $user->currentAccessToken()->delete();
         }
+
+        $this->auditRevocation($user, 'current');
+    }
+
+    /**
+     * Write TOKEN_REVOKED to the audit trail. Null-safe for CLI/queue contexts.
+     */
+    protected function auditRevocation(Authenticatable $user, string $scope): void
+    {
+        $userIdentifier = (string) $user->getAuthIdentifier();
+
+        $request = request();
+        if ($request instanceof \Illuminate\Http\Request) {
+            $context = AuthenticationContext::fromRequest($request);
+        } else {
+            $context = new AuthenticationContext('cli', 'cli', AuthenticationChannel::CLI, 'web');
+        }
+
+        $this->auditService->logEvent(
+            SecurityEventType::TOKEN_REVOKED,
+            $userIdentifier,
+            $context,
+            null,
+            ['scope' => $scope]
+        );
     }
 }

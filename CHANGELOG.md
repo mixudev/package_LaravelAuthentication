@@ -59,6 +59,21 @@ Total: 151 tests, 417 assertions, PHPStan level 8 bersih.
 - `AuditTrailCompletenessTest` (3 test): trail DB merekam `PASSWORD_CHANGED` dan `ACCOUNT_LOCKED`; kontrak logger resolve dari container.
 - Sisa kasus senyap (`PASSWORD_RESET_*`, `SESSION_REVOKED`, `TOKEN_REVOKED`, `OTP_*`, `USER_REGISTERED`, `SOCIAL_LOGIN`, `ACCOUNT_UNLOCKED`) sudah di-cover oleh listener event saat `default_audit_enabled=true` — fix ini menutup jalur yang TIDAK punya audit write sama sekali.
 
+## [1.7.4] - 2026-09-06
+
+### Security (Red-Team lanjutan — SA-32)
+
+- **SA-32 — Audit trail dilengkapi 100%**: semua nilai enum senyap (`TOKEN_REVOKED`, `SESSION_REVOKED`, `PASSWORD_RESET_REQUESTED`, `OTP_FAILED`, `TWO_FACTOR_DISABLED`) kini di-wire ke audit write nyata:
+  - `TokenService::revokeAllTokens` + `revokeCurrentToken` → `TOKEN_REVOKED` (+ metadata `scope`; context null-safe untuk CLI). Logout API (via `TokenManagerInterface` di `AuthenticationService::logout`) otomatis tercatat.
+  - `SessionController::destroy` → `SESSION_REVOKED` (+ `session_id`).
+  - `PasswordResetController` (web + API) → `PASSWORD_RESET_REQUESTED` (sebelum sleep timing-jitter; identifier di-mask, tidak bocorkan eksistensi user).
+  - `TwoFactorService::disable` → enum case BARU `TWO_FACTOR_DISABLED` (disable 2FA = event kritis yang tadinya tanpa representasi audit sama sekali).
+  - `OtpService::verify` jalur gagal (expired, max-attempts, mismatch) → `OTP_FAILED` (+ `reason`) — satu-satunya gap di siklus OTP.
+  - `TokenServiceFailClosedTest` di-upgrade ke `app(TokenService::class)` (constructor baru inject `AuditLoggerInterface`).
+- `AuditTrailCompletenessTest` diperluas jadi 6 test: `PASSWORD_CHANGED`, `ACCOUNT_LOCKED`, `OTP_FAILED`, `TOKEN_REVOKED`, `PASSWORD_RESET_REQUESTED` terbukti tertulis di trail DB; kontrak resolve.
+
+Total: 154 tests, 421 assertions, PHPStan level 8 bersih.
+
 ## [1.6.1] - 2026-09-06
 
 ### Security (SEC-03 extension — API User Payload Sanitization)

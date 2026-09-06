@@ -11,6 +11,8 @@ use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Enums\AuthenticationChannel;
 use Vendor\LaravelAuthentication\Models\AuthenticationAttempt;
+use Vendor\LaravelAuthentication\Services\Core\TokenService;
+use Vendor\LaravelAuthentication\Services\Otp\OtpService;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
 use Vendor\LaravelAuthentication\Tests\Fixtures\User;
@@ -86,5 +88,46 @@ class AuditTrailCompletenessTest extends TestCase
             AuditLoggerInterface::class,
             $this->app->make(AuditLoggerInterface::class)
         );
+    }
+
+    public function test_otp_failure_written_to_audit_trail(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        /** @var OtpService $service */
+        $service = $this->app->make(OtpService::class);
+        $code = $service->generate('otp-fail@example.com', $this->context());
+
+        try {
+            $service->verify('otp-fail@example.com', str_repeat('9', strlen($code)), $this->context());
+            $this->fail('Expected InvalidCredentialsException.');
+        } catch (\Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException) {
+            // expected
+        }
+
+        $record = AuthenticationAttempt::where('status', 'OTP_FAILED')->first();
+        $this->assertNotNull($record, 'OTP_FAILED event missing from audit trail.');
+    }
+
+    public function test_token_revoked_written_to_audit_trail(): void
+    {
+        $user = $this->makeUser();
+
+        /** @var TokenService $service */
+        $service = $this->app->make(TokenService::class);
+        // User tanpa Sanctum: revoke best-effort, audit tetap ditulis.
+        $service->revokeAllTokens($user);
+
+        $record = AuthenticationAttempt::where('status', 'TOKEN_REVOKED')->first();
+        $this->assertNotNull($record, 'TOKEN_REVOKED event missing from audit trail.');
+    }
+
+    public function test_password_reset_requested_written_to_audit_trail(): void
+    {
+        $this->post('/forgot-password', ['email' => 'nobody@example.com'])
+            ->assertSessionHas('status');
+
+        $record = AuthenticationAttempt::where('status', 'PASSWORD_RESET_REQUESTED')->first();
+        $this->assertNotNull($record, 'PASSWORD_RESET_REQUESTED event missing from audit trail.');
     }
 }

@@ -8,6 +8,8 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Support\Str;
 use SensitiveParameter;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
+use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Models\TwoFactorAuthentication;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
@@ -17,7 +19,8 @@ class TwoFactorService
     public function __construct(
         private readonly TotpService $totp,
         private readonly AuthenticationConfig $config,
-        private readonly Hasher $hasher
+        private readonly Hasher $hasher,
+        private readonly AuditLoggerInterface $auditService
     ) {}
 
     public function isEnabledFor(Authenticatable $user): bool
@@ -135,7 +138,38 @@ class TwoFactorService
         }
 
         $userId = $user->getAuthIdentifier();
-        return (bool) TwoFactorAuthentication::where('user_id', $userId)->delete();
+        $deleted = (bool) TwoFactorAuthentication::where('user_id', $userId)->delete();
+
+        if ($deleted) {
+            $this->auditService->logEvent(
+                SecurityEventType::TWO_FACTOR_DISABLED,
+                (string) $userId,
+                $this->resolveContext(),
+                null,
+                ['action' => 'two_factor_disabled']
+            );
+        }
+
+        return $deleted;
+    }
+
+    /**
+     * Build an audit context — null-safe for CLI/queue. 2FA is usually
+     * toggled from a web request, but a queue/CLI handle must not fatal.
+     */
+    protected function resolveContext(): \Vendor\LaravelAuthentication\DTO\AuthenticationContext
+    {
+        $request = request();
+        if ($request instanceof \Illuminate\Http\Request) {
+            return \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request);
+        }
+
+        return new \Vendor\LaravelAuthentication\DTO\AuthenticationContext(
+            'cli',
+            'cli',
+            \Vendor\LaravelAuthentication\Enums\AuthenticationChannel::CLI,
+            'web'
+        );
     }
 
     /**

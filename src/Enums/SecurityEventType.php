@@ -16,6 +16,7 @@ enum SecurityEventType: string
     case LOGOUT                      = 'LOGOUT';
     case ACCOUNT_LOCKED              = 'ACCOUNT_LOCKED';
     case ACCOUNT_UNLOCKED            = 'ACCOUNT_UNLOCKED';
+    case TWO_FACTOR_DISABLED        = 'TWO_FACTOR_DISABLED';
     case PASSWORD_CHANGED            = 'PASSWORD_CHANGED';
     case PASSWORD_RESET_REQUESTED    = 'PASSWORD_RESET_REQUESTED';
     case PASSWORD_RESET_COMPLETED    = 'PASSWORD_RESET_COMPLETED';

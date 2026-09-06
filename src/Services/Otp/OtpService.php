@@ -157,6 +157,14 @@ class OtpService implements OtpServiceInterface
         $data = $this->cache->get($cacheKey);
 
         if ($data === null) {
+            $this->auditService->logEvent(
+                SecurityEventType::OTP_FAILED,
+                $normalized,
+                $context,
+                null,
+                ['reason' => 'expired_or_invalid']
+            );
+
             throw new InvalidCredentialsException('The OTP code has expired or is invalid.');
         }
 
@@ -172,11 +180,28 @@ class OtpService implements OtpServiceInterface
         if ($currentAttempt > $data['max_attempts']) {
             $this->cache->forget($cacheKey);
             $this->cache->forget($attemptKey);
+
+            $this->auditService->logEvent(
+                SecurityEventType::OTP_FAILED,
+                $normalized,
+                $context,
+                null,
+                ['reason' => 'max_attempts_exceeded']
+            );
+
             throw new AuthenticationException('Too many invalid attempts. Please request a new OTP code.');
         }
 
         $inputHash = hash('sha256', trim($code));
         if (!hash_equals($data['hash'], $inputHash)) {
+            $this->auditService->logEvent(
+                SecurityEventType::OTP_FAILED,
+                $normalized,
+                $context,
+                null,
+                ['reason' => 'mismatch']
+            );
+
             throw new InvalidCredentialsException('The provided OTP code is incorrect.');
         }
 

@@ -17,13 +17,16 @@ use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
 use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
 use Vendor\LaravelAuthentication\Events\PasswordResetCompleted;
 use Vendor\LaravelAuthentication\Events\PasswordResetRequested;
+use Vendor\LaravelAuthentication\Enums\SecurityEventType;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 
 class PasswordResetController extends Controller
 {
     public function __construct(
         protected readonly PasswordService $passwordService,
-        protected readonly Dispatcher $events
+        protected readonly Dispatcher $events,
+        protected readonly AuditLoggerInterface $auditService
     ) {}
 
     public function showLinkRequestForm(): View|JsonResponse
@@ -57,6 +60,13 @@ class PasswordResetController extends Controller
             (string) $request->input('email', ''),
             \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
         ));
+
+        // Audit reset request (masked identifier, no enumeration signal)
+        $this->auditService->logEvent(
+            SecurityEventType::PASSWORD_RESET_REQUESTED,
+            (string) $request->input('email', ''),
+            \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+        );
 
         // Normalize timing to prevent timing-based enumeration attacks
         usleep(random_int(50_000, 150_000));
@@ -132,6 +142,13 @@ class PasswordResetController extends Controller
             (string) $request->input('email', ''),
             \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
         ));
+
+        // Audit reset request (masked identifier, no enumeration signal)
+        $this->auditService->logEvent(
+            SecurityEventType::PASSWORD_RESET_REQUESTED,
+            (string) $request->input('email', ''),
+            \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+        );
 
         // Normalize timing to prevent timing-based enumeration attacks (match web endpoint)
         usleep(random_int(50_000, 150_000));
