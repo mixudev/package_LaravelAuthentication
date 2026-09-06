@@ -263,9 +263,10 @@ Memproteksi halaman atau aksi sensitif (seperti mengubah email, melihat API key,
 ```
 
 ### Cara Memasang pada Rute Aplikasi Host:
-Cukup tambahkan middleware `password.confirm` atau `\Vendor\LaravelAuthentication\Http\Middleware\RequirePasswordConfirmation::class`:
+Cukup tambahkan middleware `password.confirm` (alias bawaan Laravel) atau alias package `authentication.password-confirm` (yang memakai `RequirePasswordConfirmation` dengan timeout dari config package):
 ```php
-Route::middleware(['auth', 'password.confirm'])->group(function () {
+// Pakai middleware package (timeout sesuai config authentication.features.confirm_password.timeout_seconds)
+Route::middleware(['auth', 'authentication.password-confirm'])->group(function () {
     Route::get('/settings/security', [SecurityController::class, 'index']);
     Route::post('/settings/api-keys', [ApiKeyController::class, 'generate']);
 });

@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SA-22 — Passkey options cache-flood dicegah**: `loginOptions` menyimpan challenge 5 menit per request tanpa limit → feature rate limit baru `passkeys` (60/min per IP) dipasang.
 - **SA-23 — Registration DTO dibersihkan**: `RegisterRequest::toDto()` tidak lagi meneruskan semua field request ke `RegisterData::extra` — hanya `name`/`email`/`password`.
 - **SA-24 — Catatan rotasi secret 2FA setup**: `setup()` berulang pada record unconfirmed me-regenerate secret + recovery codes (bisa meng-orphan kode yang sudah disimpan user). Tidak eksploitable (butuh auth + rate limit), dicatat untuk hardening.
+- **SA-25 — Dead code dihapus & fitur diwiring**: hapus 4 file tak ber-referensi (`Enums/LoginMethod.php`, `Contracts/IdentityResolverInterface.php`, `Contracts/SecurityPolicyInterface.php`, `Providers/AuthenticationRouteServiceProvider.php`). `RequirePasswordConfirmation` kini ter-register sebagai alias `authentication.password-confirm` (sebelumnya tidak bisa dipasang host app).
 
 ### Tests (Red-Team)
 

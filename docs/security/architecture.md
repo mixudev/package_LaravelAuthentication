@@ -90,6 +90,7 @@ Tiga middleware package ter-register otomatis dan bisa dipasang di route group h
 | `authentication.session-security` | `EnsureSessionSecurity` | Tambah headers `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`. Auto-terpasang di route package (web + api). |
 | `authentication.lockout` | `CheckAccountLockout` | Blokir akses user yang sedang di-lock walau sesi masih aktif. Pasang di route group terautentikasi. |
 | `authentication.guard` | `AuthenticateWithCustomGuard` | Enforce guard dari config (`authentication.guard`), redirect ke login / 401 untuk unauthenticated. |
+| `authentication.password-confirm` | `RequirePasswordConfirmation` | Wajibkan konfirmasi password baru-baru ini untuk aksi sensitif (timeout dari config `confirm_password.timeout_seconds`). Tidak menimpa alias bawaan Laravel `password.confirm`. |
 
 Contoh pemakaian untuk area terproteksi:
 

@@ -238,6 +238,9 @@ class AuthenticationServiceProvider extends ServiceProvider
         $router->aliasMiddleware('authentication.lockout', \Vendor\LaravelAuthentication\Http\Middleware\CheckAccountLockout::class);
         $router->aliasMiddleware('authentication.session-security', \Vendor\LaravelAuthentication\Http\Middleware\EnsureSessionSecurity::class);
         $router->aliasMiddleware('authentication.guard', \Vendor\LaravelAuthentication\Http\Middleware\AuthenticateWithCustomGuard::class);
+        // NOTE: alias package-specific (bukan 'password.confirm') agar tidak meng-override
+        // alias bawaan Laravel yang dipakai host app lain.
+        $router->aliasMiddleware('authentication.password-confirm', \Vendor\LaravelAuthentication\Http\Middleware\RequirePasswordConfirmation::class);
 
         // Register package routes
         $this->registerRoutes();
