@@ -5,7 +5,18 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.7.0] - 2026-09-06
+## [1.8.0] - 2026-09-23
+
+### Added
+- **Auto-detection `mixudev/security-defense`**: Helper `SecurityDefenseDetector` mendeteksi keberadaan package pertahanan `mixudev/security-defense` dan status bridge subscriber (`app/Listeners/AuthenticationSecuritySubscriber.php`).
+- **Hint `php artisan auth:sync`**: `InstallCommand` (`php artisan authentication:install`) otomatis menampilkan banner hint jika package `security-defense` terpasang namun bridge subscriber belum di-generate.
+- **Config toggle `authentication.security_defense.auto_detect`**: Opsi untuk mematikan hint deteksi (default: `true`), serta konfigurasi perintah bridge hint.
+- **Dokumentasi integrasi**: Panduan lengkap `docs/operations/integration-security-defense.md` mencakup prasyarat, alur setup 1 perintah (`php artisan auth:sync`), tabel pemetaan 12 domain auth event ke `SecurityDefense::record()`, panduan verifikasi, dan troubleshooting.
+- **Unit tests**: `SecurityDefenseDetectorTest` (5 test assertions) untuk deteksi package, bridge subscriber file check, AppServiceProvider registration check, dan pesan hint format.
+
+Total: 159 tests, 426 assertions, PHPStan level 8 bersih.
+
+## [1.7.4] - 2026-09-06
 
 ### Security (Red-Team Sweep — SA-15..SA-19)
 
