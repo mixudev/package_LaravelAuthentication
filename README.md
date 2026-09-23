@@ -12,6 +12,20 @@ Dirancang untuk monolit web, REST API, SPA, maupun arsitektur multi-tenant tanpa
 
 ---
 
+## Security Defense Integration
+
+Connect authentication events to enterprise threat detection & SIEM:
+
+```bash
+composer require mixudev/security-defense
+php artisan security-defense:install --with-opaque-path
+php artisan auth:sync
+```
+
+Wires 12 auth events (login, lockout, 2FA, device, password, session) into real-time threat correlation, IP quarantine, and multi-channel alerting. See [integration guide](docs/operations/integration-security-defense.md).
+
+---
+
 ## Ringkasan Fitur Utama
 
 | Modul & Fitur | Deskripsi Singkat |

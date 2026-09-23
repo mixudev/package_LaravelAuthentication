@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Vendor\LaravelAuthentication\Support\SecurityDefenseDetector;
 
 /**
  * Artisan command to automatically install and configure the Laravel Authentication package,
@@ -81,6 +82,14 @@ class InstallCommand extends Command
         $this->line('  • 2FA & Active Sessions Dashboard:   <info>/auth/sessions</info>');
         $this->line('  • 2FA TOTP Setup & QR Code:          <info>/auth/two-factor/setup</info>');
         $this->newLine();
+
+        // Show security-defense integration hint if package detected
+        if ((bool) config('authentication.security_defense.auto_detect', true)) {
+            $hint = SecurityDefenseDetector::getStatusMessage();
+            if ($hint !== null) {
+                $this->line($hint);
+            }
+        }
 
         return self::SUCCESS;
     }

@@ -348,6 +348,19 @@ return [
         'default_audit_enabled' => false,
     ],
 
+    /*
+    |---------------------------------------------------------------------------
+    | Integrasi Security Defense (mixudev/security-defense)
+    |---------------------------------------------------------------------------
+    | Auto-detect package mixudev/security-defense dan tampilkan perintah
+    | setup integrasi jika package terdeteksi namun bridge subscriber
+    | belum terpasang.
+    */
+    'security_defense' => [
+        'auto_detect' => true, // Set false untuk disable detection hint
+        'bridge_hint' => 'php artisan auth:sync',
+    ],
+
     // Route bawaan package untuk Web (session) dan API (token)
     'routes' => [
         'web' => [
