@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Circuit Breaker Pattern**: `CircuitBreaker` class untuk fail-fast protection terhadap external service failures (OAuth providers, email, SMS gateway). Auto-recovery setelah timeout. 8 tests covering all state transitions.
 - **Async Audit Logging**: `RecordAuthenticationAuditJob` untuk offload audit persistence ke queue workers. Config `authentication.audit.queue = true` untuk enable. Fallback ke sync write atau log-only jika dispatch gagal. Zero data loss guarantee.
 
+### Added - UX Enhancements
+- **Live Countdown Timer Alert**: Real-time countdown untuk throttle/lockout (detik/menit). Progress bar visual. Auto-disable tombol submit selama countdown. Auto-enable + success message saat countdown habis. Ekstrak detik otomatis dari error message.
+- **Caps Lock Warning Indicator**: Deteksi Caps Lock aktif saat mengetik password. Badge peringatan amber "Caps Lock aktif". Mencegah user salah password berulang kali.
+- **Form Submit Loading State**: Spinner animasi saat form disubmit. Tombol auto-disabled (prevent double-submit). Text berubah: "Masuk" → "Memproses...". Prevent spam-click yang memperburuk rate limit.
+- **Auto-disable Submit Button**: Countdown alert otomatis disable tombol submit via JavaScript. Re-enable saat countdown habis.
+
+### Components
+- **countdown-alert.blade.php**: Alpine.js powered countdown component dengan progress bar + button control
+- **input.blade.php**: Caps Lock detection via `getModifierState` API + Alpine scope fix
+- **button.blade.php**: Loading spinner + disabled state + text toggle
+- **UX Documentation**: `docs/UX-IMPROVEMENTS.md` (10KB) - Complete integration guide
+
 ### Fixed - Security
 - **SEC-15**: Account lockout counter tidak mengecek status lock sebelum increment. Bug memungkinkan concurrent request menaikkan `failed_attempts` setelah lockout triggered. Fix: guard pre-check + re-check under row lock di `AccountLockService::recordFailureAndCheckLockout()`.
 
@@ -28,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Async audit logging: ~50-100ms latency reduction per authenticated request
 - Queue workers decouple write I/O from HTTP thread (horizontal scaling audit persistence)
 
-Total: 171 tests, 462 assertions, PHPStan level 8 clean.
+Total: 175 tests, 473 assertions, PHPStan level 8 clean.
 
 ## [1.8.0] - 2026-09-23
 
