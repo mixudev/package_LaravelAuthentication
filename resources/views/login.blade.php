@@ -72,16 +72,23 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
         {{-- 
             Alert Notifikasi — Tampil di atas form, hilang otomatis dalam 3 detik.
             Sukses: setelah logout / redirect. Error: kredensial salah.
+            Throttle/Lockout: countdown timer live yang disable tombol submit.
         --}}
         @if (session('status'))
             <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
 
-        {{-- @if ($credentialError)
-            <x-authentication::alert type="error" :autodismiss="true" :message="$credentialError" />
+        @if (session('auth_retry_after'))
+            <x-authentication::countdown-alert 
+                type="error" 
+                :retryAfter="session('auth_retry_after')"
+                submitButton="#login-submit-btn"
+            />
+        @elseif ($credentialError)
+            <x-authentication::alert type="error" :message="$credentialError" />
         @elseif ($errors->any())
-            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
-        @endif --}}
+            <x-authentication::alert type="error" :message="$errors->first()" />
+        @endif
 
         {{-- Tombol Login Alternatif: Social (Google/GitHub sebelahan) + Passkey --}}
         @php
@@ -190,7 +197,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
 
             {{-- Tombol Submit --}}
             <div class="pt-2">
-                <x-authentication::button type="submit" variant="primary">
+                <x-authentication::button id="login-submit-btn" type="submit" variant="primary">
                     {{ __('authentication::messages.sign_in_btn') }}
                 </x-authentication::button>
             </div>

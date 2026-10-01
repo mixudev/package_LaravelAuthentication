@@ -49,7 +49,11 @@ Deskripsi: Input form standar dengan label, error binding, dan toggle password.
     @endif
 
     {{-- Container Input --}}
-    <div class="relative">
+    <div class="relative" 
+        @if($isPassword)
+        x-data="{ capsLockOn: false }"
+        @endif
+    >
         <input 
             {{ $attributes->merge([
                 'id'           => $inputId,
@@ -64,6 +68,10 @@ Deskripsi: Input form standar dengan label, error binding, dan toggle password.
             class="auth-input block w-full border rounded-lg shadow-xs text-sm px-3.5 py-2.5 outline-none transition duration-150
                 {{ $isPassword && $showTogglePassword ? 'pr-10' : '' }}
                 {{ $hasError ? 'input-error' : '' }}"
+            @if($isPassword)
+            @keydown="capsLockOn = $event.getModifierState && $event.getModifierState('CapsLock')"
+            @keyup="capsLockOn = $event.getModifierState && $event.getModifierState('CapsLock')"
+            @endif
         />
 
         {{-- Toggle Password Button - Menggunakan vanilla JS murni, tidak bergantung Alpine --}}
@@ -93,6 +101,21 @@ Deskripsi: Input form standar dengan label, error binding, dan toggle password.
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>
                 </svg>
             </button>
+        @endif
+
+        {{-- Caps Lock Warning Indicator --}}
+        @if ($isPassword)
+            <div 
+                x-show="capsLockOn"
+                x-transition
+                x-cloak
+                class="absolute -bottom-6 left-0 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium"
+            >
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>Caps Lock aktif</span>
+            </div>
         @endif
     </div>
 

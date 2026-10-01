@@ -56,10 +56,12 @@ class LoginController extends Controller
         } catch (TwoFactorChallengeRequiredException) {
             return redirect()->route('two-factor.challenge');
         } catch (AuthenticationThrottledException $e) {
+            session()->flash('auth_retry_after', $e->secondsRemaining);
             throw ValidationException::withMessages([
                 'identifier' => ["Too many login attempts. Please try again in {$e->secondsRemaining} seconds."],
             ]);
         } catch (AccountLockedException $e) {
+            session()->flash('auth_retry_after', $this->config->getLockoutDurationMinutes() * 60);
             throw ValidationException::withMessages([
                 'identifier' => [$e->getMessage()],
             ]);

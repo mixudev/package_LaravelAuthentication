@@ -10,10 +10,12 @@ Deskripsi: Tombol standar modern (Primary, Secondary, Outline, Danger).
     'variant' => 'primary',
     'size' => 'md',
     'fullWidth' => true,
+    'loading' => false, // Manual loading state
+    'loadingText' => 'Memproses...', // Text saat loading
 ])
 
 @php
-    $baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 cursor-pointer select-none';
+    $baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none';
 
     $variants = [
         // Varian Primary: Modern Deep Zinc / High Contrast White
@@ -46,14 +48,34 @@ Deskripsi: Tombol standar modern (Primary, Secondary, Outline, Danger).
         'type' => $type,
         'class' => $classes,
     ]) }}
+    x-data="{ 
+        submitting: {{ $loading ? 'true' : 'false' }}
+    }"
+    @if($type === 'submit')
+    @click="if (!$el.disabled && !submitting) { submitting = true; }"
+    @endif
+    :disabled="submitting"
 >
     @if (isset($icon))
-        <span class="mr-2 -ml-1 flex items-center">{{ $icon }}</span>
+        <span class="mr-2 -ml-1 flex items-center" x-show="!submitting">{{ $icon }}</span>
     @endif
 
-    <span>{{ $slot }}</span>
+    {{-- Loading Spinner --}}
+    <svg 
+        x-show="submitting" 
+        x-cloak
+        class="animate-spin -ml-1 mr-2 h-4 w-4" 
+        fill="none" 
+        viewBox="0 0 24 24"
+    >
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+
+    <span x-show="!submitting">{{ $slot }}</span>
+    <span x-show="submitting" x-cloak>{{ $loadingText }}</span>
 
     @if (isset($suffix))
-        <span class="ml-2 -mr-1 flex items-center">{{ $suffix }}</span>
+        <span class="ml-2 -mr-1 flex items-center" x-show="!submitting">{{ $suffix }}</span>
     @endif
 </button>
