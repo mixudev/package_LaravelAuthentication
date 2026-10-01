@@ -39,6 +39,6 @@ class SessionFixationAndSecurityTest extends TestCase
 
         $this->assertEquals('nosniff', $response->headers->get('X-Content-Type-Options'));
         $this->assertEquals('SAMEORIGIN', $response->headers->get('X-Frame-Options'));
-        $this->assertEquals('strict-origin-when-cross-origin', $response->headers->get('Referrer-Policy'));
+        $this->assertEquals('no-referrer', $response->headers->get('Referrer-Policy'));
     }
 }

@@ -23,7 +23,7 @@ class SecurityHeadersTest extends TestCase
         $response->assertOk();
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('X-Frame-Options', 'SAMEORIGIN');
-        $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->assertHeader('Referrer-Policy', 'no-referrer');
     }
 
     public function test_register_page_sends_security_headers(): void
@@ -44,6 +44,6 @@ class SecurityHeadersTest extends TestCase
 
         // 422 (validation) atau 401 (credentials) — yang penting headers tetap ada.
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
-        $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->assertHeader('Referrer-Policy', 'no-referrer');
     }
 }

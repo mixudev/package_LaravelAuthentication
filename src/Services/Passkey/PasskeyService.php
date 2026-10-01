@@ -114,7 +114,7 @@ class PasskeyService
                 ['type' => 'public-key', 'alg' => -8],   // EdDSA
             ],
             timeout: (int) config('authentication.features.passkey.timeout', 60000),
-            attestation: 'none',
+            attestation: (string) config('authentication.features.passkey.attestation', 'none'),
             authenticatorSelection: [
                 'residentKey'      => 'preferred',
                 'userVerification' => (string) config('authentication.features.passkey.user_verification', 'preferred'),

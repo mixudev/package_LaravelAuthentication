@@ -93,24 +93,25 @@ class TwoFactorSetupController extends Controller
         $code = (string) $request->input('code');
         $ip = (string) $request->ip();
 
-        // Rate limit: brute-force TOTP 6-digit saat setup confirmation
-        // (sebelum 2FA aktif, rate limit two_factor belum berlaku).
-        if ($this->rateLimiter->tooManyAttempts('confirm_password', (string) $user->getAuthIdentifier(), $ip)) {
-            $seconds = $this->rateLimiter->availableIn('confirm_password', (string) $user->getAuthIdentifier(), $ip);
+        // Rate limit: brute-force TOTP 6-digit saat setup confirmation.
+        // HIGH-04 FIX: Gunakan channel 'two_factor' tersendiri agar tidak terjadi
+        // collision DoS dengan password confirmation ('confirm_password').
+        if ($this->rateLimiter->tooManyAttempts('two_factor', (string) $user->getAuthIdentifier(), $ip)) {
+            $seconds = $this->rateLimiter->availableIn('two_factor', (string) $user->getAuthIdentifier(), $ip);
             throw ValidationException::withMessages([
                 'code' => [__('authentication::messages.throttle_error', ['seconds' => $seconds])],
             ]);
         }
 
         if (!$this->twoFactorService->confirm($user, $code)) {
-            $this->rateLimiter->hit('confirm_password', (string) $user->getAuthIdentifier(), $ip);
+            $this->rateLimiter->hit('two_factor', (string) $user->getAuthIdentifier(), $ip);
 
             throw ValidationException::withMessages([
                 'code' => [__('authentication::messages.invalid_two_factor_code')],
             ]);
         }
 
-        $this->rateLimiter->clear('confirm_password', (string) $user->getAuthIdentifier(), $ip);
+        $this->rateLimiter->clear('two_factor', (string) $user->getAuthIdentifier(), $ip);
 
         if ($request->expectsJson()) {
             return response()->json([

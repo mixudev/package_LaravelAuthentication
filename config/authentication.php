@@ -320,6 +320,7 @@ return [
             'rp_name'           => env('APP_NAME', 'Laravel'),
             'rp_id'             => null, // null = auto detect host
             'user_verification' => 'preferred', // 'required', 'preferred', 'discouraged'
+            'attestation'       => 'none', // 'none', 'indirect', 'direct', 'enterprise'
             'timeout'           => 60000, // 60 detik
         ],
     ],

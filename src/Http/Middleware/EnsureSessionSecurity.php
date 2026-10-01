@@ -21,7 +21,10 @@ class EnsureSessionSecurity
 
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
-        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        // MEDIUM-10 FIX: Stricter Referrer-Policy to prevent token leakage via URL params
+        // 'no-referrer' ensures password reset tokens and other sensitive URL params
+        // are never sent to external sites when user clicks links.
+        $response->headers->set('Referrer-Policy', 'no-referrer');
 
         return $response;
     }

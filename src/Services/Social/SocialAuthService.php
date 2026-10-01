@@ -186,12 +186,21 @@ class SocialAuthService implements SocialAuthServiceInterface
 
         $this->events->dispatch(new LoginSucceeded($user, $context, "social_{$provider}"));
 
+        // HIGH-07 MITIGATION: Log provider for cross-provider account link detection
+        // Future enhancement: add oauth_provider column + explicit consent flow
+        $metadata = [
+            'provider' => $provider,
+            'action' => 'social_login',
+            'user_id' => $user->getAuthIdentifier(),
+            'email_verified' => $emailVerified === true ? 'true' : 'unverified_or_null',
+        ];
+
         $this->auditService->logEvent(
             SecurityEventType::LOGIN_SUCCESS,
             $email,
             $context,
             null,
-            ['provider' => $provider, 'action' => 'social_login', 'user_id' => $user->getAuthIdentifier()]
+            $metadata
         );
 
         return $user;

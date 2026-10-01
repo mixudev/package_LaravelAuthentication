@@ -16,8 +16,15 @@ class TotpService
 
     /**
      * Generate a cryptographically secure random Base32 secret.
+     *
+     * @param int $length Number of Base32 characters (default 32 = 160 bits entropy)
+     *                    RFC 6238 recommends minimum 128 bits for SHA-1 HMAC.
+     *                    Base32 encoding: 5 bits per character.
+     *                    - 20 chars = 100 bits (absolute minimum)
+     *                    - 26 chars = 130 bits (secure)
+     *                    - 32 chars = 160 bits (recommended)
      */
-    public function generateSecret(int $length = 16): string
+    public function generateSecret(int $length = 32): string
     {
         $secret = '';
         $safeLength = max(1, $length);
