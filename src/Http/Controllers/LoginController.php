@@ -61,7 +61,7 @@ class LoginController extends Controller
                 'identifier' => ["Too many login attempts. Please try again in {$e->secondsRemaining} seconds."],
             ]);
         } catch (AccountLockedException $e) {
-            $lockoutMinutes = (int) config('authentication.security.lockout_duration_minutes', 15);
+            $lockoutMinutes = (int) config('authentication.security.account_lockout.lockout_duration_mins', 15);
             session()->flash('auth_retry_after', max(0, $lockoutMinutes * 60));
             throw ValidationException::withMessages([
                 'identifier' => [$e->getMessage()],

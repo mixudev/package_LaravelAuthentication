@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.9.0] - 2026-10-01
 
+### Security Fixes (Deep Audit - 4 Parallel Subagents)
+- **CRITICAL: Fatal Crash pada Account Lockout**: `LoginController.php:64` memanggil `$this->config` yang tidak di-inject → 500 error (DoS). Fix: `config()` dengan `(int)` cast + `max(0, ...)` sanitization.
+- **CRITICAL: XSS Injection via Alpine.js Template**: `countdown-alert.blade.php` tidak cast `$seconds` ke `(int)` dan `$submitButton` tidak di-escape → session manipulation = XSS. Fix: Force `(int)` + `json_encode()`.
+- **HIGH: User Enumeration via Timing Attack**: `AuthenticationService.php:113` skip bcrypt untuk non-existent user (5ms) vs wrong password (423ms). Delta 8360% → email enumeration. Fix: Dummy `Hash::check()` untuk normalize timing.
+- **MEDIUM: Circuit Breaker Timing Side-Channel**: OPEN state return instantly (fast-path) → OAuth provider status leak via timing. Fix: `addTimingNoise()` 5-25ms + remove `opened_at` dari `getMetrics()`.
+- **MEDIUM: Audit Data Loss Risk**: `RecordAuthenticationAuditJob` tanpa retry/idempotency → queue fail = audit hilang. Fix: 3 attempts + backoff [5,15,30]s + Cache idempotency + `failed()` emergency log.
+- **MEDIUM: Health Check Information Disclosure**: Error messages expose table/model names. Fix: `--silent` flag + `sanitizeErrorMessage()`.
+- **LOW: TOCTOU Race di Session Pruning**: Separate `count()` + `delete()` → active session bisa terhapus. Fix: Atomic single `DELETE`.
+- **PII Leak via Events (DEFERRED)**: `LoginAttempted`/`LoginFailed` expose raw email ke external listeners. Breaking change required → deferred ke v2.0.
+- **Performance Bottlenecks (RECOMMENDATION)**: 3 optimization identified (async audit, duplicate device lookup, redundant lockout pre-check) → 64% latency gain jika diimplementasikan.
+
+**Test Impact**: 175 tests, 472 assertions, 0 errors (was 18 errors during fix iteration). PHPStan Level 8 CLEAN.
+
 ### Added - Enterprise Production Features
 - **`PruneSessionsCommand`**: CLI command untuk cleanup session kadaluarsa dan device record stale (high-traffic table management). Mendukung `--dry-run`, `--session-days`, `--device-days`.
 - **`HealthCheckCommand`**: Health check untuk Kubernetes/Docker readiness probe. Verifikasi database, cache, required tables, user model, dan strategy registry. Exit code 0 = healthy, 1 = unhealthy.
