@@ -33,7 +33,7 @@ use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 class HealthCheckCommand extends Command
 {
     protected $signature = 'authentication:health
-        {--verbose : Show detailed check results}';
+        {--detailed : Show detailed check results}';
 
     protected $description = 'Verifikasi kesehatan komponen autentikasi (database, cache, config)';
 
@@ -43,7 +43,7 @@ class HealthCheckCommand extends Command
 
     public function handle(AuthenticationConfig $config): int
     {
-        $verbose = (bool) $this->option('verbose');
+        $detailed = (bool) $this->option('detailed');
 
         $this->checks = [
             'Package Enabled'      => fn() => $this->checkEnabled($config),
@@ -57,7 +57,7 @@ class HealthCheckCommand extends Command
         foreach ($this->checks as $name => $check) {
             try {
                 $check();
-                if ($verbose) {
+                if ($detailed) {
                     $this->line("<fg=green>✓</> {$name}");
                 }
             } catch (Throwable $e) {
