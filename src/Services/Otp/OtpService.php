@@ -75,8 +75,10 @@ class OtpService implements OtpServiceInterface
 
         $this->cache->put($cacheKey, $payload, now()->addMinutes($expiryMinutes));
 
-        // SEC-01 FIX: Reset atomic attempt counter for new OTP
-        $this->cache->forget($cacheKey . ':attempts');
+        // SEC-CRITICAL FIX (v1.9.1): Pre-seed atomic attempt counter with exact TTL
+        // Eliminates TOCTOU race in verify() where put() during verification could overwrite
+        // concurrent increments.
+        $this->cache->put($cacheKey . ':attempts', 0, now()->addMinutes($expiryMinutes));
 
         // Set cooldown throttle key
         $throttleSeconds = $this->config->getOtpThrottleSeconds();
@@ -168,14 +170,12 @@ class OtpService implements OtpServiceInterface
             throw new InvalidCredentialsException('The OTP code has expired or is invalid.');
         }
 
-        // SEC-01 FIX: Use separate atomic attempt counter to prevent parallel request race condition.
-        // The main cache entry holds the hash; a sibling key tracks attempts atomically via cache->increment().
+        // SEC-CRITICAL FIX: Increment only; never overwrite the atomic counter.
+        // generate() pre-seeds this key with its TTL. add() is a race-safe fallback
+        // for OTP records created by older workers, and never overwrites an existing value.
         $attemptKey = $cacheKey . ':attempts';
+        $this->cache->add($attemptKey, 0, now()->addMinutes($this->config->getOtpExpiryMinutes()));
         $currentAttempt = $this->cache->increment($attemptKey);
-        if ($currentAttempt === 1) {
-            // First miss: set TTL so orphaned counters auto-expire
-            $this->cache->put($attemptKey, 1, now()->addMinutes($this->config->getOtpExpiryMinutes()));
-        }
 
         if ($currentAttempt > $data['max_attempts']) {
             $this->cache->forget($cacheKey);

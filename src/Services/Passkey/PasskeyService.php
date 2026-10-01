@@ -234,12 +234,12 @@ class PasskeyService
 
         $cacheKey = "passkey_auth_challenge:{$challenge}";
 
-        if (!$this->cache->has($cacheKey)) {
+        // SEC-CRITICAL FIX (v1.9.1): Atomic challenge consumption via pull()
+        // has() + forget() creates a 1-5ms race window where concurrent requests
+        // can reuse the same challenge. pull() atomically retrieves and deletes.
+        if (!$this->cache->pull($cacheKey)) {
             throw new InvalidCredentialsException('Passkey challenge expired or invalid.');
         }
-
-        // Consume challenge immediately (anti-replay single use)
-        $this->cache->forget($cacheKey);
 
         // 1. Validate clientDataJSON (type, challenge, origin)
         try {
