@@ -14,6 +14,8 @@ use Vendor\LaravelAuthentication\Repositories\AuthenticationAttemptRepository;
 use Vendor\LaravelAuthentication\Repositories\LoginHistoryRepository;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\SecurityHelper;
+use Vendor\LaravelAuthentication\Jobs\RecordAuthenticationAuditJob;
+use Throwable;
 
 /**
  * Handles security audit logging to database or log channels with strict redaction of sensitive credentials.
@@ -47,7 +49,7 @@ class AuthenticationAuditService implements AuditLoggerInterface
         $driver = $this->config->getAuditDriver();
 
         if ($driver === 'database' || $driver === 'all') {
-            $this->attemptRepo->record([
+            $attemptPayload = [
                 'identifier'     => $safeIdentifier,
                 'ip_address'     => $context->ipAddress,
                 'user_agent'     => $context->userAgent,
@@ -55,15 +57,37 @@ class AuthenticationAuditService implements AuditLoggerInterface
                 'failure_reason' => $result?->message,
                 'strategy'       => $result->metadata['strategy'] ?? null,
                 'channel'        => $context->channel->value,
-            ]);
+            ];
 
+            $historyPayload = null;
             if ($eventType === SecurityEventType::LOGIN_SUCCESS && $result?->user instanceof Authenticatable) {
-                $this->historyRepo->recordLogin($result->user->getAuthIdentifier(), [
-                    'ip_address'   => $context->ipAddress,
-                    'user_agent'   => $context->userAgent,
-                    'login_method' => $result->metadata['strategy'] ?? 'standard',
-                    'channel'      => $context->channel->value,
-                ]);
+                $historyPayload = [
+                    'user_id' => $result->user->getAuthIdentifier(),
+                    'payload' => [
+                        'ip_address'   => $context->ipAddress,
+                        'user_agent'   => $context->userAgent,
+                        'login_method' => $result->metadata['strategy'] ?? 'standard',
+                        'channel'      => $context->channel->value,
+                    ],
+                ];
+            }
+
+            // PERF-09: Async audit logging offloads write I/O to queue workers.
+            // High-traffic apps (>1000 req/sec) eliminate 2 synchronous DB writes per login.
+            if ($this->config->isAuditQueued()) {
+                try {
+                    RecordAuthenticationAuditJob::dispatch($attemptPayload, $historyPayload);
+                } catch (Throwable $e) {
+                    // Fallback: sync write or log-only
+                    $fallback = (string) config('authentication.audit.queue_fallback', 'sync');
+                    if ($fallback === 'sync') {
+                        $this->persistAuditSync($attemptPayload, $historyPayload);
+                    } else {
+                        $this->logger->error('[AUTH_AUDIT] Queue dispatch failed', ['error' => $e->getMessage()]);
+                    }
+                }
+            } else {
+                $this->persistAuditSync($attemptPayload, $historyPayload);
             }
         }
 
@@ -101,5 +125,23 @@ class AuthenticationAuditService implements AuditLoggerInterface
         }
 
         return $results;
+    }
+
+    /**
+     * Persist audit records synchronously (fallback or when queue disabled).
+     *
+     * @param array<string, mixed> $attemptPayload
+     * @param array{user_id: int|string, payload: array<string, mixed>}|null $historyPayload
+     */
+    private function persistAuditSync(array $attemptPayload, ?array $historyPayload): void
+    {
+        $this->attemptRepo->record($attemptPayload);
+
+        if ($historyPayload !== null) {
+            $this->historyRepo->recordLogin(
+                $historyPayload['user_id'],
+                $historyPayload['payload']
+            );
+        }
     }
 }

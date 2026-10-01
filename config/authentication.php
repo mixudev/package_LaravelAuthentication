@@ -340,10 +340,14 @@ return [
     | seperti password/token otomatis disamarkan.
     */
     'audit' => [
-        'enabled'        => true,
-        'driver'         => 'database', // 'database', 'log', atau 'null'
-        'log_channel'    => 'stack',
-        'retention_days' => 90, // Konsumen: php artisan authentication:prune (hapus attempts/login_histories/password_histories lebih tua dari N hari)
+        'enabled'          => true,
+        'driver'           => 'database', // 'database', 'log', atau 'null'
+        'log_channel'      => 'stack',
+        'queue'            => false, // true = persist audit asynchronously via queue
+        'queue_connection' => null, // null = default queue connection
+        'queue_name'       => 'auth-audit',
+        'queue_fallback'   => 'sync', // 'sync' = write inline if dispatch fails; 'log' = log only
+        'retention_days'   => 90, // Konsumen: php artisan authentication:prune (hapus attempts/login_histories/password_histories lebih tua dari N hari)
     ],
 
     // Listener bawaan package untuk menulis audit trail ke log (opsional).

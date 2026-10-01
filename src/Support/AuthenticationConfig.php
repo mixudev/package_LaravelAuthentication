@@ -213,6 +213,11 @@ final class AuthenticationConfig
         return (string) $this->config->get('authentication.audit.driver', 'database');
     }
 
+    public function isAuditQueued(): bool
+    {
+        return (bool) $this->config->get('authentication.audit.queue', false);
+    }
+
     public function isRegistrationEnabled(): bool
     {
         return (bool) $this->config->get('authentication.features.registration.enabled', true);
