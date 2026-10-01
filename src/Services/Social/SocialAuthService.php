@@ -21,6 +21,8 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\CircuitBreaker;
+use Vendor\LaravelAuthentication\Support\CircuitBreakerOpenException;
 
 /**
  * Service managing OAuth 2.0 / Social authentication flows via Laravel Socialite.
@@ -99,8 +101,19 @@ class SocialAuthService implements SocialAuthServiceInterface
             $driver = $driver->stateless();
         }
 
-        /** @var object $socialUser */
-        $socialUser = $driver->user();
+        // PERF-08: Circuit breaker protects against cascading failure when OAuth provider is down.
+        // After 5 consecutive failures, fail fast for 60 seconds before retry.
+        $breaker = new CircuitBreaker("oauth.{$provider}", failureThreshold: 5, timeout: 60);
+
+        try {
+            /** @var object $socialUser */
+            $socialUser = $breaker->call(fn() => $driver->user());
+        } catch (CircuitBreakerOpenException $e) {
+            throw new AuthenticationException(
+                "OAuth provider [{$provider}] is temporarily unavailable. Please try again later.",
+                previous: $e
+            );
+        }
 
         $email = method_exists($socialUser, 'getEmail') ? $socialUser->getEmail() : ($socialUser->email ?? null);
         $name = method_exists($socialUser, 'getName') ? $socialUser->getName() : ($socialUser->name ?? ($socialUser->nickname ?? 'OAuth User'));
