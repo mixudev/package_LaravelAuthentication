@@ -304,8 +304,16 @@ class PasskeyService
         }
 
         // 5. Cloned authenticator detection (Sign count check)
-        if ($credential->sign_count > 0 && $parsedAuthData['sign_count'] > 0 && $parsedAuthData['sign_count'] <= $credential->sign_count) {
-            throw new InvalidCredentialsException('WebAuthn cloned authenticator detected: invalid sign counter.');
+        // SECURITY FIX (v1.9.1): Strict monotonic counter enforcement (FIDO2 spec §7.2)
+        // A cloned authenticator cannot produce a valid sign_count > last known value.
+        // Reject counter rollback, equality, or suspicious zero (after initial use).
+        // CVSS 9.1: Cloned authenticator bypass removed.
+        if ($credential->sign_count > 0) {
+            // Once counter has incremented, REQUIRE strict increase (no rollback, no zero)
+            if ($parsedAuthData['sign_count'] <= $credential->sign_count) {
+                report(new InvalidCredentialsException("Passkey clone detected: counter rollback from {$credential->sign_count} to {$parsedAuthData['sign_count']} for credential {$credential->id}."));
+                throw new InvalidCredentialsException('WebAuthn cloned authenticator detected: invalid sign counter.');
+            }
         }
 
         // 6. Cryptographic signature verification over (authenticatorData || SHA256(clientDataJSON))
@@ -318,7 +326,9 @@ class PasskeyService
         );
 
         // 7. Update sign count & last used timestamp upon successful verification
-        $credential->sign_count = $parsedAuthData['sign_count'] > 0 ? $parsedAuthData['sign_count'] : $credential->sign_count + 1;
+        // SECURITY: Always use authenticator-reported counter. Manual increment removed.
+        // FIDO2 authenticators MUST maintain their own monotonic counter.
+        $credential->sign_count = $parsedAuthData['sign_count'];
         $credential->last_used_at = now();
         $credential->save();
 

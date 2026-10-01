@@ -61,6 +61,21 @@ class SocialAuthController extends Controller
         $context = AuthenticationContext::fromRequest($request);
 
         try {
+            // SEC-CRITICAL: Explicit state validation for stateful OAuth.
+            // Fail-closed: state is REQUIRED when a session exists. A missing state is
+            // treated exactly like a mismatched one, otherwise an attacker could simply
+            // strip the parameter to bypass this check. Socialite performs the same
+            // validation later, this is defence in depth.
+            if ($request->hasSession()) {
+                $sessionState = $request->session()->get('state');
+                $callbackState = $request->input('state');
+
+                if (!is_string($sessionState) || $sessionState === '' || !is_string($callbackState) || !hash_equals($sessionState, $callbackState)) {
+                    report(new AuthenticationException("OAuth state mismatch for provider [{$provider}]."));
+                    throw new AuthenticationException("Invalid OAuth state parameter. Possible CSRF attack.");
+                }
+            }
+
             $user = $this->socialAuthService->handleCallback($provider, $context, stateless: false);
 
             // Enforce Two-Factor Authentication if enabled for the user

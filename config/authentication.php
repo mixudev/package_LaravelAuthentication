@@ -292,6 +292,7 @@ return [
         'social' => [
             'enabled'       => true,
             'auto_register' => true, // Buat user baru otomatis jika belum terdaftar
+            'strict_email_verification' => true, // Tolak pengaitan akun lokal jika OAuth provider tidak mengonfirmasi email_verified
 
             'providers' => [
                 'google' => [

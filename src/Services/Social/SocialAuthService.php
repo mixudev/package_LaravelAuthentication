@@ -122,24 +122,33 @@ class SocialAuthService implements SocialAuthServiceInterface
             throw new AuthenticationException("Unable to retrieve verified email address from [{$provider}].");
         }
 
-        // SEC-06/14 FIX: When the provider exposes an email-verified claim, require it before
-        // allowing sign-in/linking. Prevents account takeover via an unverified social email
-        // colliding with an existing local account.
+        // SEC-06/14/15 HARDENING: Strict email verification check
+        // Prevents account takeover where an attacker uses an unverified social email
+        // colliding with an existing local account or creating an unverified account.
         $emailVerified = null;
         if (property_exists($socialUser, 'user') || (is_object($socialUser) && isset($socialUser->user))) {
             $raw = (array) $socialUser->user;
             if (array_key_exists('email_verified', $raw)) {
                 $emailVerified = (bool) $raw['email_verified'];
+            } elseif (array_key_exists('verified', $raw)) {
+                $emailVerified = (bool) $raw['verified'];
             }
         }
+
+        // Strict verification: if provider explicitly says unverified, always reject.
         if ($emailVerified === false) {
             throw new AuthenticationException("Unable to confirm the verified status of the email address from [{$provider}].");
         }
-        // Note: providers without an email_verified claim (e.g. GitHub public email) fall through —
-        // sign-in proceeds, but auto-registration is gated by the email-exists lookup below.
 
         $emailCol = $this->config->getIdentifierColumn('email');
         $user = $this->resolver->resolveByColumn($emailCol, $email);
+
+        // SEC-CRITICAL: If linking to an existing account, fail-closed if email verification is not confirmed
+        // Unless explicitly relaxed via config, linking existing accounts requires confirmed email verification.
+        $requireStrictLink = (bool) config('authentication.features.social.strict_email_verification', true);
+        if ($user !== null && $emailVerified !== true && $requireStrictLink) {
+            throw new AuthenticationException("Cannot link existing account with unverified email from [{$provider}]. Verified email required.");
+        }
 
         if ($user === null) {
             if (!$this->config->isSocialAutoRegisterEnabled()) {
@@ -152,12 +161,20 @@ class SocialAuthService implements SocialAuthServiceInterface
             $user = new $userModelClass();
             $passwordCol = $this->config->getIdentifierColumn('password');
 
-            $user->forceFill([
+            $payload = [
                 'name'         => $name ?: 'OAuth User',
                 $emailCol      => $email,
                 $passwordCol   => $this->hasher->make(Str::random(32)),
-            ]);
+            ];
 
+            // If user model has email_verified_at column, populate it if email is verified
+            if ($emailVerified === true && method_exists($user, 'hasCast') && $user->isFillable('email_verified_at')) {
+                $payload['email_verified_at'] = now();
+            } elseif ($emailVerified === true && in_array('email_verified_at', $user->getFillable(), true)) {
+                $payload['email_verified_at'] = now();
+            }
+
+            $user->forceFill($payload);
             $user->save();
         }
 
