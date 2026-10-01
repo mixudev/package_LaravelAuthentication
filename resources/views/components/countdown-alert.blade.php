@@ -43,8 +43,8 @@ Deskripsi: Alert dengan live countdown timer untuk throttle/lockout.
         {{ $attributes->merge(['class' => 'auth-alert-' . $type . ' flex flex-col gap-3 p-3.5 rounded-lg border text-xs leading-relaxed font-medium']) }}
         role="alert"
         x-data="{
-            seconds: {{ $seconds }},
-            total: {{ $seconds }},
+            seconds: {{ (int) $seconds }},
+            total: {{ (int) $seconds }},
             finished: false,
             interval: null,
             
@@ -70,7 +70,7 @@ Deskripsi: Alert dengan live countdown timer untuk throttle/lockout.
             },
             
             disableSubmitButton() {
-                const btn = document.querySelector('{{ $submitButton }}');
+                const btn = document.querySelector({{ json_encode($submitButton) }});
                 if (btn) {
                     btn.disabled = true;
                     btn.dataset.originalText = btn.textContent;
@@ -79,7 +79,7 @@ Deskripsi: Alert dengan live countdown timer untuk throttle/lockout.
             },
             
             enableSubmitButton() {
-                const btn = document.querySelector('{{ $submitButton }}');
+                const btn = document.querySelector({{ json_encode($submitButton) }});
                 if (btn) {
                     btn.disabled = false;
                     btn.classList.remove('opacity-50', 'cursor-not-allowed');

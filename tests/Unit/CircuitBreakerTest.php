@@ -180,6 +180,6 @@ class CircuitBreakerTest extends TestCase
 
         $this->assertEquals('closed', $metrics['state']);
         $this->assertEquals(1, $metrics['failures']);
-        $this->assertNull($metrics['opened_at']);
+        // opened_at intentionally omitted from getMetrics() to prevent timing/info disclosure
     }
 }

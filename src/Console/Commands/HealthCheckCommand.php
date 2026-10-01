@@ -33,7 +33,8 @@ use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 class HealthCheckCommand extends Command
 {
     protected $signature = 'authentication:health
-        {--detailed : Show detailed check results}';
+        {--detailed : Show detailed check results}
+        {--silent : Production mode - exit code only, no output}';
 
     protected $description = 'Verifikasi kesehatan komponen autentikasi (database, cache, config)';
 
@@ -44,6 +45,7 @@ class HealthCheckCommand extends Command
     public function handle(AuthenticationConfig $config): int
     {
         $detailed = (bool) $this->option('detailed');
+        $silent = (bool) $this->option('silent');
 
         $this->checks = [
             'Package Enabled'      => fn() => $this->checkEnabled($config),
@@ -57,27 +59,33 @@ class HealthCheckCommand extends Command
         foreach ($this->checks as $name => $check) {
             try {
                 $check();
-                if ($detailed) {
+                if ($detailed && !$silent) {
                     $this->line("<fg=green>✓</> {$name}");
                 }
             } catch (Throwable $e) {
                 $this->failures++;
-                $this->error("✗ {$name}: " . $e->getMessage());
+                // SECURITY FIX: Sanitize error messages in production (no table names, class paths)
+                if (!$silent) {
+                    $message = $detailed ? $e->getMessage() : $this->sanitizeErrorMessage($name);
+                    $this->error("✗ {$name}: " . $message);
+                }
             }
         }
 
         $total = count($this->checks);
         $passed = $total - $this->failures;
 
-        $this->newLine();
+        if (!$silent) {
+            $this->newLine();
 
-        if ($this->failures === 0) {
-            $this->info("✓ Healthy: {$passed}/{$total} checks passed");
-            return self::SUCCESS;
+            if ($this->failures === 0) {
+                $this->info("✓ Healthy: {$passed}/{$total} checks passed");
+            } else {
+                $this->error("✗ Unhealthy: {$this->failures}/{$total} checks failed");
+            }
         }
 
-        $this->error("✗ Unhealthy: {$this->failures}/{$total} checks failed");
-        return self::FAILURE;
+        return $this->failures === 0 ? self::SUCCESS : self::FAILURE;
     }
 
     /**
@@ -176,5 +184,22 @@ class HealthCheckCommand extends Command
         if (!class_exists($strategyClass)) {
             throw new \RuntimeException("Strategy class '{$strategyClass}' not found");
         }
+    }
+
+    /**
+     * SECURITY FIX: Sanitize error messages for production health probes.
+     * Prevents architecture disclosure in Kubernetes logs.
+     */
+    protected function sanitizeErrorMessage(string $checkName): string
+    {
+        return match ($checkName) {
+            'Package Enabled' => 'Package configuration error',
+            'Database Connection' => 'Database connectivity failed',
+            'Cache Connection' => 'Cache connectivity failed',
+            'Required Tables' => 'Database schema incomplete',
+            'User Model Loadable' => 'User model configuration error',
+            'Strategy Registry' => 'Strategy configuration error',
+            default => 'Check failed',
+        };
     }
 }

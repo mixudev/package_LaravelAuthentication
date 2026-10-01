@@ -72,6 +72,7 @@ class PruneSessionsCommand extends Command
 
     /**
      * Prune expired sessions from Laravel's sessions table.
+     * SECURITY FIX: Atomic delete to prevent TOCTOU race condition.
      */
     protected function pruneDatabaseSessions(Carbon $cutoff, bool $dryRun): int
     {
@@ -82,11 +83,15 @@ class PruneSessionsCommand extends Command
             return 0;
         }
 
-        $query = DB::table($tableName)->where('last_activity', '<', $cutoff->timestamp);
-        $count = $query->count();
-
-        if ($count > 0 && !$dryRun) {
-            $query->delete();
+        if ($dryRun) {
+            // Dry-run: count only (no race risk)
+            $count = DB::table($tableName)->where('last_activity', '<', $cutoff->timestamp)->count();
+        } else {
+            // SECURITY FIX: Single atomic DELETE with fresh WHERE clause (no TOCTOU)
+            // Re-evaluate cutoff at execution time to avoid deleting sessions updated between count() and delete()
+            $count = DB::table($tableName)
+                ->where('last_activity', '<', $cutoff->timestamp)
+                ->delete();
         }
 
         $this->line(sprintf(
@@ -102,19 +107,23 @@ class PruneSessionsCommand extends Command
 
     /**
      * Prune untrusted devices not seen for N days.
+     * SECURITY FIX: Atomic delete to prevent TOCTOU race condition.
      *
      * Trusted devices are kept indefinitely (or until trust expires).
      * Only stale untrusted devices are removed to prevent table bloat.
      */
     protected function pruneStaleDevices(Carbon $cutoff, bool $dryRun): int
     {
-        $query = AuthenticationDevice::where('is_trusted', false)
-            ->where('last_seen_at', '<', $cutoff);
-
-        $count = $query->count();
-
-        if ($count > 0 && !$dryRun) {
-            $query->delete();
+        if ($dryRun) {
+            // Dry-run: count only (no race risk)
+            $count = AuthenticationDevice::where('is_trusted', false)
+                ->where('last_seen_at', '<', $cutoff)
+                ->count();
+        } else {
+            // SECURITY FIX: Single atomic DELETE (no separate count query)
+            $count = AuthenticationDevice::where('is_trusted', false)
+                ->where('last_seen_at', '<', $cutoff)
+                ->delete();
         }
 
         $this->line(sprintf(

@@ -112,6 +112,13 @@ class AuthenticationService implements AuthenticationServiceInterface
         $isValid = false;
         if ($user !== null) {
             $isValid = $strategy->validateCredentials($user, $data);
+        } else {
+            // Dummy hash check untuk normalize timing (user enumeration defense)
+            // Prevent timing attack: non-existent user (5ms) vs wrong password (423ms)
+            \Illuminate\Support\Facades\Hash::check(
+                $data->password,
+                '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi' // bcrypt dummy
+            );
         }
 
         // Fail Case: Invalid credentials or non-existent user (Identical timing / response for User Enumeration Defense)

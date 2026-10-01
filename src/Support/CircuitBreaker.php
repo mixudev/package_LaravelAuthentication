@@ -64,6 +64,8 @@ final class CircuitBreaker
             if ($this->shouldAttemptReset()) {
                 $this->transitionTo(self::STATE_HALF_OPEN);
             } else {
+                // SECURITY FIX: Normalize timing to prevent side-channel (probe response timing)
+                $this->addTimingNoise();
                 throw new CircuitBreakerOpenException(
                     "Circuit breaker [{$this->name}] is OPEN. Dependency unavailable."
                 );
@@ -93,6 +95,7 @@ final class CircuitBreaker
         try {
             return $this->call($callback);
         } catch (CircuitBreakerOpenException) {
+            $this->addTimingNoise();
             return $fallback;
         }
     }
@@ -118,15 +121,15 @@ final class CircuitBreaker
 
     /**
      * Get current metrics (for monitoring/dashboard).
+     * SECURITY FIX: Removed opened_at from public metrics to prevent timing disclosure.
      *
-     * @return array{state: string, failures: int, opened_at: ?int}
+     * @return array{state: string, failures: int}
      */
     public function getMetrics(): array
     {
         return [
             'state' => $this->getState(),
             'failures' => (int) Cache::get($this->failureCountKey(), 0),
-            'opened_at' => Cache::get($this->openedAtKey()),
         ];
     }
 
@@ -220,6 +223,17 @@ final class CircuitBreaker
     private function openedAtKey(): string
     {
         return "circuit_breaker:{$this->name}:opened_at";
+    }
+
+    /**
+     * Add random timing noise to prevent side-channel timing attacks.
+     * SECURITY FIX: Normalizes fast-path timing (OPEN without reset) to match
+     * computational characteristics, preventing provider status inference.
+     */
+    private function addTimingNoise(): void
+    {
+        // Add 5-25ms random delay (consistent order of magnitude as half-open transition)
+        usleep(random_int(5000, 25000));
     }
 }
 
