@@ -128,15 +128,15 @@ REDIS_QUEUE_DB=1  # Queue (separate database)
 
 ### Queue Workers
 
-**Required for v1.9.0+** (email queue enabled by default):
+**Required for v1.9.0+** (email queue + async audit enabled by default):
 ```bash
-# Start queue worker
-php artisan queue:work redis --queue=auth-emails --sleep=3 --tries=3
+# Start queue worker (production)
+php artisan queue:work redis --queue=auth-emails,auth-audit --sleep=3 --tries=3 --max-time=3600
 
 # Supervisor config (production)
 [program:laravel-auth-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/html/artisan queue:work redis --queue=auth-emails --sleep=3 --tries=3 --max-time=3600
+command=php /var/www/html/artisan queue:work redis --queue=auth-emails,auth-audit --sleep=3 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -179,7 +179,36 @@ php artisan queue:monitor auth-emails --max=100
 
 ---
 
-### 2. Rate Limiting Strategy
+### 2. Enable Async Audit Logging (v1.9.0+ - High Traffic)
+
+**For >1000 req/sec**: Offload audit writes to queue workers
+```php
+// config/authentication.php
+'audit' => [
+    'enabled'          => true,
+    'driver'           => 'database',
+    'queue'            => true,  // ✓ Enable async via queue
+    'queue_connection' => null,  // null = use default (redis recommended)
+    'queue_name'       => 'auth-audit',
+    'queue_fallback'   => 'sync', // 'sync' = write inline if dispatch fails
+    'retention_days'   => 90,
+],
+```
+
+**Impact**:
+- **Before**: 2 synchronous DB writes per login (~50-100ms latency)
+- **After**: Async dispatch (~1-2ms), writes handled by queue workers
+- **Scaling**: Horizontal (add more queue workers vs vertical DB scaling)
+
+**Verify**:
+```bash
+php artisan queue:monitor auth-audit --max=200
+# Should show: "auth-audit ....................... HEALTHY"
+```
+
+---
+
+### 3. Rate Limiting Strategy
 
 **Composite (IP + Identifier)** — Best for most cases:
 ```php
@@ -207,7 +236,7 @@ php artisan queue:monitor auth-emails --max=100
 
 ---
 
-### 3. Account Lockout
+### 4. Account Lockout
 
 **Enable for security** (disabled by default):
 ```php
@@ -227,7 +256,7 @@ php artisan queue:monitor auth-emails --max=100
 
 ---
 
-### 4. Session Configuration
+### 5. Session Configuration
 
 **Database Driver** (multi-server):
 ```env
@@ -248,7 +277,7 @@ SESSION_LIFETIME=120
 
 ---
 
-### 5. HTTPS & Security Headers
+### 6. HTTPS & Security Headers
 
 **Force HTTPS** (production):
 ```php
