@@ -60,8 +60,9 @@ class AccountLockService
         // Without lockForUpdate(), 10 concurrent requests can each read failed_attempts=4,
         // increment to 5, and save — bypassing the lockout threshold.
         return \Illuminate\Support\Facades\DB::transaction(function () use ($user, $userIdentifier, $maxAttempts, $context) {
-            /** @var AccountLockout $record */
-            $record = AccountLockout::lockForUpdate()
+            /** @var AccountLockout|null $record */
+            $record = AccountLockout::query()
+                ->lockForUpdate()
                 ->where('user_identifier', $userIdentifier)
                 ->first();
 
@@ -78,10 +79,9 @@ class AccountLockService
                     return false;
                 }
 
-                $record->increment('failed_attempts');
+                $record->failed_attempts = (int) $record->failed_attempts + 1;
                 $record->last_failure_at = \Illuminate\Support\Carbon::now();
                 $record->save();
-                $record->refresh();
             }
 
             if ($record->failed_attempts >= $maxAttempts) {

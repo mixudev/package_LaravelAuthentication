@@ -37,6 +37,7 @@ class HealthCheckCommand extends Command
 
     protected $description = 'Verifikasi kesehatan komponen autentikasi (database, cache, config)';
 
+    /** @var array<string, callable(): void> */
     protected array $checks = [];
     protected int $failures = 0;
 

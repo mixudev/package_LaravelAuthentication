@@ -196,7 +196,10 @@ final class CircuitBreaker
             return true;
         }
 
-        return (now()->timestamp - (int) $openedAt) >= $this->timeout;
+        $nowTs = (int) now()->timestamp;
+        $openTs = (int) $openedAt;
+
+        return ($nowTs - $openTs) >= $this->timeout;
     }
 
     private function stateKey(): string
