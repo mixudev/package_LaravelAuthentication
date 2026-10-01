@@ -48,10 +48,14 @@ return [
     |--------------------------------------------------------------------------
     | Pengiriman Email Asinkron (Queue)
     |--------------------------------------------------------------------------
-    | Mencegah proses login/OTP blocking ketika koneksi SMTP mail server lambat.
+    | PERF-04 RECOMMENDATION: Enable queue untuk mencegah SMTP blocking auth flow.
+    | Tanpa queue, setiap login/OTP menunggu email dispatch selesai (200-2000ms).
+    | 
+    | REQUIREMENT: Jalankan `php artisan queue:work` di production setelah enable.
+    | Recommended: Gunakan Redis/database queue driver (bukan sync).
     */
     'mail' => [
-        'queue'            => false, // Set true untuk dispatch email lewat background worker queue
+        'queue'            => true,  // CHANGED: false → true (enable by default for performance)
         'queue_connection' => null,  // null = ikuti default queue connection
         'queue_name'       => 'auth-emails',
     ],

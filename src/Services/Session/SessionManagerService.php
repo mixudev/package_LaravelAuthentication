@@ -22,15 +22,24 @@ class SessionManagerService
     ) {}
 
     /**
-     * Get all active sessions for a user.
+     * Get active sessions for a user with pagination.
      *
+     * PERF-03 FIX: Added pagination + hard cap to prevent OOM when user has 1000+ sessions
+     * (malicious activity, leaked tokens, or session hijacking). Without limit, loading
+     * all sessions into memory can exhaust PHP memory_limit.
+     *
+     * @param int $limit Maximum sessions to return (capped at 100)
+     * @param int $offset Pagination offset
      * @return array<int, array{id: string, ip_address: string, user_agent: string, platform: string, browser: string, device_name: string, location: ?string, last_activity: Carbon, is_current_device: bool}>
      */
-    public function getActiveSessions(Authenticatable $user, ?string $currentSessionId = null): array
+    public function getActiveSessions(Authenticatable $user, ?string $currentSessionId = null, int $limit = 50, int $offset = 0): array
     {
         $sessionDriver = config('session.driver');
         $userId = $user->getAuthIdentifier();
         $sessions = [];
+
+        // Cap limit at 100 to prevent abuse
+        $limit = min($limit, 100);
 
         if ($sessionDriver === 'database') {
             $tableName = config('session.table', 'sessions');
@@ -39,6 +48,8 @@ class SessionManagerService
                 $records = DB::table($tableName)
                     ->where('user_id', $userId)
                     ->orderBy('last_activity', 'desc')
+                    ->limit($limit)
+                    ->offset($offset)
                     ->get();
 
                 foreach ($records as $record) {
@@ -63,9 +74,11 @@ class SessionManagerService
             }
         }
 
-        // Fallback: Query from AuthenticationDevice table
+        // Fallback: Query from AuthenticationDevice table (also paginated)
         $devices = \Vendor\LaravelAuthentication\Models\AuthenticationDevice::where('user_id', $userId)
             ->orderBy('last_seen_at', 'desc')
+            ->limit($limit)
+            ->offset($offset)
             ->get();
 
         foreach ($devices as $device) {

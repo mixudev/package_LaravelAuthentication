@@ -46,34 +46,62 @@ class AccountLockService
         }
 
         $maxAttempts = $this->config->getLockoutMaxAttempts();
+        $userIdentifier = $this->identifierFor($user);
 
-        /** @var AccountLockout $record */
-        $record = AccountLockout::firstOrCreate(
-            ['user_identifier' => $this->identifierFor($user)],
-            ['failed_attempts' => 0]
-        );
-
-        $record->failed_attempts = (int) $record->failed_attempts + 1;
-        $record->last_failure_at = \Illuminate\Support\Carbon::now();
-
-        if ($record->failed_attempts >= $maxAttempts) {
-            $lockoutMinutes = $this->config->getLockoutDurationMinutes();
-            $record->locked_until = \Illuminate\Support\Carbon::now()->addMinutes($lockoutMinutes);
-            $record->save();
-
-            $this->events->dispatch(new AccountLocked($user, $context, $lockoutMinutes));
-
-            $this->auditService->logEvent(
-                SecurityEventType::ACCOUNT_LOCKED,
-                (string) $user->getAuthIdentifier(),
-                $context
-            );
-
-            return true;
+        // SEC-15 FIX: Guard against incrementing an already-locked account.
+        // A request that started before the lock engaged must not push the counter
+        // further, and must not re-dispatch AccountLocked / re-extend the window.
+        if ($this->isLocked($user)) {
+            return false;
         }
 
-        $record->save();
-        return false;
+        // PERF-02 FIX: Use database transaction with pessimistic locking to prevent
+        // race condition where concurrent requests can bypass max_attempts check.
+        // Without lockForUpdate(), 10 concurrent requests can each read failed_attempts=4,
+        // increment to 5, and save — bypassing the lockout threshold.
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($user, $userIdentifier, $maxAttempts, $context) {
+            /** @var AccountLockout $record */
+            $record = AccountLockout::lockForUpdate()
+                ->where('user_identifier', $userIdentifier)
+                ->first();
+
+            if ($record === null) {
+                $record = AccountLockout::create([
+                    'user_identifier' => $userIdentifier,
+                    'failed_attempts' => 1,
+                    'last_failure_at' => \Illuminate\Support\Carbon::now(),
+                ]);
+            } else {
+                // SEC-15: re-check under the row lock — another request may have
+                // engaged the lock between the pre-check and acquiring the row.
+                if ($record->isLocked()) {
+                    return false;
+                }
+
+                $record->increment('failed_attempts');
+                $record->last_failure_at = \Illuminate\Support\Carbon::now();
+                $record->save();
+                $record->refresh();
+            }
+
+            if ($record->failed_attempts >= $maxAttempts) {
+                $lockoutMinutes = $this->config->getLockoutDurationMinutes();
+                $record->locked_until = \Illuminate\Support\Carbon::now()->addMinutes($lockoutMinutes);
+                $record->save();
+
+                $this->events->dispatch(new AccountLocked($user, $context, $lockoutMinutes));
+
+                $this->auditService->logEvent(
+                    SecurityEventType::ACCOUNT_LOCKED,
+                    (string) $user->getAuthIdentifier(),
+                    $context
+                );
+
+                return true;
+            }
+
+            return false;
+        });
     }
 
     public function clearFailures(Authenticatable $user): void

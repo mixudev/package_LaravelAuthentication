@@ -1,0 +1,179 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Vendor\LaravelAuthentication\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Throwable;
+use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+
+/**
+ * Health check command for Kubernetes readiness/liveness probes.
+ *
+ * ENTERPRISE: Production deployments need health checks for load balancers,
+ * container orchestration (Kubernetes, Docker Swarm, ECS), and monitoring.
+ *
+ * Exit codes:
+ *   0 = healthy (all checks passed)
+ *   1 = unhealthy (one or more checks failed)
+ *
+ * Usage in Kubernetes:
+ *   livenessProbe:
+ *     exec:
+ *       command: ["php", "artisan", "authentication:health"]
+ *     initialDelaySeconds: 10
+ *     periodSeconds: 30
+ *
+ * Usage in monitoring:
+ *   php artisan authentication:health || alert "Auth service unhealthy"
+ */
+class HealthCheckCommand extends Command
+{
+    protected $signature = 'authentication:health
+        {--verbose : Show detailed check results}';
+
+    protected $description = 'Verifikasi kesehatan komponen autentikasi (database, cache, config)';
+
+    protected array $checks = [];
+    protected int $failures = 0;
+
+    public function handle(AuthenticationConfig $config): int
+    {
+        $verbose = (bool) $this->option('verbose');
+
+        $this->checks = [
+            'Package Enabled'      => fn() => $this->checkEnabled($config),
+            'Database Connection'  => fn() => $this->checkDatabase(),
+            'Cache Connection'     => fn() => $this->checkCache(),
+            'Required Tables'      => fn() => $this->checkTables(),
+            'User Model Loadable'  => fn() => $this->checkUserModel($config),
+            'Strategy Registry'    => fn() => $this->checkStrategies($config),
+        ];
+
+        foreach ($this->checks as $name => $check) {
+            try {
+                $check();
+                if ($verbose) {
+                    $this->line("<fg=green>✓</> {$name}");
+                }
+            } catch (Throwable $e) {
+                $this->failures++;
+                $this->error("✗ {$name}: " . $e->getMessage());
+            }
+        }
+
+        $total = count($this->checks);
+        $passed = $total - $this->failures;
+
+        $this->newLine();
+
+        if ($this->failures === 0) {
+            $this->info("✓ Healthy: {$passed}/{$total} checks passed");
+            return self::SUCCESS;
+        }
+
+        $this->error("✗ Unhealthy: {$this->failures}/{$total} checks failed");
+        return self::FAILURE;
+    }
+
+    /**
+     * Check if package is enabled via config.
+     */
+    protected function checkEnabled(AuthenticationConfig $config): void
+    {
+        if (!$config->isEnabled()) {
+            throw new \RuntimeException('Package disabled in config (authentication.enabled = false)');
+        }
+    }
+
+    /**
+     * Check database connectivity.
+     */
+    protected function checkDatabase(): void
+    {
+        DB::connection()->getPdo();
+        DB::connection()->select('SELECT 1');
+    }
+
+    /**
+     * Check cache connectivity (rate limiter depends on cache).
+     */
+    protected function checkCache(): void
+    {
+        $key = 'auth_health_check_' . time();
+        Cache::put($key, 'ok', 5);
+
+        if (Cache::get($key) !== 'ok') {
+            throw new \RuntimeException('Cache write/read verification failed');
+        }
+
+        Cache::forget($key);
+    }
+
+    /**
+     * Check required tables exist.
+     */
+    protected function checkTables(): void
+    {
+        $requiredTables = [
+            'authentication_attempts',
+            'authentication_login_histories',
+            'authentication_account_lockouts',
+        ];
+
+        foreach ($requiredTables as $table) {
+            if (!DB::getSchemaBuilder()->hasTable($table)) {
+                throw new \RuntimeException("Required table '{$table}' not found. Run migrations.");
+            }
+        }
+    }
+
+    /**
+     * Check if configured user model is loadable.
+     */
+    protected function checkUserModel(AuthenticationConfig $config): void
+    {
+        $userModel = $config->getUserModel();
+
+        if (!class_exists($userModel)) {
+            throw new \RuntimeException("User model '{$userModel}' not found");
+        }
+
+        // Verify model is Eloquent + Authenticatable
+        $instance = new $userModel();
+
+        if (!$instance instanceof \Illuminate\Database\Eloquent\Model) {
+            throw new \RuntimeException("User model must extend Eloquent Model");
+        }
+
+        if (!$instance instanceof \Illuminate\Contracts\Auth\Authenticatable) {
+            throw new \RuntimeException("User model must implement Authenticatable");
+        }
+    }
+
+    /**
+     * Check authentication strategies are registered.
+     */
+    protected function checkStrategies(AuthenticationConfig $config): void
+    {
+        $defaultStrategy = $config->getDefaultStrategy();
+        $strategies = (array) config('authentication.login.strategies', []);
+
+        if (empty($strategies)) {
+            throw new \RuntimeException('No authentication strategies configured');
+        }
+
+        if (!isset($strategies[$defaultStrategy])) {
+            throw new \RuntimeException("Default strategy '{$defaultStrategy}' not registered");
+        }
+
+        // Verify default strategy class exists
+        $strategyClass = $strategies[$defaultStrategy];
+        if (!class_exists($strategyClass)) {
+            throw new \RuntimeException("Strategy class '{$strategyClass}' not found");
+        }
+    }
+}

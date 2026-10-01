@@ -185,6 +185,8 @@ class AuthenticationServiceProvider extends ServiceProvider
                 \Vendor\LaravelAuthentication\Console\InstallCommand::class,
                 \Vendor\LaravelAuthentication\Console\InstallModuleCommand::class,
                 \Vendor\LaravelAuthentication\Console\Commands\PruneAuditLogsCommand::class,
+                \Vendor\LaravelAuthentication\Console\Commands\PruneSessionsCommand::class,
+                \Vendor\LaravelAuthentication\Console\Commands\HealthCheckCommand::class,
             ]);
         }
 

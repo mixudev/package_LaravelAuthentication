@@ -5,6 +5,22 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-10-01
+
+### Added - Enterprise Production Features
+- **`PruneSessionsCommand`**: CLI command untuk cleanup session kadaluarsa dan device record stale (high-traffic table management). Mendukung `--dry-run`, `--session-days`, `--device-days`.
+- **`HealthCheckCommand`**: Health check untuk Kubernetes/Docker readiness probe. Verifikasi database, cache, required tables, user model, dan strategy registry. Exit code 0 = healthy, 1 = unhealthy.
+- **Production Deployment Guide**: Dokumentasi lengkap `docs/PRODUCTION-DEPLOYMENT.md` (18KB) mencakup infrastructure requirements, configuration checklist, performance tuning (OPcache, query optimization, Redis cluster), high-availability setup (load balancer, sticky sessions), monitoring & observability (Prometheus, Grafana), scheduled jobs, Kubernetes deployment examples, security hardening, dan troubleshooting.
+- **Account Lockout Concurrency Tests**: `AccountLockoutConcurrencyTest` (4 tests, 19 assertions) untuk race condition protection pada lockout counter.
+
+### Fixed - Security
+- **SEC-15**: Account lockout counter tidak mengecek status lock sebelum increment. Bug memungkinkan concurrent request menaikkan `failed_attempts` setelah lockout triggered. Fix: guard pre-check + re-check under row lock di `AccountLockService::recordFailureAndCheckLockout()`.
+
+### Changed
+- CLI commands diregister di `AuthenticationServiceProvider`: tambah `PruneSessionsCommand` dan `HealthCheckCommand`.
+
+Total: 163 tests, 445 assertions, PHPStan level 8 clean.
+
 ## [1.8.0] - 2026-09-23
 
 ### Added
