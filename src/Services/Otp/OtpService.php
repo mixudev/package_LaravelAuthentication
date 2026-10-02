@@ -89,10 +89,19 @@ class OtpService implements OtpServiceInterface
         $usernameCol = $this->config->getIdentifierColumn('username');
         $user = $this->resolver->resolveByColumns([$emailCol, $usernameCol], $normalized);
 
-        // 1. Dispatch framework event only if user exists (prevent user enumeration & spamming)
+        // SECURITY: Always dispatch email when identifier is a valid email address,
+        // regardless of whether user exists. This prevents user enumeration while
+        // allowing legitimate users to receive codes. Non-email identifiers (username)
+        // are ignored to prevent spam. The email view does not disclose account existence.
+        $shouldSendEmail = filter_var($normalized, FILTER_VALIDATE_EMAIL);
+
+        if ($shouldSendEmail) {
+            $this->dispatchOtpEmail($user, $normalized, $code, $expiryMinutes);
+        }
+
+        // Dispatch framework event only if user exists (for internal hooks)
         if ($user !== null) {
             $this->events->dispatch(new OtpGenerated($user, $normalized, $code, $context, $expiryMinutes));
-            $this->dispatchOtpEmail($user, $normalized, $code, $expiryMinutes);
         }
 
         $this->auditService->logEvent(
@@ -100,7 +109,7 @@ class OtpService implements OtpServiceInterface
             $normalized,
             $context,
             null,
-            ['action' => 'otp_generated']
+            ['action' => 'otp_generated', 'email_sent' => $shouldSendEmail]
         );
 
         return $code;
@@ -108,22 +117,27 @@ class OtpService implements OtpServiceInterface
 
     /**
      * Dispatch OTP Email notification using configured Mailer.
+     *
+     * @param Authenticatable|null $user User object if found, null otherwise
+     * @param string $identifier The email address to send to
+     * @param string $code The OTP code
+     * @param int $expiryMinutes Code validity period
      */
     protected function dispatchOtpEmail(?Authenticatable $user, string $identifier, string $code, int $expiryMinutes): void
     {
-        if (! (bool) config('authentication.features.otp.send_email', true) || $user === null) {
+        if (! (bool) config('authentication.features.otp.send_email', true)) {
             return;
         }
 
-        $recipientEmail = null;
+        // Only send to valid email addresses
+        $recipientEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? $identifier : null;
 
-        $userEmailProp = $user->email ?? (method_exists($user, 'getEmailForPasswordReset') ? $user->getEmailForPasswordReset() : null);
-        if (!empty($userEmailProp) && is_string($userEmailProp)) {
-            $recipientEmail = $userEmailProp;
-        }
-
-        if (empty($recipientEmail) && filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-            $recipientEmail = $identifier;
+        // Fallback: try to extract email from user object if identifier is not an email
+        if ($recipientEmail === null && $user !== null) {
+            $userEmailProp = $user->email ?? (method_exists($user, 'getEmailForPasswordReset') ? $user->getEmailForPasswordReset() : null);
+            if (!empty($userEmailProp) && is_string($userEmailProp)) {
+                $recipientEmail = $userEmailProp;
+            }
         }
 
         if (!empty($recipientEmail)) {

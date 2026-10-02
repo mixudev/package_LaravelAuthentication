@@ -99,7 +99,7 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
                 inputmode="numeric"
                 maxlength="6"
                 label="Masukkan Kode 6-Digit dari Aplikasi untuk Konfirmasi"
-                placeholder="Contoh: 123456" 
+                placeholder="{{ __('authentication::messages.setup_totp_placeholder') }}"
                 autofocus
                 icon="shield"
             />

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kode Verifikasi Masuk</title>
+    <title>{{ __('authentication::messages.mail_otp_title') }}</title>
   <style>
     body {
       margin: 0;
@@ -89,11 +89,11 @@
     <div class="app-title">{{ $appName }}</div>
 
     <p class="greeting">
-      Halo @if(isset($user) && !empty($user->name))<strong>{{ $user->name }}</strong>,@else,@endif
+      {{ __('authentication::messages.mail_otp_greeting') }} @if(isset($user) && !empty($user->name))<strong>{{ $user->name }}</strong>,@else,@endif
     </p>
 
     <p class="text">
-      Gunakan kode verifikasi berikut untuk masuk ke akun Anda:
+      {{ __('authentication::messages.mail_otp_body') }}
     </p>
 
     <div class="otp-wrapper">
@@ -101,13 +101,13 @@
     </div>
 
     <p class="footnote">
-      ⏱ Kode ini berlaku selama <strong>{{ $expiryMinutes }} menit</strong>. Demi keamanan, jangan bagikan kode ini kepada siapapun.
+      ⏱ {{ __('authentication::messages.mail_otp_expiry', ['minutes' => $expiryMinutes]) }}
     </p>
 
     <div class="divider"></div>
 
     <p class="footer">
-      Jika Anda tidak meminta kode ini, abaikan email ini.<br>
+      {{ __('authentication::messages.mail_otp_ignore') }}<br>
       © {{ date('Y') }} {{ $appName }}.
     </p>
 

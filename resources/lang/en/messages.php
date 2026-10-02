@@ -49,6 +49,21 @@ return [
     'otp_invalid'             => 'The verification code is invalid or has expired.',
     'otp_expired'             => 'The OTP code has expired. Please request a new one.',
     'otp_resent'              => 'A new verification code has been resent.',
+    'mail_otp_title'          => 'Login Verification Code',
+    'mail_otp_greeting'       => 'Hello',
+    'mail_otp_body'           => 'Use the following verification code to sign in to your account:',
+    'mail_otp_expiry'         => 'This code is valid for :minutes minutes. For your security, do not share this code with anyone.',
+    'mail_otp_ignore'         => 'If you did not request this code, you can ignore this email.',
+    'mail_new_device_title'   => 'New Device Login Detected',
+    'mail_new_device_greeting' => 'Hello',
+    'mail_new_device_body'    => 'We detected a login to your account from a new device or location:',
+    'mail_device_browser'     => 'Device & Browser:',
+    'mail_device_ip'          => 'IP Address:',
+    'mail_device_location'    => 'Approximate Location:',
+    'mail_device_time'        => 'Time:',
+    'mail_new_device_safe'    => 'If this was you, you can ignore this email. If you did not perform this activity, secure your account immediately:',
+    'mail_secure_account'     => 'Secure Account & Revoke Session',
+    'mail_new_device_footer'  => 'This email was sent automatically to help protect your account.',
 
     /*
     |--------------------------------------------------------------------------
@@ -155,6 +170,8 @@ return [
     'passkey_not_supported'   => 'Passkeys are not supported on this browser or device.',
     'passkey_none_registered' => 'No passkeys found for this account. Please log in with your password.',
     'processing'              => 'Processing...',
+    'disable_2fa_password_placeholder' => 'Current password',
+    'setup_totp_placeholder'  => 'Example: 123456',
 
     /*
     |--------------------------------------------------------------------------

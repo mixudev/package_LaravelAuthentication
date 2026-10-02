@@ -59,7 +59,7 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
                 name="password"
                 type="password"
                 :label="__('authentication::messages.new_password_label')"
-                :placeholder="__('authentication::messages.new_password_ph')"
+                :placeholder="__('authentication::messages.new_password_placeholder')"
                 :required="true"
                 autocomplete="new-password"
                 :autofocus="true"
@@ -69,7 +69,7 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
                 name="password_confirmation"
                 type="password"
                 :label="__('authentication::messages.confirm_password_label')"
-                :placeholder="__('authentication::messages.confirm_password_ph')"
+                                :placeholder="__('authentication::messages.confirm_password_placeholder')"
                 :required="true"
                 autocomplete="new-password"
             />

@@ -41,7 +41,7 @@ class NewDeviceLoginMail extends Mailable
     public function envelope(): Envelope
     {
         $appName = (string) config('app.name', 'Laravel');
-        $defaultSubject = "{$appName} — Deteksi Masuk dari Perangkat Baru";
+        $defaultSubject = "{$appName} — " . (string) __('authentication::messages.mail_new_device_title');
         $subject = $this->customSubject ?: (string) config('authentication.security.new_device_notification.mail_subject', $defaultSubject);
 
         return new Envelope(

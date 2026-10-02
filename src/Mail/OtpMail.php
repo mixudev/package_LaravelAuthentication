@@ -48,7 +48,7 @@ class OtpMail extends Mailable
     public function envelope(): Envelope
     {
         $appName = (string) config('app.name', 'Laravel');
-        $defaultSubject = "{$appName} — Kode Verifikasi Masuk (OTP)";
+        $defaultSubject = "{$appName} — " . (string) __('authentication::messages.mail_otp_title');
         $subject = $this->customSubject ?: (string) config('authentication.features.otp.email_subject', $defaultSubject);
 
         return new Envelope(

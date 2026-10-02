@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pemberitahuan Masuk dari Perangkat Baru</title>
+  <title>{{ __('authentication::messages.mail_new_device_title') }}</title>
   <style>
     body {
       margin: 0;
@@ -111,47 +111,47 @@
   <div class="card">
     
     <div class="app-title">{{ $appName }}</div>
-    <div class="warning-badge">⚠️ Masuk dari Perangkat Baru</div>
+    <div class="warning-badge">⚠️ {{ __('authentication::messages.mail_new_device_title') }}</div>
 
     <p class="greeting">
-      Halo @if(isset($user) && !empty($user->name))<strong>{{ $user->name }}</strong>,@else,@endif
+      {{ __('authentication::messages.mail_new_device_greeting') }} @if(isset($user) && !empty($user->name))<strong>{{ $user->name }}</strong>,@else,@endif
     </p>
 
     <p class="text">
-      Kami mendeteksi adanya aktivitas masuk ke akun Anda dari perangkat atau lokasi baru:
+      {{ __('authentication::messages.mail_new_device_body') }}
     </p>
 
     <div class="device-box">
       <div class="device-row">
-        <span class="device-label">Perangkat & Browser:</span>
+        <span class="device-label">{{ __('authentication::messages.mail_device_browser') }}</span>
         <span class="device-value">{{ $device->device_name }}</span>
       </div>
       <div class="device-row">
-        <span class="device-label">Alamat IP:</span>
+        <span class="device-label">{{ __('authentication::messages.mail_device_ip') }}</span>
         <span class="device-value">{{ $device->ip_address }}</span>
       </div>
       @if($device->location)
       <div class="device-row">
-        <span class="device-label">Perkiraan Lokasi:</span>
+        <span class="device-label">{{ __('authentication::messages.mail_device_location') }}</span>
         <span class="device-value">{{ $device->location }}</span>
       </div>
       @endif
       <div class="device-row">
-        <span class="device-label">Waktu:</span>
+        <span class="device-label">{{ __('authentication::messages.mail_device_time') }}</span>
         <span class="device-value">{{ now()->format('d M Y, H:i T') }}</span>
       </div>
     </div>
 
     <p class="text" style="font-size: 13px;">
-      Jika ini memang Anda, Anda dapat mengabaikan email ini. Namun jika Anda merasa tidak melakukan aktivitas ini, segera amankan akun Anda:
+      {{ __('authentication::messages.mail_new_device_safe') }}
     </p>
 
-    <a href="{{ $secureUrl }}" class="btn">Amankan Akun & Cabut Sesi</a>
+    <a href="{{ $secureUrl }}" class="btn">{{ __('authentication::messages.mail_secure_account') }}</a>
 
     <div class="divider"></div>
 
     <p class="footer">
-      Email ini dikirim secara otomatis untuk menjaga keamanan akun Anda.<br>
+      {{ __('authentication::messages.mail_new_device_footer') }}<br>
       © {{ date('Y') }} {{ $appName }}.
     </p>
 

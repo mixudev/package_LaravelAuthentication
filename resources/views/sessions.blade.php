@@ -129,7 +129,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                                     <input 
                                         type="password" 
                                         name="password" 
-                                        placeholder="Kata Sandi Saat Ini" 
+                                        placeholder="{{ __('authentication::messages.disable_2fa_password_placeholder') }}"
                                         required 
                                         class="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400"
                                     >

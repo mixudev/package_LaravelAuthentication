@@ -49,6 +49,21 @@ return [
     'otp_invalid'             => 'Kode verifikasi tidak valid atau sudah kedaluwarsa.',
     'otp_expired'             => 'Kode OTP telah kedaluwarsa. Silakan minta kode baru.',
     'otp_resent'              => 'Kode verifikasi baru telah dikirim ulang.',
+    'mail_otp_title'          => 'Kode Verifikasi Masuk',
+    'mail_otp_greeting'       => 'Halo',
+    'mail_otp_body'           => 'Gunakan kode verifikasi berikut untuk masuk ke akun Anda:',
+    'mail_otp_expiry'         => 'Kode ini berlaku selama :minutes menit. Demi keamanan, jangan bagikan kode ini kepada siapa pun.',
+    'mail_otp_ignore'         => 'Jika Anda tidak meminta kode ini, abaikan email ini.',
+    'mail_new_device_title'   => 'Pemberitahuan Masuk dari Perangkat Baru',
+    'mail_new_device_greeting' => 'Halo',
+    'mail_new_device_body'    => 'Kami mendeteksi aktivitas masuk ke akun Anda dari perangkat atau lokasi baru:',
+    'mail_device_browser'     => 'Perangkat & Browser:',
+    'mail_device_ip'          => 'Alamat IP:',
+    'mail_device_location'    => 'Perkiraan Lokasi:',
+    'mail_device_time'        => 'Waktu:',
+    'mail_new_device_safe'    => 'Jika ini memang Anda, abaikan email ini. Jika Anda tidak melakukan aktivitas ini, segera amankan akun Anda:',
+    'mail_secure_account'     => 'Amankan Akun & Cabut Sesi',
+    'mail_new_device_footer'  => 'Email ini dikirim secara otomatis untuk membantu menjaga keamanan akun Anda.',
 
     /*
     |--------------------------------------------------------------------------
@@ -155,6 +170,8 @@ return [
     'passkey_not_supported'   => 'Passkey tidak didukung oleh browser atau perangkat ini.',
     'passkey_none_registered' => 'Belum ada Passkey yang terdaftar untuk akun ini. Silakan masuk menggunakan kata sandi.',
     'processing'              => 'Memproses...',
+    'disable_2fa_password_placeholder' => 'Kata sandi saat ini',
+    'setup_totp_placeholder'  => 'Contoh: 123456',
 
     /*
     |--------------------------------------------------------------------------
