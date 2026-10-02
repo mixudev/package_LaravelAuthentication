@@ -49,15 +49,16 @@ Deskripsi: Tombol standar modern (Primary, Secondary, Outline, Danger).
         'type' => $type,
         'class' => $classes,
     ]) }}
-    x-bind:disabled="$root.submitting || false"
+    x-data="{}"
+    x-bind:disabled="$el.closest('form')?.submitting || false"
 >
     @if (isset($icon))
-        <span class="mr-2 -ml-1 flex items-center" x-show="!($root.submitting || false)">{{ $icon }}</span>
+        <span class="mr-2 -ml-1 flex items-center" x-show="!($el.closest('form')?.submitting || false)">{{ $icon }}</span>
     @endif
 
     {{-- Loading Spinner --}}
     <svg 
-        x-show="$root.submitting || false" 
+        x-show="$el.closest('form')?.submitting || false" 
         x-cloak
         class="animate-spin -ml-1 mr-2 h-4 w-4" 
         fill="none" 
@@ -67,10 +68,10 @@ Deskripsi: Tombol standar modern (Primary, Secondary, Outline, Danger).
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
     </svg>
 
-    <span x-show="!($root.submitting || false)">{{ $slot }}</span>
-    <span x-show="$root.submitting || false" x-cloak>{{ $loadingText }}</span>
+    <span x-show="!($el.closest('form')?.submitting || false)">{{ $slot }}</span>
+    <span x-show="$el.closest('form')?.submitting || false" x-cloak>{{ $loadingText }}</span>
 
     @if (isset($suffix))
-        <span class="ml-2 -mr-1 flex items-center" x-show="!($root.submitting || false)">{{ $suffix }}</span>
+        <span class="ml-2 -mr-1 flex items-center" x-show="!($el.closest('form')?.submitting || false)">{{ $suffix }}</span>
     @endif
 </button>
