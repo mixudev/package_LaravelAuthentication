@@ -16,10 +16,11 @@ class FeatureRateLimiter implements FeatureRateLimiterInterface
 {
     public function __construct(
         private readonly RateLimiter $rateLimiter,
-        private readonly AuthenticationConfig $config
+        private readonly AuthenticationConfig $config,
+        private readonly RateLimitKeyFactory $keyFactory
     ) {}
 
-    public function tooManyAttempts(string $feature, ?string $identifier, string $ipAddress): bool
+    public function tooManyAttempts(string $feature, ?string $identifier, string $ipAddress, string $clientId = 'default'): bool
     {
         $rateConfig = $this->config->getRateLimitConfig($feature);
 
@@ -27,12 +28,12 @@ class FeatureRateLimiter implements FeatureRateLimiterInterface
             return false;
         }
 
-        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy']);
+        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy'], $clientId);
 
         return $this->rateLimiter->tooManyAttempts($key, $rateConfig['max_attempts']);
     }
 
-    public function hit(string $feature, ?string $identifier, string $ipAddress): int
+    public function hit(string $feature, ?string $identifier, string $ipAddress, string $clientId = 'default'): int
     {
         $rateConfig = $this->config->getRateLimitConfig($feature);
 
@@ -40,52 +41,51 @@ class FeatureRateLimiter implements FeatureRateLimiterInterface
             return 0;
         }
 
-        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy']);
+        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy'], $clientId);
         $decaySeconds = $rateConfig['decay_minutes'] * 60;
 
         return $this->rateLimiter->hit($key, $decaySeconds);
     }
 
-    public function clear(string $feature, ?string $identifier, string $ipAddress): void
+    public function clear(string $feature, ?string $identifier, string $ipAddress, string $clientId = 'default'): void
     {
         $rateConfig = $this->config->getRateLimitConfig($feature);
-        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy']);
+        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy'], $clientId);
 
         $this->rateLimiter->clear($key);
     }
 
-    public function availableIn(string $feature, ?string $identifier, string $ipAddress): int
+    public function availableIn(string $feature, ?string $identifier, string $ipAddress, string $clientId = 'default'): int
     {
         $rateConfig = $this->config->getRateLimitConfig($feature);
-        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy']);
+        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy'], $clientId);
 
         return $this->rateLimiter->availableIn($key);
     }
 
-    public function remaining(string $feature, ?string $identifier, string $ipAddress): int
+    public function remaining(string $feature, ?string $identifier, string $ipAddress, string $clientId = 'default'): int
     {
         $rateConfig = $this->config->getRateLimitConfig($feature);
-        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy']);
+        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy'], $clientId);
 
         return $this->rateLimiter->retriesLeft($key, $rateConfig['max_attempts']);
     }
 
-    public function attempts(string $feature, ?string $identifier, string $ipAddress): int
+    public function attempts(string $feature, ?string $identifier, string $ipAddress, string $clientId = 'default'): int
     {
         $rateConfig = $this->config->getRateLimitConfig($feature);
-        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy']);
+        $key = $this->resolveKey($feature, $identifier, $ipAddress, $rateConfig['strategy'], $clientId);
 
         return $this->rateLimiter->attempts($key);
     }
 
-    protected function resolveKey(string $feature, ?string $identifier, string $ipAddress, string $strategy): string
+    protected function resolveKey(string $feature, ?string $identifier, string $ipAddress, string $strategy, string $clientId = 'default'): string
     {
-        $normId = $identifier !== null ? EmailNormalizer::normalize($identifier) : '';
+        $abusePolicy = $this->config->getAbusePolicyConfig();
+        if ($feature === 'login' && $abusePolicy['enabled'] && isset($abusePolicy['dimensions']['account'])) {
+            $strategy = 'identifier';
+        }
 
-        return match ($strategy) {
-            'ip'         => "auth_rl:{$feature}:ip:{$ipAddress}",
-            'identifier' => "auth_rl:{$feature}:id:" . hash('sha256', $normId),
-            default      => "auth_rl:{$feature}:comp:" . hash('sha256', "{$normId}|{$ipAddress}"),
-        };
+        return $this->keyFactory->make($feature, $ipAddress, $identifier, $strategy, $clientId);
     }
 }

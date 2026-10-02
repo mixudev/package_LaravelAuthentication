@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Services\Security;
 
 use Illuminate\Cache\RateLimiter;
+use Illuminate\Support\Facades\Cache;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationAbusePolicyInterface;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
@@ -100,11 +101,20 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
 
     private function evaluateLegacy(LoginData $data, AuthenticationContext $context): RateLimitDecision
     {
-        $throttled = $this->rateLimiter->tooManyAttempts('login', $data->identifier, $context->ipAddress);
+        $rateConfig = $this->config->getRateLimitConfig('login');
+        $attempts = $this->rateLimiter->attempts('login', $data->identifier, $context->ipAddress);
+        $maxAttempts = $rateConfig['max_attempts'];
+        $challengeThreshold = $rateConfig['challenge_threshold'] ?? 0;
 
-        if ($throttled) {
+        // Hard limit exceeded: throttle
+        if ($attempts >= $maxAttempts) {
             $retryAfter = $this->rateLimiter->availableIn('login', $data->identifier, $context->ipAddress);
             return RateLimitDecision::throttle($retryAfter, 'composite_limit_exceeded');
+        }
+
+        // Soft limit exceeded but under hard limit: challenge
+        if ($challengeThreshold > 0 && $attempts >= $challengeThreshold) {
+            return RateLimitDecision::challenge(0, 'challenge_threshold_exceeded');
         }
 
         return RateLimitDecision::allow('within_composite_budget');
@@ -132,5 +142,16 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
     {
         $binary = @inet_pton($ipAddress);
         return $binary !== false ? bin2hex($binary) : $ipAddress;
+    }
+
+
+    public function generateChallengeToken(LoginData $data, AuthenticationContext $context): string
+    {
+        throw new \BadMethodCallException('Challenge token generation not yet implemented in multi-dimensional policy');
+    }
+
+    public function verifyChallengeToken(string $token, LoginData $data, AuthenticationContext $context): bool
+    {
+        throw new \BadMethodCallException('Challenge token verification not yet implemented in multi-dimensional policy');
     }
 }
