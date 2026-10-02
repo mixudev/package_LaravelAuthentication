@@ -101,6 +101,8 @@ class SocialAuthController extends Controller
             return redirect()->route('login')
                 ->withErrors(['identifier' => 'Your account has been temporarily locked for security reasons. Please try again later.']);
         } catch (AuthenticationException $e) {
+            report($e);
+
             return redirect()->route('login')
                 ->withErrors(['identifier' => "Social sign-in with {$provider} failed. Please try again."]);
         } catch (\Throwable $e) {
