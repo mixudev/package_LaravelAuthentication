@@ -5,6 +5,17 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.3] - 2026-10-02
+
+### Fixed - UI Critical
+- **CRITICAL: Button infinite loading bug**: Form never submitted when button disabled in @click event. Chrome/Edge cancel form submission if submit button disabled before submit event completes. User stuck with spinner forever, form never reaches server.
+  - **Solution**: Move loading state from button @click to form @submit. Button reads `$parent.submitting` via Alpine getter. Native form submission works correctly.
+  - Files: `button.blade.php`, `login.blade.php`, `register.blade.php`
+- **Hardcoded messages replaced with i18n**: All controller messages now use `__()` translation helper for proper localization support.
+  - Added lang keys: `registration_disabled`, `two_factor_required`, `processing`
+  - Files: `LoginController.php`, `RegisterController.php`, `resources/lang/{en,id}/messages.php`
+- **Install command**: Removed `--views` flag. Views load from vendor/ by default (no publish needed). Manual publish available via `php artisan vendor:publish --tag=authentication-views`.
+
 ## [1.9.0] - 2026-10-01
 
 ### Security Fixes (Deep Audit - 4 Parallel Subagents)
