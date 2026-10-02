@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
+use Vendor\LaravelAuthentication\Contracts\AuthenticationAbusePolicyInterface;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\CredentialResolverInterface;
 use Vendor\LaravelAuthentication\Contracts\CredentialValidatorInterface;
@@ -26,6 +27,7 @@ use Vendor\LaravelAuthentication\Services\Otp\OtpService;
 use Vendor\LaravelAuthentication\Services\Passkey\PasskeyService;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
+use Vendor\LaravelAuthentication\Services\Security\AuthenticationAbusePolicy;
 use Vendor\LaravelAuthentication\Services\Security\AuthenticationAuditService;
 use Vendor\LaravelAuthentication\Services\Security\CaptchaService;
 use Vendor\LaravelAuthentication\Services\Security\FeatureRateLimiter;
@@ -82,6 +84,7 @@ class AuthenticationServiceProvider extends ServiceProvider
         $this->app->singleton(CaptchaService::class);
         $this->app->singleton(AccountLockService::class);
         $this->app->singleton(LoginAttemptManager::class);
+        $this->app->singleton(\Vendor\LaravelAuthentication\Services\Security\AuthenticationAbusePolicy::class);
 
         // 5. Device, Session & Security Services
         $this->app->singleton(DeviceDetector::class);
@@ -103,6 +106,7 @@ class AuthenticationServiceProvider extends ServiceProvider
         $this->app->bind(LoginAttemptManagerInterface::class, LoginAttemptManager::class);
         $this->app->bind(TokenManagerInterface::class, TokenService::class);
         $this->app->bind(AuditLoggerInterface::class, AuthenticationAuditService::class);
+        $this->app->bind(AuthenticationAbusePolicyInterface::class, AuthenticationAbusePolicy::class);
         $this->app->bind(PasswordHistoryRepositoryInterface::class, PasswordHistoryRepository::class);
         $this->app->bind(RegistrationServiceInterface::class, RegistrationService::class);
         $this->app->bind(OtpServiceInterface::class, OtpService::class);
