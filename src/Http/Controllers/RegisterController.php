@@ -34,7 +34,7 @@ class RegisterController extends Controller
     public function showRegistrationForm(): View|JsonResponse
     {
         if (!$this->registrationService->isEnabled()) {
-            abort(404, 'Registration is currently disabled.');
+            abort(404, __('authentication::messages.registration_disabled'));
         }
 
         $viewName = (string) config('authentication.views.register', 'authentication::register');
@@ -61,7 +61,7 @@ class RegisterController extends Controller
     public function register(RegisterRequest $request): RedirectResponse
     {
         if (!$this->registrationService->isEnabled()) {
-            abort(404, 'Registration is currently disabled.');
+            abort(404, __('authentication::messages.registration_disabled'));
         }
 
         $dto = $request->toDto();
@@ -78,7 +78,7 @@ class RegisterController extends Controller
         }
 
         return redirect()->intended($this->config->getRedirect('register', '/dashboard'))
-            ->with('status', 'Registration completed successfully.');
+            ->with('status', __('authentication::messages.registered'));
     }
 
     /**
@@ -89,7 +89,7 @@ class RegisterController extends Controller
         if (!$this->registrationService->isEnabled()) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Registration is currently disabled.',
+                'message' => __('authentication::messages.registration_disabled'),
             ], 403);
         }
 
@@ -102,7 +102,7 @@ class RegisterController extends Controller
 
             return response()->json([
                 'status'  => 'success',
-                'message' => 'Account registered successfully.',
+                'message' => __('authentication::messages.registered'),
                 'user'    => [
                     'id'    => $user->getAuthIdentifier(),
                     'name'  => $user->name ?? null,

@@ -34,6 +34,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'invalid_two_factor_code' => 'Kode autentikasi dua langkah atau kode pemulihan tidak valid.',
+    'two_factor_required'     => 'Diperlukan kode autentikasi dua langkah.',
     'two_factor_enabled'      => 'Autentikasi dua langkah (2FA) berhasil diaktifkan.',
     'two_factor_disabled'     => 'Autentikasi dua langkah (2FA) telah dinonaktifkan.',
     'session_revoked'         => 'Sesi perangkat berhasil dicabut.',
@@ -64,6 +65,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'registered'              => 'Akun berhasil dibuat. Silakan masuk.',
+    'registration_disabled'   => 'Pendaftaran akun saat ini dinonaktifkan.',
     'email_taken'             => 'Alamat email ini sudah digunakan oleh akun lain.',
     'username_taken'          => 'Username ini sudah digunakan oleh akun lain.',
 
@@ -152,6 +154,7 @@ return [
     'passkey_registration_failed' => 'Gagal mendaftarkan passkey ini. Silakan coba lagi atau gunakan authenticator lain.',
     'passkey_not_supported'   => 'Passkey tidak didukung oleh browser atau perangkat ini.',
     'passkey_none_registered' => 'Belum ada Passkey yang terdaftar untuk akun ini. Silakan masuk menggunakan kata sandi.',
+    'processing'              => 'Memproses...',
 
     /*
     |--------------------------------------------------------------------------

@@ -11,10 +11,11 @@ Deskripsi: Tombol standar modern (Primary, Secondary, Outline, Danger).
     'size' => 'md',
     'fullWidth' => true,
     'loading' => false, // Manual loading state
-    'loadingText' => 'Memproses...', // Text saat loading
+    'loadingText' => null, // Text saat loading (default: translatable)
 ])
 
 @php
+    $loadingText = $loadingText ?? __('authentication::messages.processing');
     $baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none';
 
     $variants = [
@@ -49,12 +50,18 @@ Deskripsi: Tombol standar modern (Primary, Secondary, Outline, Danger).
         'class' => $classes,
     ]) }}
     x-data="{ 
-        submitting: {{ $loading ? 'true' : 'false' }}
+        submitting: {{ $loading ? 'true' : 'false' }},
+        init() {
+            // Reset submitting jika user kembali via browser back (bfcache)
+            window.addEventListener('pageshow', (e) => {
+                if (e.persisted) this.submitting = false;
+            });
+        }
     }"
     @if($type === 'submit')
-    @click="if (!$el.disabled && !submitting) { submitting = true; }"
+    x-on:click="if (!$el.disabled && !submitting && $el.form?.checkValidity()) { submitting = true; }"
     @endif
-    :disabled="submitting"
+    x-bind:disabled="submitting"
 >
     @if (isset($icon))
         <span class="mr-2 -ml-1 flex items-center" x-show="!submitting">{{ $icon }}</span>

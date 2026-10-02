@@ -34,6 +34,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'invalid_two_factor_code' => 'The two-factor authentication or recovery code is invalid.',
+    'two_factor_required'     => 'Two-factor authentication code required.',
     'two_factor_enabled'      => 'Two-factor authentication (2FA) has been enabled.',
     'two_factor_disabled'     => 'Two-factor authentication (2FA) has been disabled.',
     'session_revoked'         => 'The session was successfully revoked.',
@@ -64,6 +65,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'registered'              => 'Account created successfully. Please log in.',
+    'registration_disabled'   => 'Registration is currently disabled.',
     'email_taken'             => 'This email address is already in use.',
     'username_taken'          => 'This username is already taken.',
 
@@ -152,6 +154,7 @@ return [
     'passkey_registration_failed' => 'Unable to register this passkey. Please try again or use a different authenticator.',
     'passkey_not_supported'   => 'Passkeys are not supported on this browser or device.',
     'passkey_none_registered' => 'No passkeys found for this account. Please log in with your password.',
+    'processing'              => 'Processing...',
 
     /*
     |--------------------------------------------------------------------------
