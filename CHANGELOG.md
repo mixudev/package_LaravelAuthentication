@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **2FA Segmented Code Input Component** - Reusable component for TOTP, recovery codes, and OTP with auto-advance, paste, and keyboard navigation
+- **Recovery Mode Persistence** - Invalid recovery code now returns to recovery mode instead of resetting to TOTP
 - **Enterprise Multi-Dimensional Rate Limiting** - 5 independent abuse policy dimensions (account, account_ip, network, global, client) to prevent IP rotation, identifier rotation, and botnet attacks
 - `AuthenticationAbusePolicyInterface` - New policy contract for multi-dimensional evaluation
 - `RateLimitKeyFactory` - SHA-256 hashed, IPv6-normalized, client-scoped rate limit keys
@@ -33,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PHPStan Level 8 compliance across the package
 
 ### Security
+- **Atomic Recovery Code Consumption** - Transaction with `lockForUpdate()` prevents race condition where concurrent requests consume the same code
+- **Strict 2FA Input Validation** - Regex enforcement: TOTP exactly N digits, recovery 6-30 alphanumeric characters
+- **Dual-Mode Submission Prevention** - Reject requests containing both `code` and `recovery_code` fields
+- Sensitive codes never flashed to session or old input (removed from request before ValidationException)
 - Closes IP rotation bypass vulnerability (attacker can no longer rotate IP to reset account budget)
 - Closes identifier rotation bypass (attacker can no longer rotate email to reset network budget)
 - Closes botnet bypass (distributed 1M IP×account pairs now blocked by account+network+global dimensions)

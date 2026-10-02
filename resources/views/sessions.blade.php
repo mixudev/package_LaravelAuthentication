@@ -121,7 +121,9 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                                 <p class="text-xs text-zinc-600 dark:text-zinc-400">
                                     Masukkan kata sandi akun Anda untuk mengonfirmasi penonaktifan autentikasi 2 langkah.
                                 </p>
-                                <form method="POST" action="{{ $twoFactorDisableRoute }}" class="space-y-3">
+                                <form method="POST" action="{{ $twoFactorDisableRoute }}" class="space-y-3"
+                                      x-data="{ submitting: false }"
+                                      @submit="submitting = true">
                                     @csrf
                                     @method('DELETE')
                                     <input 
@@ -135,7 +137,13 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                                         <button type="button" @click="showDisableModal = false" class="px-3 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 hover:underline cursor-pointer">
                                             Batal
                                         </button>
-                                        <x-authentication::button type="submit" variant="primary" class="!bg-rose-600 hover:!bg-rose-700 text-xs">
+                                        <x-authentication::button
+                                            type="submit"
+                                            variant="danger"
+                                            size="sm"
+                                            :fullWidth="false"
+                                            loadingText="Memproses..."
+                                        >
                                             Ya, Matikan 2FA
                                         </x-authentication::button>
                                     </div>

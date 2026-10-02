@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Services\TwoFactor;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Hashing\Hasher;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
@@ -178,14 +179,14 @@ class TwoFactorService
     public function verifyChallenge(Authenticatable $user, string $code): bool
     {
         $userId = $user->getAuthIdentifier();
+
+        // TOTP is stateless and does not consume a stored credential.
         /** @var TwoFactorAuthentication|null $record */
         $record = TwoFactorAuthentication::where('user_id', $userId)->first();
-
         if (!$record || !$record->isConfirmed()) {
             return false;
         }
 
-        // 1. Try TOTP code first
         if ($this->totp->verify(
             $record->secret,
             $code,
@@ -196,35 +197,42 @@ class TwoFactorService
             return true;
         }
 
-        // 2. Try Recovery Code (Secure Hashed comparison with Backward Compatibility)
-        $cleanInput = str_replace(['-', ' '], '', trim($code));
-        $recoveryCodes = (array) ($record->recovery_codes ?? []);
+        // Recovery codes are one-time credentials. Lock the row inside a
+        // transaction so two concurrent requests cannot consume the same code.
+        return DB::transaction(function () use ($userId, $code): bool {
+            /** @var TwoFactorAuthentication|null $lockedRecord */
+            $lockedRecord = TwoFactorAuthentication::query()
+                ->where('user_id', $userId)
+                ->lockForUpdate()
+                ->first();
 
-        foreach ($recoveryCodes as $index => $storedCode) {
-            if (!is_string($storedCode)) {
-                continue;
+            if (!$lockedRecord || !$lockedRecord->isConfirmed()) {
+                return false;
             }
 
-            $isMatch = false;
+            $cleanInput = str_replace(['-', ' '], '', trim($code));
+            $recoveryCodes = (array) ($lockedRecord->recovery_codes ?? []);
 
-            // Check if stored code is a Bcrypt / Argon2 hash
-            if (str_starts_with($storedCode, '$2y$') || str_starts_with($storedCode, '$argon2id$') || str_starts_with($storedCode, '$2a$')) {
-                $isMatch = $this->hasher->check($cleanInput, $storedCode);
-            } else {
-                // Legacy plaintext comparison for existing users
-                $cleanStored = str_replace(['-', ' '], '', trim($storedCode));
-                $isMatch = hash_equals($cleanStored, $cleanInput);
+            foreach ($recoveryCodes as $index => $storedCode) {
+                if (!is_string($storedCode)) {
+                    continue;
+                }
+
+                $isMatch = str_starts_with($storedCode, '$2y$')
+                    || str_starts_with($storedCode, '$argon2id$')
+                    || str_starts_with($storedCode, '$2a$')
+                    ? $this->hasher->check($cleanInput, $storedCode)
+                    : hash_equals(str_replace(['-', ' '], '', trim($storedCode)), $cleanInput);
+
+                if ($isMatch) {
+                    unset($recoveryCodes[$index]);
+                    $lockedRecord->update(['recovery_codes' => array_values($recoveryCodes)]);
+                    return true;
+                }
             }
 
-            if ($isMatch) {
-                // Consume recovery code (single use)
-                unset($recoveryCodes[$index]);
-                $record->update(['recovery_codes' => array_values($recoveryCodes)]);
-                return true;
-            }
-        }
-
-        return false;
+            return false;
+        });
     }
 
     /**

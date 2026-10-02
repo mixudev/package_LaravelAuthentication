@@ -62,6 +62,8 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
                     :autofocus="$inputMode === 'recovery'"
                     activeWhen="recovery"
                     label="Kode Pemulihan Cadangan"
+                    sizeClass="w-7 h-10 text-sm sm:w-8 sm:h-11"
+                    gapClass="gap-1"
                 />
             </div>
 

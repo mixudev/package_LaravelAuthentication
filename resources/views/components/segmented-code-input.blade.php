@@ -6,7 +6,8 @@
     'autofocus' => false,
     'label' => null,
     'activeWhen' => 'true',
-    'sizeClass' => 'w-11 h-13',
+    'sizeClass' => 'w-11 h-13 text-xl',
+    'gapClass' => 'gap-2 sm:gap-2.5',
 ])
 
 @php
@@ -115,7 +116,7 @@
     <div
         role="group"
         @if ($label) aria-labelledby="{{ $labelId }}" @endif
-        class="flex items-center justify-center gap-2 sm:gap-2.5"
+        class="flex items-center justify-center {{ $gapClass }}"
         @paste="onPaste($event)"
     >
         @for ($index = 0; $index < $length; $index++)
@@ -136,7 +137,7 @@
                 @input="onInput($event, {{ $index }})"
                 @keydown="onKeydown($event, {{ $index }})"
                 @focus="$event.target.select()"
-                class="auth-otp-input {{ $sizeClass }} text-center text-xl font-bold rounded-lg border outline-none transition duration-150 focus:scale-105 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 motion-safe:focus:animate-pulse"
+                class="auth-otp-input {{ $sizeClass }} text-center font-bold rounded-lg border outline-none transition duration-150 focus:scale-105 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 motion-safe:focus:animate-pulse"
             >
         @endfor
     </div>
