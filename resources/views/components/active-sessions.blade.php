@@ -50,13 +50,6 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
         </span>
     </div>
 
-    {{-- Alert Pesan Sukses / Error Sesi --}}
-    @if (session('status'))
-        <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
-    @endif
-    @if ($errors->has('password'))
-        <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first('password')" />
-    @endif
 
     {{-- List Perangkat Aktif --}}
     <div class="space-y-2.5">
