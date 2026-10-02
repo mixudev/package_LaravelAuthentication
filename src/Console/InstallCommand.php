@@ -21,7 +21,6 @@ class InstallCommand extends Command
      */
     protected $signature = 'authentication:install
                             {--force : Overwrite existing configuration and published files}
-                            {--views : Also publish Blade view templates to resources/views/vendor/authentication}
                             {--migrate : Automatically run database migrations after installation}';
 
     /**
@@ -54,17 +53,7 @@ class InstallCommand extends Command
         ]);
         $this->line('  <info>✓</info> Database migrations published to <comment>database/migrations/</comment>');
 
-        // 3. Publish Views (Optional)
-        if ($this->option('views')) {
-            $this->line('🎨 Publishing Blade views...');
-            $this->call('vendor:publish', [
-                '--tag'   => 'authentication-views',
-                '--force' => $force,
-            ]);
-            $this->line('  <info>✓</info> Blade views published to <comment>resources/views/vendor/authentication/</comment>');
-        }
-
-        // 4. Configure Tailwind CSS & Vite in Host Application
+        // 3. Configure Tailwind CSS & Vite in Host Application
         $this->configureTailwind($filesystem);
 
         // 5. Run Migrations (if requested or confirmed)
@@ -81,6 +70,9 @@ class InstallCommand extends Command
         $this->line('  • Login / Register / Password Reset: <info>/login</info>, <info>/register</info>, <info>/forgot-password</info>');
         $this->line('  • 2FA & Active Sessions Dashboard:   <info>/auth/sessions</info>');
         $this->line('  • 2FA TOTP Setup & QR Code:          <info>/auth/two-factor/setup</info>');
+        $this->newLine();
+        $this->line('💡 <comment>Views NOT published:</comment> Package views load from <info>vendor/</info> automatically.');
+        $this->line('   To customize views: <info>php artisan vendor:publish --tag=authentication-views</info>');
         $this->newLine();
 
         // Show security-defense integration hint if package detected
