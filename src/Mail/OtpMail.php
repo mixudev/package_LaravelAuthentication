@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
@@ -15,12 +16,11 @@ use Illuminate\Queue\SerializesModels;
 /**
  * Mailable for dispatching One-Time Password verification codes to users.
  *
- * NOTE: does NOT implement ShouldQueue. Queueing is driven by
- * config('authentication.mail.queue'); the dispatcher chooses ->queue() vs ->send().
- * A hardcoded ShouldQueue here forced all OTP mail onto the queue even when the
- * host has queue=false and no worker running, so the code was never delivered.
+ * Implements ShouldQueue to allow Laravel queue workers to process queued jobs.
+ * When config('authentication.mail.queue') is true, OtpService calls ->queue()
+ * which pushes the job to the database. Without ShouldQueue, workers ignore it.
  */
-class OtpMail extends Mailable
+class OtpMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
