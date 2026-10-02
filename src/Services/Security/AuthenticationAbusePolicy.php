@@ -113,7 +113,8 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
         }
 
         // Soft limit exceeded but under hard limit: challenge
-        if ($challengeThreshold > 0 && $attempts >= $challengeThreshold) {
+        // challengeThreshold is the attempt number (1-indexed), so we compare attempts+1
+        if ($challengeThreshold > 0 && $attempts + 1 >= $challengeThreshold) {
             return RateLimitDecision::challenge(0, 'challenge_threshold_exceeded');
         }
 
