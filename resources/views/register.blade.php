@@ -44,7 +44,9 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
             <x-authentication::divider :label="__('authentication::messages.divider')" />
         @endif
 
-        <form method="POST" action="{{ $registerPerformRoute }}" class="space-y-4" novalidate>
+        <form method="POST" action="{{ $registerPerformRoute }}" class="space-y-4" novalidate
+              x-data="{ submitting: false }"
+              @submit="submitting = true">
             @csrf
 
             <x-authentication::input 
