@@ -27,7 +27,7 @@ final class RateLimitKeyFactory
      * @param string $feature Feature name (login, otp_request, etc.)
      * @param string $ipAddress Client IP address (IPv4 or IPv6)
      * @param string|null $identifier User identifier (email, username, etc.)
-     * @param string $dimension Limiting dimension: 'ip', 'identifier', 'composite'
+     * @param string $dimension Limiting dimension: 'ip', 'identifier', 'composite', 'network', 'global'
      * @param string $client Client scope (default: 'global')
      * @return string Hashed namespaced key
      */
@@ -42,6 +42,8 @@ final class RateLimitKeyFactory
             'ip'         => $this->normalizeIp($ipAddress),
             'identifier' => $this->normalizeIdentifier($identifier),
             'composite'  => $this->normalizeIp($ipAddress) . '|' . $this->normalizeIdentifier($identifier),
+            'network'    => $this->normalizeNetworkPrefix($ipAddress),
+            'global'     => 'platform',
             default      => throw new \InvalidArgumentException("Unknown dimension: {$dimension}"),
         };
 
@@ -75,5 +77,34 @@ final class RateLimitKeyFactory
         }
 
         return EmailNormalizer::normalize($identifier);
+    }
+
+    /**
+     * Normalize IP to network prefix for rate limiting.
+     * 
+     * IPv4: /24 prefix (first 3 octets)
+     * IPv6: /64 prefix (first 64 bits)
+     * 
+     * This prevents attackers from rotating IPs within the same subnet to bypass limits.
+     */
+    private function normalizeNetworkPrefix(string $ipAddress): string
+    {
+        $binary = @inet_pton($ipAddress);
+        
+        if ($binary === false) {
+            return $ipAddress; // Invalid IP, use as-is
+        }
+        
+        // IPv4: 4 bytes, extract /24 (first 3 bytes)
+        if (strlen($binary) === 4) {
+            return substr($binary, 0, 3) . "\x00";
+        }
+        
+        // IPv6: 16 bytes, extract /64 (first 8 bytes)
+        if (strlen($binary) === 16) {
+            return substr($binary, 0, 8) . str_repeat("\x00", 8);
+        }
+        
+        return $binary;
     }
 }
