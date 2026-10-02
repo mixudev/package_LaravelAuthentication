@@ -189,6 +189,13 @@ return [
             ],
         ],
 
+        // Enterprise abuse policy is opt-in to preserve legacy limiter behavior.
+        // Each dimension is an independent budget; never combine them into one key.
+        'abuse_policy' => [
+            'enabled' => false,
+            'dimensions' => [],
+        ],
+
         // CAPTCHA / Bot Protection Adaptif
         'captcha' => [
             'enabled'                       => false,

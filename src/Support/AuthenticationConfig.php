@@ -148,6 +148,62 @@ final class AuthenticationConfig
         ];
     }
 
+    /**
+     * Get validated enterprise abuse-policy dimensions.
+     *
+     * The policy is opt-in so existing installations retain legacy behavior.
+     *
+     * @return array{enabled: bool, dimensions: array<string, array{max_attempts: int, decay_minutes: int}>}
+     */
+    public function getAbusePolicyConfig(): array
+    {
+        $raw = $this->config->get('authentication.security.abuse_policy', [
+            'enabled' => false,
+            'dimensions' => [],
+        ]);
+
+        if (!is_array($raw)) {
+            throw new AuthenticationConfigurationException('Authentication abuse policy must be an array.');
+        }
+
+        $dimensions = $raw['dimensions'] ?? [];
+        if (!is_array($dimensions)) {
+            throw new AuthenticationConfigurationException('Authentication abuse policy dimensions must be an array.');
+        }
+
+        $allowedDimensions = ['account', 'account_ip', 'client', 'network', 'global'];
+        $normalized = [];
+
+        foreach ($dimensions as $name => $settings) {
+            if (!is_string($name) || !in_array($name, $allowedDimensions, true)) {
+                throw new AuthenticationConfigurationException("Unknown authentication abuse dimension [{$name}].");
+            }
+
+            if (!is_array($settings)) {
+                throw new AuthenticationConfigurationException("Authentication abuse dimension [{$name}] must be an array.");
+            }
+
+            $maxAttempts = (int) ($settings['max_attempts'] ?? 0);
+            $decayMinutes = (int) ($settings['decay_minutes'] ?? 0);
+
+            if ($maxAttempts < 1 || $decayMinutes < 1) {
+                throw new AuthenticationConfigurationException(
+                    "Authentication abuse dimension [{$name}] requires positive max_attempts and decay_minutes."
+                );
+            }
+
+            $normalized[$name] = [
+                'max_attempts' => $maxAttempts,
+                'decay_minutes' => $decayMinutes,
+            ];
+        }
+
+        return [
+            'enabled' => (bool) ($raw['enabled'] ?? false),
+            'dimensions' => $normalized,
+        ];
+    }
+
     public function isRateLimitEnabled(string $feature = 'login'): bool
     {
         return $this->getRateLimitConfig($feature)['enabled'];
