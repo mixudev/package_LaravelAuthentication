@@ -51,10 +51,17 @@ class TwoFactorChallengeController extends Controller
 
         $viewName = $this->config->getView('two_factor_challenge', 'authentication::two-factor-challenge');
 
+        // Retrieve and remove flash mode marker
+        $inputMode = (string) session()->pull('auth.2fa.input_mode', 'totp');
+        if (!in_array($inputMode, ['totp', 'recovery'], true)) {
+            $inputMode = 'totp';
+        }
+
         return response()->view($viewName, [
             'brandName'    => config('authentication.ui.brand_name', config('app.name', 'Laravel')),
             'brandTagline' => config('authentication.ui.brand_tagline', 'Verifikasi 2 Langkah'),
             'allowTrust'   => $this->config->isDeviceTrustEnabled(),
+            'inputMode'    => $inputMode,
         ]);
     }
 
@@ -92,20 +99,37 @@ class TwoFactorChallengeController extends Controller
             $request->merge(['remember' => $request->boolean('remember')]);
         }
 
-        // Accept either TOTP 6-digit code or backup recovery code from separate fields
+        // Accept exactly one code type; keep validation strict at the trust boundary.
+        $totpDigits = max(1, min(12, $this->config->getTwoFactorDigits()));
         $request->validate([
-            'code'          => ['nullable', 'string'],
-            'recovery_code' => ['nullable', 'string'],
+            'code'          => ['nullable', 'string', 'regex:/^\d{' . $totpDigits . '}$/'],
+            'recovery_code' => ['nullable', 'string', 'regex:/^[A-Za-z0-9][A-Za-z0-9 -]{4,30}[A-Za-z0-9]$/'],
             'trust_device'  => ['nullable', 'boolean'],
             'remember'      => ['nullable', 'boolean'],
         ]);
 
-        // One of the two fields must be present
-        $code = trim((string) ($request->input('code') ?: $request->input('recovery_code', '')));
+        // SECURITY: Never flash sensitive code values to old input.
+        $request->flashExcept(['code', 'recovery_code']);
 
-        if ($code === '') {
+        $hasTotp = $request->filled('code');
+        $hasRecovery = $request->filled('recovery_code');
+        if ($hasTotp === $hasRecovery) {
             throw ValidationException::withMessages([
                 'code' => [__('authentication::messages.invalid_two_factor_code')],
+            ]);
+        }
+
+        // Determine mode from field presence
+        $isRecoveryMode = $hasRecovery;
+        $fieldName = $isRecoveryMode ? 'recovery_code' : 'code';
+        $code = trim((string) ($request->input($fieldName, '')));
+
+        if ($code === '') {
+            $request->request->remove('code');
+            $request->request->remove('recovery_code');
+
+            throw ValidationException::withMessages([
+                $fieldName => [__('authentication::messages.invalid_two_factor_code')],
             ]);
         }
 
@@ -114,7 +138,7 @@ class TwoFactorChallengeController extends Controller
         if ($this->rateLimiter->tooManyAttempts('two_factor', (string) $userId, $ip)) {
             $seconds = $this->rateLimiter->availableIn('two_factor', (string) $userId, $ip);
             throw ValidationException::withMessages([
-                'code' => [__('authentication::messages.throttle_error', ['seconds' => $seconds])],
+                $fieldName => [__('authentication::messages.throttle_error', ['seconds' => $seconds])],
             ]);
         }
 
@@ -128,8 +152,16 @@ class TwoFactorChallengeController extends Controller
         if (!$this->twoFactorService->verifyChallenge($user, $code)) {
             $this->rateLimiter->hit('two_factor', (string) $userId, $ip);
 
+            // Flash mode marker so failed attempt returns to the same input mode.
+            // Remove secret fields before Laravel's exception handler flashes input.
+            if ($request->hasSession()) {
+                $request->session()->flash('auth.2fa.input_mode', $isRecoveryMode ? 'recovery' : 'totp');
+            }
+            $request->request->remove('code');
+            $request->request->remove('recovery_code');
+
             throw ValidationException::withMessages([
-                'code' => [__('authentication::messages.invalid_two_factor_code')],
+                $fieldName => [__('authentication::messages.invalid_two_factor_code')],
             ]);
         }
 

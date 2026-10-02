@@ -13,11 +13,14 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
     $verifyRoute = Route::has('two-factor.verify') 
         ? route('two-factor.verify') 
         : url('/two-factor-challenge');
+
+    $inputMode = $inputMode ?? 'totp';
+    $totpDigits = (int) config('authentication.features.two_factor.digits', 6);
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.two_factor_title')">
     
-    <div class="space-y-4" x-data="{ recovery: false }">
+    <div class="space-y-4" x-data="{ recovery: @js($inputMode === 'recovery') }">
         
         {{-- Header Halaman --}}
         <x-authentication::header 
@@ -38,27 +41,27 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
 
             {{-- Input Kode TOTP 6-Digit --}}
             <div x-show="!recovery">
-                <x-authentication::input 
-                    name="code" 
-                    type="text" 
+                <x-authentication::segmented-code-input
+                    name="code"
+                    :length="$totpDigits"
+                    charset="numeric"
                     autocomplete="one-time-code"
-                    inputmode="numeric"
-                    maxlength="8"
-                    label="Kode Keamanan 6-Digit"
-                    placeholder="Contoh: 123456" 
-                    autofocus
-                    icon="shield"
+                    :autofocus="$inputMode === 'totp'"
+                    activeWhen="!recovery"
+                    label="Kode Keamanan {{ $totpDigits }}-Digit"
                 />
             </div>
 
-            {{-- Input Kode Pemulihan Cadangan --}}
-            <div x-show="recovery" style="display: none;">
-                <x-authentication::input 
-                    name="recovery_code" 
-                    type="text" 
+            {{-- Input Kode Pemulihan Cadangan (10 karakter: ABCDE-12345) --}}
+            <div x-show="recovery" x-cloak>
+                <x-authentication::segmented-code-input
+                    name="recovery_code"
+                    :length="10"
+                    charset="alphanumeric-uppercase"
+                    autocomplete="off"
+                    :autofocus="$inputMode === 'recovery'"
+                    activeWhen="recovery"
                     label="Kode Pemulihan Cadangan"
-                    placeholder="Contoh: ABCD-1234" 
-                    icon="key"
                 />
             </div>
 
