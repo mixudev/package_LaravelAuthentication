@@ -73,7 +73,7 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
         $policyConfig = $this->config->getAbusePolicyConfig();
 
         if (!$policyConfig['enabled']) {
-            $this->rateLimiter->hit('login', $data->identifier, $context->ipAddress);
+            $this->rateLimiter->hit('login', $data->identifier, $context->ipAddress, $context->clientId);
             return;
         }
 
@@ -89,7 +89,7 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
         $policyConfig = $this->config->getAbusePolicyConfig();
 
         if (!$policyConfig['enabled']) {
-            $this->rateLimiter->clear('login', $data->identifier, $context->ipAddress);
+            $this->rateLimiter->clear('login', $data->identifier, $context->ipAddress, $context->clientId);
             return;
         }
 
@@ -147,11 +147,34 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
 
     public function generateChallengeToken(LoginData $data, AuthenticationContext $context): string
     {
-        throw new \BadMethodCallException('Challenge token generation not yet implemented in multi-dimensional policy');
+        $token = bin2hex(random_bytes(32));
+        $rateConfig = $this->config->getRateLimitConfig('login');
+        $ttl = max(1, (int) ($rateConfig['challenge_token_ttl'] ?? 300));
+
+        // Store only a hash of the context; token consumption is atomic via pull().
+        Cache::put(
+            $this->buildChallengeKey($token),
+            hash('sha256', $data->identifier . '|' . $context->ipAddress),
+            $ttl
+        );
+
+        return $token;
     }
 
     public function verifyChallengeToken(string $token, LoginData $data, AuthenticationContext $context): bool
     {
-        throw new \BadMethodCallException('Challenge token verification not yet implemented in multi-dimensional policy');
+        if (strlen($token) !== 64 || !ctype_xdigit($token)) {
+            return false;
+        }
+
+        $storedContext = Cache::pull($this->buildChallengeKey($token));
+        $expectedContext = hash('sha256', $data->identifier . '|' . $context->ipAddress);
+
+        return is_string($storedContext) && hash_equals($expectedContext, $storedContext);
+    }
+
+    private function buildChallengeKey(string $token): string
+    {
+        return "auth:challenge:{$token}";
     }
 }
