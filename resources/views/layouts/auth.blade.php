@@ -99,6 +99,9 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
     @endif
 
     <style>
+        /* Alpine.js x-cloak: prevent FOUC */
+        [x-cloak] { display: none !important; }
+
         body {
             font-family: 'Figtree', 'Inter', ui-sans-serif, system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
