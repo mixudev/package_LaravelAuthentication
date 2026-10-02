@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.9.3] - 2026-10-02
 
+### Added - Security Telemetry
+- Added PII-redacted `RateLimitExceeded`, `DistributedAttackDetected`, and `ChallengeIssued` events. Payloads use SHA-256 identifier hashes, hashed IPv4 /24 or IPv6 /64 network buckets, bounded counts, and reason codes only.
+- `AuthenticationAbusePolicy` emits `RateLimitExceeded` when the composite login limit is exceeded.
+
 ### Fixed - UI Critical
 - **CRITICAL: Alpine scope inheritance bug**: Button accessed `$root.submitting` expecting form data, but `$root` points to topmost Alpine component in tree (could be layout), not parent form. Button never saw submitting state, loading text hidden.
   - **Solution**: Remove button `x-data`, inherit form scope lexically. Button reads `submitting` directly from `<form x-data="{ submitting: false }">`. Native `@submit` (no `.prevent`, no manual submit) → instant loading, no double submit.

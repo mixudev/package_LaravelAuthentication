@@ -4,30 +4,102 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\Services\Security;
 
+use Illuminate\Cache\RateLimiter;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationAbusePolicyInterface;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\DTO\LoginData;
 use Vendor\LaravelAuthentication\DTO\RateLimitDecision;
+use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\Normalizers\EmailNormalizer;
 
 /**
  * Authentication abuse policy orchestrator.
  * 
- * Phase 1: Behavioral equivalence with existing FeatureRateLimiter (no new dimensions yet).
- * Phase 2+: Add multi-dimensional limits, challenge escalation, distributed detection.
+ * Multi-dimensional rate limiting:
+ * - account: per normalized identifier (blocks IP rotation)
+ * - account_ip: per identifier+IP composite (legacy equivalent)
+ * - client: per application scope
+ * - network: per IP (blocks identifier rotation)
+ * - global: platform-wide capacity
  * 
- * Security invariant:
- * This is a typed boundary for future expansion without changing public contracts.
+ * Evaluation: check all enabled dimensions, return first throttle/deny.
+ * Backward compatibility: when abuse_policy disabled, delegates to legacy FeatureRateLimiter.
  */
 class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
 {
     public function __construct(
-        private readonly FeatureRateLimiterInterface $rateLimiter
+        private readonly FeatureRateLimiterInterface $rateLimiter,
+        private readonly RateLimiter $cacheLimiter,
+        private readonly AuthenticationConfig $config,
+        private readonly ?DistributedAttackDetector $distributedDetector = null,
     ) {}
 
     public function evaluate(LoginData $data, AuthenticationContext $context): RateLimitDecision
     {
-        // Phase 1: Delegate to existing composite limiter (identifier+IP)
+        $policyConfig = $this->config->getAbusePolicyConfig();
+
+        // Backward compatibility: abuse_policy disabled = legacy behavior
+        if (!$policyConfig['enabled']) {
+            return $this->evaluateLegacy($data, $context);
+        }
+
+        // Multi-dimensional evaluation: check all enabled dimensions
+        foreach ($policyConfig['dimensions'] as $dimension => $settings) {
+            $key = $this->buildDimensionKey($dimension, $data, $context);
+            $maxAttempts = $settings['max_attempts'];
+
+            if ($this->cacheLimiter->tooManyAttempts($key, $maxAttempts)) {
+                $retryAfter = $this->cacheLimiter->availableIn($key);
+                return RateLimitDecision::throttle($retryAfter, "{$dimension}_limit_exceeded");
+            }
+        }
+
+        // Distributed attack detection (optional)
+        if ($this->distributedDetector !== null) {
+            $risk = $this->distributedDetector->assess($context->ipAddress, $data->identifier);
+            
+            if ($risk->score >= 0.8) {
+                return RateLimitDecision::challenge(0, 'distributed_attack_pattern');
+            }
+        }
+
+        return RateLimitDecision::allow('within_all_budgets');
+    }
+
+    public function recordFailure(LoginData $data, AuthenticationContext $context): void
+    {
+        $policyConfig = $this->config->getAbusePolicyConfig();
+
+        if (!$policyConfig['enabled']) {
+            $this->rateLimiter->hit('login', $data->identifier, $context->ipAddress);
+            return;
+        }
+
+        foreach ($policyConfig['dimensions'] as $dimension => $settings) {
+            $key = $this->buildDimensionKey($dimension, $data, $context);
+            $decaySeconds = $settings['decay_minutes'] * 60;
+            $this->cacheLimiter->hit($key, $decaySeconds);
+        }
+    }
+
+    public function clearFailures(LoginData $data, AuthenticationContext $context): void
+    {
+        $policyConfig = $this->config->getAbusePolicyConfig();
+
+        if (!$policyConfig['enabled']) {
+            $this->rateLimiter->clear('login', $data->identifier, $context->ipAddress);
+            return;
+        }
+
+        foreach ($policyConfig['dimensions'] as $dimension => $settings) {
+            $key = $this->buildDimensionKey($dimension, $data, $context);
+            $this->cacheLimiter->clear($key);
+        }
+    }
+
+    private function evaluateLegacy(LoginData $data, AuthenticationContext $context): RateLimitDecision
+    {
         $throttled = $this->rateLimiter->tooManyAttempts('login', $data->identifier, $context->ipAddress);
 
         if ($throttled) {
@@ -38,15 +110,27 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
         return RateLimitDecision::allow('within_composite_budget');
     }
 
-    public function recordFailure(LoginData $data, AuthenticationContext $context): void
+    private function buildDimensionKey(string $dimension, LoginData $data, AuthenticationContext $context): string
     {
-        // Phase 1: Hit existing composite counter
-        $this->rateLimiter->hit('login', $data->identifier, $context->ipAddress);
+        $normalizedIdentifier = EmailNormalizer::normalize($data->identifier);
+        $normalizedIp = $this->normalizeIp($context->ipAddress);
+
+        $payload = match ($dimension) {
+            'account'    => $normalizedIdentifier,
+            'account_ip' => "{$normalizedIdentifier}|{$normalizedIp}",
+            'client'     => "{$normalizedIdentifier}|global",
+            'network'    => $normalizedIp,
+            'global'     => 'platform',
+            default      => throw new \InvalidArgumentException("Unknown dimension: {$dimension}"),
+        };
+
+        $hash = hash('sha256', $payload);
+        return "auth_rl:login:abuse:{$dimension}:{$hash}";
     }
 
-    public function clearFailures(LoginData $data, AuthenticationContext $context): void
+    private function normalizeIp(string $ipAddress): string
     {
-        // Phase 1: Clear existing composite counter
-        $this->rateLimiter->clear('login', $data->identifier, $context->ipAddress);
+        $binary = @inet_pton($ipAddress);
+        return $binary !== false ? bin2hex($binary) : $ipAddress;
     }
 }
