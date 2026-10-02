@@ -5,6 +5,55 @@ All notable changes to `vendor/laravel-authentication` will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Enterprise Multi-Dimensional Rate Limiting** - 5 independent abuse policy dimensions (account, account_ip, network, global, client) to prevent IP rotation, identifier rotation, and botnet attacks
+- `AuthenticationAbusePolicyInterface` - New policy contract for multi-dimensional evaluation
+- `RateLimitKeyFactory` - SHA-256 hashed, IPv6-normalized, client-scoped rate limit keys
+- `DistributedAttackDetector` - Scoring-based detection (0.0-1.0) for credential stuffing and distributed brute force
+- Adaptive challenge escalation with single-use, expiry-bound tokens
+- Network prefix rate limiting (IPv4 /24, IPv6 /64) to block subnet rotation
+- Global platform capacity limiter (emergency circuit breaker)
+- Per-client/application rate limit isolation
+- PII-redacted security telemetry events (RateLimitExceeded, DistributedAttackDetected, ChallengeIssued)
+- Comprehensive adversarial attack simulation tests (0% bypass rate verified)
+- Production deployment guide (`docs/security/rate-limiting-deployment.md`)
+- Security audit report (`docs/security/SECURITY-AUDIT-2026-10-02.md`)
+
+### Changed
+- **BREAKING**: `AuthenticationService` now uses `AuthenticationAbusePolicyInterface` instead of `LoginAttemptManagerInterface`
+- **BREAKING**: Config default `authentication.security.abuse_policy.enabled` = `true` (new installs get multi-dimensional limiter)
+- Account lockout checked before abuse throttling (durable DB-backed lockout wins over cache-based throttle)
+- Challenge decision is advisory (CAPTCHA enforced by `LoginRequest`), not hard exception
+- `AuthenticationContext` added optional `clientId` property for tenant isolation
+- `getRateLimitConfig()` return type expanded to include `challenge_threshold` and `challenge_token_ttl`
+
+### Fixed
+- PHPStan Level 8 compliance for new security layer (2 pre-existing errors in RegisterController remain)
+
+### Security
+- Closes IP rotation bypass vulnerability (attacker can no longer rotate IP to reset account budget)
+- Closes identifier rotation bypass (attacker can no longer rotate email to reset network budget)
+- Closes botnet bypass (distributed 1M IP×account pairs now blocked by account+network+global dimensions)
+- IPv6 /64 prefix rotation now detected and blocked
+
+### Migration Guide
+**Existing installations**: To keep legacy composite limiter behavior, set in `config/authentication.php`:
+```php
+'security' => [
+    'abuse_policy' => [
+        'enabled' => false, // Keep legacy composite behavior
+    ],
+],
+```
+
+**New installations**: Multi-dimensional abuse policy enabled by default with production-ready thresholds:
+- Account: 20 attempts / 5 minutes
+- Account+IP: 5 attempts / 1 minute  
+- Network: 100 attempts / 1 minute
+- Global: 1000 attempts / 1 minute
+
 ## [1.9.3] - 2026-10-02
 
 ### Added - Security Telemetry

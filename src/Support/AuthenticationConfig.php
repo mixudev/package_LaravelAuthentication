@@ -124,7 +124,7 @@ final class AuthenticationConfig
     /**
      * Granular Rate Limits
      *
-     * @return array{enabled: bool, max_attempts: int, decay_minutes: int, strategy: string}
+     * @return array{enabled: bool, max_attempts: int, decay_minutes: int, strategy: string, challenge_threshold: int, challenge_token_ttl: int}
      */
     public function getRateLimitConfig(string $feature = 'login'): array
     {
@@ -147,6 +147,8 @@ final class AuthenticationConfig
             'max_attempts'  => (int) $this->config->get('authentication.security.rate_limit.max_attempts', 5),
             'decay_minutes' => (int) $this->config->get('authentication.security.rate_limit.decay_minutes', 1),
             'strategy'      => (string) $this->config->get('authentication.security.rate_limit.strategy', 'composite'),
+            'challenge_threshold' => (int) $this->config->get('authentication.security.rate_limit.challenge_threshold', 0),
+            'challenge_token_ttl' => (int) $this->config->get('authentication.security.rate_limit.challenge_token_ttl', 300),
         ];
     }
 
