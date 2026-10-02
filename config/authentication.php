@@ -191,11 +191,28 @@ return [
             ],
         ],
 
-        // Enterprise abuse policy is opt-in to preserve legacy limiter behavior.
+        // Enterprise abuse policy uses independent budgets for every login request.
         // Each dimension is an independent budget; never combine them into one key.
         'abuse_policy' => [
-            'enabled' => false,
-            'dimensions' => [],
+            'enabled' => true,
+            'dimensions' => [
+                'account' => [
+                    'max_attempts' => 20,
+                    'decay_minutes' => 5,
+                ],
+                'account_ip' => [
+                    'max_attempts' => 5,
+                    'decay_minutes' => 1,
+                ],
+                'network' => [
+                    'max_attempts' => 100,
+                    'decay_minutes' => 1,
+                ],
+                'global' => [
+                    'max_attempts' => 1000,
+                    'decay_minutes' => 1,
+                ],
+            ],
         ],
 
         // CAPTCHA / Bot Protection Adaptif

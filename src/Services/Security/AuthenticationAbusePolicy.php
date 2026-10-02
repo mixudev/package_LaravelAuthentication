@@ -56,6 +56,15 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
             }
         }
 
+        // Soft challenge threshold applies to the account budget before hard throttling.
+        $challengeThreshold = (int) ($this->config->getRateLimitConfig('login')['challenge_threshold'] ?? 0);
+        if ($challengeThreshold > 0 && isset($policyConfig['dimensions']['account'])) {
+            $accountKey = $this->buildDimensionKey('account', $data, $context);
+            if ($this->cacheLimiter->attempts($accountKey) + 1 >= $challengeThreshold) {
+                return RateLimitDecision::challenge(0, 'challenge_threshold_exceeded');
+            }
+        }
+
         // Distributed attack detection (optional)
         if ($this->distributedDetector !== null) {
             $risk = $this->distributedDetector->assess($context->ipAddress, $data->identifier);

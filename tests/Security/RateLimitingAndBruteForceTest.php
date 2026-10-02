@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Tests\Security;
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\DTO\LoginData;
@@ -34,6 +35,8 @@ class RateLimitingAndBruteForceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Cache::flush();
 
         $this->victim = User::create([
             'name'     => 'Victim User',

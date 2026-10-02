@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Tests\Security;
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\DTO\LoginData;
@@ -32,6 +33,13 @@ class UserEnumerationProtectionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Cache::flush();
+        
+        // Disable multi-dimensional abuse policy for enumeration tests.
+        // These tests verify ONLY that identical exceptions are thrown;
+        // rate limiting is tested separately in RateLimitingAndBruteForceTest.
+        config(['authentication.security.abuse_policy.enabled' => false]);
 
         User::create([
             'email'    => 'registered_user@example.com',
@@ -122,7 +130,7 @@ class UserEnumerationProtectionTest extends TestCase
     {
         /** @var AuthenticationServiceInterface $service */
         $service = app(AuthenticationServiceInterface::class);
-        $context = new AuthenticationContext('127.0.0.1', 'PHPUnit');
+        $context = new AuthenticationContext('10.0.3.1', 'PHPUnit'); // Unique IP
 
         $msgLower = '';
         $msgUpper = '';
@@ -151,7 +159,7 @@ class UserEnumerationProtectionTest extends TestCase
     {
         /** @var AuthenticationServiceInterface $service */
         $service = app(AuthenticationServiceInterface::class);
-        $context = new AuthenticationContext('127.0.0.1', 'PHPUnit');
+        $context = new AuthenticationContext('10.0.4.1', 'PHPUnit'); // Unique IP
 
         $msgNormal = '';
         $msgPadded = '';

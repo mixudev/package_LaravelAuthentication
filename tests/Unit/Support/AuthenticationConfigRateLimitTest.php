@@ -10,15 +10,16 @@ use Vendor\LaravelAuthentication\Tests\TestCase;
 
 final class AuthenticationConfigRateLimitTest extends TestCase
 {
-    public function test_abuse_policy_is_disabled_by_default_for_legacy_configurations(): void
+    public function test_abuse_policy_has_secure_default_dimensions(): void
     {
         /** @var AuthenticationConfig $config */
         $config = app(AuthenticationConfig::class);
 
         $policy = $config->getAbusePolicyConfig();
 
-        $this->assertFalse($policy['enabled']);
-        $this->assertSame([], $policy['dimensions']);
+        $this->assertTrue($policy['enabled']);
+        $this->assertArrayHasKey('account', $policy['dimensions']);
+        $this->assertArrayHasKey('network', $policy['dimensions']);
     }
 
     public function test_valid_dimensions_are_normalized(): void

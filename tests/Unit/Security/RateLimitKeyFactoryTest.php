@@ -21,9 +21,9 @@ final class RateLimitKeyFactoryTest extends TestCase
     {
         $key = $this->factory->make('login', '192.168.1.100', null, 'ip');
 
-        $this->assertStringStartsWith('auth_rl:login:global:ip:', $key);
+        $this->assertStringStartsWith('auth_rl:login:default:ip:', $key);
         $this->assertStringNotContainsString('192.168', $key);
-        $this->assertMatchesRegularExpression('/^auth_rl:login:global:ip:[a-f0-9]{64}$/', $key);
+        $this->assertMatchesRegularExpression('/^auth_rl:login:default:ip:[a-f0-9]{64}$/', $key);
     }
 
     public function test_ip_dimension_normalizes_ipv6(): void
@@ -39,20 +39,20 @@ final class RateLimitKeyFactoryTest extends TestCase
     {
         $key = $this->factory->make('login', '127.0.0.1', 'alice@example.com', 'identifier');
 
-        $this->assertStringStartsWith('auth_rl:login:global:identifier:', $key);
+        $this->assertStringStartsWith('auth_rl:login:default:identifier:', $key);
         $this->assertStringNotContainsString('alice', $key);
         $this->assertStringNotContainsString('example.com', $key);
-        $this->assertMatchesRegularExpression('/^auth_rl:login:global:identifier:[a-f0-9]{64}$/', $key);
+        $this->assertMatchesRegularExpression('/^auth_rl:login:default:identifier:[a-f0-9]{64}$/', $key);
     }
 
     public function test_composite_dimension_hashes_both(): void
     {
         $key = $this->factory->make('login', '10.0.0.1', 'bob@test.com', 'composite');
 
-        $this->assertStringStartsWith('auth_rl:login:global:composite:', $key);
+        $this->assertStringStartsWith('auth_rl:login:default:composite:', $key);
         $this->assertStringNotContainsString('10.0.0.1', $key);
         $this->assertStringNotContainsString('bob', $key);
-        $this->assertMatchesRegularExpression('/^auth_rl:login:global:composite:[a-f0-9]{64}$/', $key);
+        $this->assertMatchesRegularExpression('/^auth_rl:login:default:composite:[a-f0-9]{64}$/', $key);
     }
 
     public function test_composite_changes_when_either_input_changes(): void
@@ -70,7 +70,7 @@ final class RateLimitKeyFactoryTest extends TestCase
         $globalKey = $this->factory->make('login', '10.0.0.1', null, 'ip');
         $clientKey = $this->factory->make('login', '10.0.0.1', null, 'ip', 'mobile-app');
 
-        $this->assertStringContainsString(':global:', $globalKey);
+        $this->assertStringContainsString(':default:', $globalKey);
         $this->assertStringContainsString(':mobile-app:', $clientKey);
         $this->assertNotSame($globalKey, $clientKey);
     }
@@ -89,16 +89,16 @@ final class RateLimitKeyFactoryTest extends TestCase
     {
         $key = $this->factory->make('login', '10.0.0.1', null, 'identifier');
 
-        $this->assertStringStartsWith('auth_rl:login:global:identifier:', $key);
-        $this->assertMatchesRegularExpression('/^auth_rl:login:global:identifier:[a-f0-9]{64}$/', $key);
+        $this->assertStringStartsWith('auth_rl:login:default:identifier:', $key);
+        $this->assertMatchesRegularExpression('/^auth_rl:login:default:identifier:[a-f0-9]{64}$/', $key);
     }
 
     public function test_empty_identifier_is_handled_safely(): void
     {
         $key = $this->factory->make('login', '10.0.0.1', '', 'identifier');
 
-        $this->assertStringStartsWith('auth_rl:login:global:identifier:', $key);
-        $this->assertMatchesRegularExpression('/^auth_rl:login:global:identifier:[a-f0-9]{64}$/', $key);
+        $this->assertStringStartsWith('auth_rl:login:default:identifier:', $key);
+        $this->assertMatchesRegularExpression('/^auth_rl:login:default:identifier:[a-f0-9]{64}$/', $key);
     }
 
     public function test_identifier_normalization(): void

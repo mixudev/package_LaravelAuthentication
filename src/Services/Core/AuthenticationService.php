@@ -28,7 +28,7 @@ use Vendor\LaravelAuthentication\Exceptions\InvalidStrategyException;
 use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
 use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
-use Vendor\LaravelAuthentication\Contracts\LoginAttemptManagerInterface;
+use Vendor\LaravelAuthentication\Contracts\AuthenticationAbusePolicyInterface;
 use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
 use Vendor\LaravelAuthentication\Services\Session\NewDeviceDetectionService;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
@@ -51,7 +51,7 @@ class AuthenticationService implements AuthenticationServiceInterface
         private readonly AuthFactory $auth,
         private readonly Dispatcher $events,
         private readonly AuthenticationStrategyRegistry $strategyRegistry,
-        private readonly LoginAttemptManagerInterface $attemptManager,
+        private readonly AuthenticationAbusePolicyInterface $abusePolicy,
         private readonly AccountLockService $lockService,
         private readonly SessionSecurityService $sessionSecurity,
         private readonly TokenManagerInterface $tokenService,
@@ -76,27 +76,15 @@ class AuthenticationService implements AuthenticationServiceInterface
         // 1. Dispatch LoginAttempted event
         $this->events->dispatch(new LoginAttempted($data->identifier, $context, $data->strategy));
 
-        // 2. Check Rate Limiter
-        if ($this->attemptManager->isThrottled($data, $context)) {
-            $secondsRemaining = $this->attemptManager->availableIn($data, $context);
-
-            $this->auditService->logEvent(
-                SecurityEventType::LOGIN_THROTTLED,
-                $data->identifier,
-                $context,
-                AuthenticationResult::failed(AuthenticationStatus::THROTTLED, 'Too many login attempts.')
-            );
-
-            throw new AuthenticationThrottledException($secondsRemaining);
-        }
-
-        // 3. Resolve Strategy
+        // 2. Resolve Strategy
+        // Account lockout is checked before abuse throttling so durable account
+        // lockout remains the authoritative response for known accounts.
         $strategy = $this->resolveStrategy($data);
 
-        // 4. Resolve User Identity
+        // 3. Resolve User Identity
         $user = $strategy->resolveUser($data, $context);
 
-        // 5. Account Lockout Verification
+        // 4. Account Lockout Verification
         if ($user !== null && $this->lockService->isLocked($user)) {
             $this->auditService->logEvent(
                 SecurityEventType::ACCOUNT_LOCKED,
@@ -108,7 +96,7 @@ class AuthenticationService implements AuthenticationServiceInterface
             throw new AccountLockedException($this->config->getLockoutDurationMinutes());
         }
 
-        // 6. Validate Password & Credentials
+        // 5. Validate Password & Credentials
         $isValid = false;
         if ($user !== null) {
             $isValid = $strategy->validateCredentials($user, $data);
@@ -123,10 +111,24 @@ class AuthenticationService implements AuthenticationServiceInterface
 
         // Fail Case: Invalid credentials or non-existent user (Identical timing / response for User Enumeration Defense)
         if (!$isValid || $user === null) {
-            $this->attemptManager->recordFailedAttempt($data, $context);
+            // Record failure in multi-dimensional abuse policy before checking lockout
+            $this->abusePolicy->recordFailure($data, $context);
 
             if ($user !== null) {
                 $this->lockService->recordFailureAndCheckLockout($user, $context);
+            }
+
+            // Check abuse policy throttle after lockout recorded
+            $decision = $this->abusePolicy->evaluate($data, $context);
+            if (!$decision->allowed) {
+                $this->auditService->logEvent(
+                    SecurityEventType::LOGIN_THROTTLED,
+                    $data->identifier,
+                    $context,
+                    AuthenticationResult::failed(AuthenticationStatus::THROTTLED, 'Too many login attempts.')
+                );
+
+                throw new AuthenticationThrottledException(max(1, $decision->retryAfter));
             }
 
             $this->events->dispatch(new LoginFailed($data->identifier, $context, 'Invalid credentials', $user));
@@ -141,8 +143,8 @@ class AuthenticationService implements AuthenticationServiceInterface
             throw new InvalidCredentialsException();
         }
 
-        // 7. Success Preparation
-        $this->attemptManager->clearAttempts($data, $context);
+        // 6. Success Preparation
+        $this->abusePolicy->clearFailures($data, $context);
         $this->lockService->clearFailures($user);
 
         // 8. Two-Factor Authentication Check
