@@ -8,8 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.9.3] - 2026-10-02
 
 ### Fixed - UI Critical
+- **CRITICAL: Alpine.js $parent bug**: `$parent` does not exist in Alpine v3 core. Button component used `$parent.submitting` causing `TypeError: Cannot read properties of undefined (reading 'submitting')`. Alpine crashed, button stuck disabled forever.
+  - **Solution**: Use `$root.submitting` (Alpine v3 magic property). Remove `x-data` from button to inherit form scope directly.
+  - Files: `button.blade.php`
+- **CRITICAL: x-cloak FOUC (Flash of Unstyled Content)**: Missing `[x-cloak] { display: none !important; }` style. Caps Lock warning with `x-cloak` attribute flashed yellow on page load before Alpine.js initialized.
+  - **Solution**: Add x-cloak style to `layouts/auth.blade.php`
 - **CRITICAL: Button infinite loading bug**: Form never submitted when button disabled in @click event. Chrome/Edge cancel form submission if submit button disabled before submit event completes. User stuck with spinner forever, form never reaches server.
-  - **Solution**: Move loading state from button @click to form @submit. Button reads `$parent.submitting` via Alpine getter. Native form submission works correctly.
+  - **Solution**: Move loading state from button @click to form @submit. Button reads `$root.submitting` via Alpine magic property. Native form submission works correctly.
   - Files: `button.blade.php`, `login.blade.php`, `register.blade.php`
 - **Hardcoded messages replaced with i18n**: All controller messages now use `__()` translation helper for proper localization support.
   - Added lang keys: `registration_disabled`, `two_factor_required`, `processing`
