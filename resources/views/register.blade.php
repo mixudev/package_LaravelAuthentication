@@ -32,11 +32,11 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
         @if (session('status'))
             <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
-        @if (session('error'))
+        {{-- @if (session('error'))
             <x-authentication::alert type="error" :autodismiss="true" :message="session('error')" />
         @elseif ($errors->any())
             <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
-        @endif
+        @endif --}}
 
         <x-authentication::social-buttons />
 

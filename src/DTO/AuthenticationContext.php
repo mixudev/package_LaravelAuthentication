@@ -21,10 +21,11 @@ final class AuthenticationContext
         public readonly ?string $userAgent,
         public readonly AuthenticationChannel $channel = AuthenticationChannel::WEB,
         public readonly string $guard = 'web',
-        public readonly array $headers = []
+        public readonly array $headers = [],
+        public readonly string $clientId = 'default'
     ) {}
 
-    public static function fromRequest(Request $request, ?string $guard = null, ?AuthenticationChannel $channel = null): self
+    public static function fromRequest(Request $request, ?string $guard = null, ?AuthenticationChannel $channel = null, ?string $clientId = null): self
     {
         if ($channel === null) {
             $channel = $request->is('api/*')
@@ -52,7 +53,9 @@ final class AuthenticationContext
                     'sec-fetch-mode',
                     'sec-fetch-dest',
                 ])
-            )
+            ),
+            // The host supplies only a verified server-side client identity.
+            clientId: $clientId ?? 'default'
         );
     }
 }

@@ -32,4 +32,17 @@ interface AuthenticationAbusePolicyInterface
      * Clear failure counters after successful authentication.
      */
     public function clearFailures(LoginData $data, AuthenticationContext $context): void;
+
+    /**
+     * Generate a challenge token for adaptive escalation.
+     * Single-use, time-bound, context-bound token.
+     * Does NOT reveal account existence.
+     */
+    public function generateChallengeToken(LoginData $data, AuthenticationContext $context): string;
+
+    /**
+     * Verify a challenge token (single-use, atomic consumption).
+     * Returns true on first valid verification, false on replay/expiry/invalid.
+     */
+    public function verifyChallengeToken(string $token, LoginData $data, AuthenticationContext $context): bool;
 }

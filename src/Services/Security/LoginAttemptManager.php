@@ -20,21 +20,21 @@ class LoginAttemptManager implements LoginAttemptManagerInterface
 
     public function isThrottled(LoginData $data, AuthenticationContext $context): bool
     {
-        return $this->limiter->tooManyAttempts('login', $data->identifier, $context->ipAddress);
+        return $this->limiter->tooManyAttempts('login', $data->identifier, $context->ipAddress, $context->clientId);
     }
 
     public function recordFailedAttempt(LoginData $data, AuthenticationContext $context): void
     {
-        $this->limiter->hit('login', $data->identifier, $context->ipAddress);
+        $this->limiter->hit('login', $data->identifier, $context->ipAddress, $context->clientId);
     }
 
     public function clearAttempts(LoginData $data, AuthenticationContext $context): void
     {
-        $this->limiter->clear('login', $data->identifier, $context->ipAddress);
+        $this->limiter->clear('login', $data->identifier, $context->ipAddress, $context->clientId);
     }
 
     public function availableIn(LoginData $data, AuthenticationContext $context): int
     {
-        return $this->limiter->availableIn('login', $data->identifier, $context->ipAddress);
+        return $this->limiter->availableIn('login', $data->identifier, $context->ipAddress, $context->clientId);
     }
 }

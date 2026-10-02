@@ -136,7 +136,9 @@ final class AuthenticationConfig
                 'enabled'       => (bool) ($featureConfig['enabled'] ?? true),
                 'max_attempts'  => (int) ($featureConfig['max_attempts'] ?? 5),
                 'decay_minutes' => (int) ($featureConfig['decay_minutes'] ?? 1),
-                'strategy'      => (string) ($featureConfig['strategy'] ?? 'composite'),
+                'strategy'             => (string) ($featureConfig['strategy'] ?? 'composite'),
+                'challenge_threshold'  => (int) ($featureConfig['challenge_threshold'] ?? 0),
+                'challenge_token_ttl'  => (int) ($featureConfig['challenge_token_ttl'] ?? 300),
             ];
         }
 

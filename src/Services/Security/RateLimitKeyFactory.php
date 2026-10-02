@@ -36,7 +36,7 @@ final class RateLimitKeyFactory
         string $ipAddress,
         ?string $identifier,
         string $dimension,
-        string $client = 'global'
+        string $client = 'default'
     ): string {
         $payload = match ($dimension) {
             'ip'         => $this->normalizeIp($ipAddress),

@@ -78,7 +78,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
 
-        @if (session('auth_retry_after'))
+        {{-- @if (session('auth_retry_after'))
             <x-authentication::countdown-alert 
                 type="error" 
                 :retryAfter="session('auth_retry_after')"
@@ -88,7 +88,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             <x-authentication::alert type="error" :message="$credentialError" />
         @elseif ($errors->any())
             <x-authentication::alert type="error" :message="$errors->first()" />
-        @endif
+        @endif --}}
 
         {{-- Tombol Login Alternatif: Social (Google/GitHub sebelahan) + Passkey --}}
         @php

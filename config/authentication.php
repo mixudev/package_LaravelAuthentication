@@ -135,10 +135,12 @@ return [
         // Rate limiting terpisah dan granular per fitur auth
         'rate_limits' => [
             'login' => [
-                'enabled'       => true,
-                'max_attempts'  => 5,
-                'decay_minutes' => 1,
-                'strategy'      => 'composite', // 'ip', 'identifier', atau 'composite'
+                'enabled'              => true,
+                'max_attempts'         => 5,
+                'decay_minutes'        => 1,
+                'strategy'             => 'composite', // 'ip', 'identifier', atau 'composite'
+                'challenge_threshold'  => 3,           // Soft limit: require challenge after this (0 = disabled)
+                'challenge_token_ttl'  => 300,         // Challenge token TTL in seconds (5 minutes)
             ],
             'registration' => [
                 'enabled'       => true,

@@ -128,7 +128,7 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
         $payload = match ($dimension) {
             'account'    => $normalizedIdentifier,
             'account_ip' => "{$normalizedIdentifier}|{$normalizedIp}",
-            'client'     => "{$normalizedIdentifier}|global",
+            'client'     => "{$normalizedIdentifier}|{$context->clientId}",
             'network'    => $normalizedIp,
             'global'     => 'platform',
             default      => throw new \InvalidArgumentException("Unknown dimension: {$dimension}"),
@@ -138,10 +138,33 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
         return "auth_rl:login:abuse:{$dimension}:{$hash}";
     }
 
+    /**
+     * Normalize IP to network prefix for rate limiting.
+     * 
+     * IPv4: /24 prefix (first 3 octets)
+     * IPv6: /64 prefix (first 64 bits)
+     * 
+     * This prevents attackers from rotating IPs within the same subnet to bypass limits.
+     */
     private function normalizeIp(string $ipAddress): string
     {
         $binary = @inet_pton($ipAddress);
-        return $binary !== false ? bin2hex($binary) : $ipAddress;
+        
+        if ($binary === false) {
+            return $ipAddress; // Invalid IP, use as-is
+        }
+        
+        // IPv4: 4 bytes, extract /24 (first 3 bytes)
+        if (strlen($binary) === 4) {
+            return substr($binary, 0, 3) . "\x00";
+        }
+        
+        // IPv6: 16 bytes, extract /64 (first 8 bytes)
+        if (strlen($binary) === 16) {
+            return substr($binary, 0, 8) . str_repeat("\x00", 8);
+        }
+        
+        return $binary;
     }
 
 
