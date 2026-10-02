@@ -210,6 +210,8 @@ php artisan queue:monitor auth-audit --max=200
 
 ### 3. Rate Limiting Strategy
 
+**IMPORTANT**: See [Rate Limiting Deployment Guide](./docs/security/rate-limiting-deployment.md) for comprehensive production requirements, fail mode policies, and troubleshooting.
+
 **Composite (IP + Identifier)** — Best for most cases:
 ```php
 'security' => [
@@ -233,6 +235,45 @@ php artisan queue:monitor auth-audit --max=200
 ```php
 'strategy' => 'identifier',  // Rate limit per email/username
 ```
+
+#### Production Requirements for Rate Limiting
+
+**Critical**:
+1. **Redis Required**: File/array cache creates race conditions. Use Redis with atomic operations.
+2. **Trusted Proxies**: Configure `TrustProxies` middleware with exact infrastructure IPs. Wrong config = all users appear as one IP or attackers spoof headers.
+3. **Monitoring**: Alert on throttle rate >100/min, Redis down, cache latency >50ms.
+4. **Fail Mode Policy**: Document per-feature behavior when cache unavailable (fail-safe vs fail-closed).
+
+**Quick Setup**:
+```env
+CACHE_DRIVER=redis
+REDIS_CACHE_DB=1  # Dedicated database for rate limits
+```
+
+**Verify Trusted Proxy**:
+```php
+// Test endpoint (remove after verification)
+Route::get('/test-ip', fn(Request $request) => ['ip' => $request->ip()]);
+// Should return real client IP, not load balancer IP
+```
+
+**Emergency Kill Switch**:
+```bash
+# Disable all rate limiting without deploy
+redis-cli SET auth:emergency:disable_rate_limiting 1
+
+# Clear rate limits for specific user
+redis-cli --scan --pattern "auth_rl:login:*" | xargs redis-cli DEL
+```
+
+**See Full Guide**: [docs/security/rate-limiting-deployment.md](./docs/security/rate-limiting-deployment.md)
+- Cache requirements & Redis configuration
+- Trusted proxy setup per platform (AWS, Cloudflare, etc.)
+- Fail mode policy per feature (login, OTP, password reset)
+- Performance impact & scaling strategy
+- Emergency procedures & rollback
+- Production checklist (20 items)
+- Troubleshooting common issues
 
 ---
 
