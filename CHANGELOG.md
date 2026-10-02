@@ -10,11 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed - UI Critical
 - **CRITICAL: Alpine scope inheritance bug**: Button accessed `$root.submitting` expecting form data, but `$root` points to topmost Alpine component in tree (could be layout), not parent form. Button never saw submitting state, loading text hidden.
   - **Solution**: Remove button `x-data`, inherit form scope lexically. Button reads `submitting` directly from `<form x-data="{ submitting: false }">`. Native `@submit` (no `.prevent`, no manual submit) → instant loading, no double submit.
+- **CRITICAL: Missing Alpine state on 7 forms**: Two-factor setup, two-factor challenge, OTP request/verify, reset password, confirm password, and forgot password forms missing `x-data="{ submitting: false }"`. Button slot text hidden because `x-show="!submitting"` evaluated to undefined.
+  - **Solution**: Add `x-data="{ submitting: false }" @submit="submitting = true"` to all POST forms for consistent button loading behavior.
+  - Files: `two-factor-setup.blade.php`, `two-factor-challenge.blade.php`, `otp-request.blade.php`, `otp-verify.blade.php`, `reset-password.blade.php`, `confirm-password.blade.php`, `forgot-password.blade.php`
 - **CRITICAL: Alpine.js $parent bug**: `$parent` does not exist in Alpine v3 core. Button component used `$parent.submitting` causing `TypeError: Cannot read properties of undefined (reading 'submitting')`. Alpine crashed, button stuck disabled forever.
   - **Solution**: Use scope inheritance instead of magic property access.
   - Files: `button.blade.php`
 - **CRITICAL: x-cloak FOUC (Flash of Unstyled Content)**: Missing `[x-cloak] { display: none !important; }` style. Caps Lock warning with `x-cloak` attribute flashed yellow on page load before Alpine.js initialized.
   - **Solution**: Add x-cloak style to `layouts/auth.blade.php`
+- **Caps Lock warning UX**: Default `x-transition` too slow causing visible flash. Absolute positioning overlapped checkbox/button (unprofessional spacing).
+  - **Solution**: `x-transition.opacity.duration.150ms` for instant fade. `mt-2` natural flow instead of absolute positioning. `gap-1.5` better icon-text spacing.
+  - File: `input.blade.php`
 - **CRITICAL: Button infinite loading bug**: Form never submitted when button disabled in @click event. Chrome/Edge cancel form submission if submit button disabled before submit event completes. User stuck with spinner forever, form never reaches server.
   - **Solution**: Move loading state from button @click to form @submit. Button inherits `submitting` via lexical scope. Native form submission works correctly.
   - Files: `button.blade.php`, `login.blade.php`, `register.blade.php`
@@ -22,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added lang keys: `registration_disabled`, `two_factor_required`, `processing`
   - Files: `LoginController.php`, `RegisterController.php`, `resources/lang/{en,id}/messages.php`
 - **Install command**: Removed `--views` flag. Views load from vendor/ by default (no publish needed). Manual publish available via `php artisan vendor:publish --tag=authentication-views`.
+
+### Fixed - OAuth
+- **CRITICAL: GitHub OAuth rejected**: GitHub Socialite returns only verified primary email but does not expose `email_verified` field on user payload. Package strict verification saw `null` and rejected callback with "Social sign-in with github failed."
+  - **Solution**: Treat GitHub provider as implicitly verified when email is present (GitHub API already filtered to verified primary email). Add `report($e)` to controller for diagnostics.
+  - Files: `SocialAuthService.php`, `SocialAuthController.php`
 
 ## [1.9.0] - 2026-10-01
 
