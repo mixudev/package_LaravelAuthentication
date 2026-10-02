@@ -267,3 +267,33 @@ Rate limiting is ONE layer. Other required controls:
 - NIST SP 800-63B: Digital Identity Guidelines (Authentication)
 - RFC 6749: OAuth 2.0 (rate limiting and token issuance)
 - Laravel Trusted Proxies: https://laravel.com/docs/requests#configuring-trusted-proxies
+
+## Trusted Client IP Boundary
+
+### Responsibility
+
+The package relies on Laravel's `Request::ip()` method (`src/DTO/AuthenticationContext.php`) to determine the client IP address. The package does not parse `X-Forwarded-For`, `Forwarded`, `X-Real-IP`, or any other proxy header directly.
+
+### Security Implications
+
+1. Trust is infrastructure-controlled through the host application's `TrustProxies` middleware.
+2. If the host trusts all public proxies, an attacker can spoof forwarded headers. This is a host deployment error, not a package-level trust decision.
+3. When no trusted proxy is configured, the framework uses the direct TCP peer address for completed HTTP connections.
+4. IP-based limits assume the host has configured trusted proxies correctly; the package cannot detect an incorrect proxy allowlist.
+
+### Host Deployment Requirements
+
+- Configure only known load balancer, CDN, or reverse-proxy CIDRs. Do not trust `*` on an untrusted public path.
+- Ensure the proxy tier strips and rewrites forwarded headers before forwarding requests.
+- Configure `TrustProxies` when the application is behind a load balancer; otherwise the limiter sees the proxy address rather than the client address.
+- Do not log raw IPs or forwarded-header values. Use hashed network buckets for telemetry.
+
+### Package Boundary
+
+`AuthenticationContext::fromRequest()` calls `(string) $request->ip()` and carries that canonical value to security services. All future rate-limit key factories must consume this value and must never re-parse request headers. Laravel's trusted-proxy configuration is therefore the single authority for client-IP trust.
+
+| Deployment state | Risk | Required action |
+|---|---|---|
+| Trusts every proxy on a public path | High: attacker can choose the apparent IP | Restrict trusted proxy CIDRs |
+| No trusted proxy behind a load balancer | High: all users appear as the balancer | Configure the host middleware |
+| Explicit trusted proxy allowlist | Low: trust is limited to infrastructure | Keep the allowlist current |
