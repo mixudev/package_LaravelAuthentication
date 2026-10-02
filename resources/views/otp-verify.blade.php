@@ -45,7 +45,9 @@ Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 d
             <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
-        <form method="POST" action="{{ $verifyRoute }}" class="space-y-4" novalidate>
+        <form method="POST" action="{{ $verifyRoute }}" class="space-y-4" novalidate
+              x-data="{ submitting: false }"
+              @submit="submitting = true">
             @csrf
 
             <input type="hidden" name="identifier" value="{{ $identifier }}">

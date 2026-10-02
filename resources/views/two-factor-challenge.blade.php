@@ -31,7 +31,9 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
         @endif
 
         {{-- Form Verifikasi 2FA --}}
-        <form method="POST" action="{{ $verifyRoute }}" class="space-y-4">
+        <form method="POST" action="{{ $verifyRoute }}" class="space-y-4"
+              x-data="{ submitting: false }"
+              @submit="submitting = true">
             @csrf
 
             {{-- Input Kode TOTP 6-Digit --}}

@@ -38,7 +38,9 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
             <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
-        <form method="POST" action="{{ $updateRoute }}" class="space-y-4" novalidate>
+        <form method="POST" action="{{ $updateRoute }}" class="space-y-4" novalidate
+              x-data="{ submitting: false }"
+              @submit="submitting = true">
             @csrf
 
             <input type="hidden" name="token" value="{{ $token ?? request()->route('token') }}">

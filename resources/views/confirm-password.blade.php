@@ -31,7 +31,9 @@ Deskripsi: Halaman konfirmasi kata sandi sebelum mengakses area sensitif.
         @endif
 
         {{-- Form Konfirmasi Password --}}
-        <form method="POST" action="{{ $confirmRoute }}" class="space-y-4">
+        <form method="POST" action="{{ $confirmRoute }}" class="space-y-4"
+              x-data="{ submitting: false }"
+              @submit="submitting = true">
             @csrf
 
             <x-authentication::input 

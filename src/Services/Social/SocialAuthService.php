@@ -138,7 +138,7 @@ class SocialAuthService implements SocialAuthServiceInterface
         // GitHub-specific: GitHub does not return email_verified field in API response.
         // Treat GitHub provider as implicitly verified when email is present in the response,
         // because GitHub only returns verified primary email by default.
-        if ($provider === 'github' && $emailVerified === null && !empty($email)) {
+        if ($provider === 'github' && $emailVerified === null) {
             $emailVerified = true;
         }
 

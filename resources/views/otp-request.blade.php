@@ -38,7 +38,9 @@ Deskripsi: Halaman permintaan OTP dengan alert di atas form dan auto-dismiss 3 d
             <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
-        <form method="POST" action="{{ $sendRoute }}" class="space-y-4" novalidate>
+        <form method="POST" action="{{ $sendRoute }}" class="space-y-4" novalidate
+              x-data="{ submitting: false }"
+              @submit="submitting = true">
             @csrf
 
             <x-authentication::input 

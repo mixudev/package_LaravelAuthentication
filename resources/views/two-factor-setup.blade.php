@@ -88,7 +88,9 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
         @endif
 
         {{-- Form Konfirmasi TOTP --}}
-        <form method="POST" action="{{ $confirmRoute }}" class="space-y-4 pt-1">
+        <form method="POST" action="{{ $confirmRoute }}" class="space-y-4 pt-1"
+              x-data="{ submitting: false }"
+              @submit="submitting = true">
             @csrf
 
             <x-authentication::input 

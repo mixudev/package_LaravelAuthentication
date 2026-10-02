@@ -38,7 +38,9 @@ Deskripsi: Halaman lupa password dengan alert di atas form dan auto-dismiss 3 de
             <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
-        <form method="POST" action="{{ $emailRoute }}" class="space-y-4" novalidate>
+        <form method="POST" action="{{ $emailRoute }}" class="space-y-4" novalidate
+              x-data="{ submitting: false }"
+              @submit="submitting = true">
             @csrf
 
             <x-authentication::input 
