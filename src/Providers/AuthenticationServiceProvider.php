@@ -84,6 +84,17 @@ class AuthenticationServiceProvider extends ServiceProvider
         $this->app->singleton(CaptchaService::class);
         $this->app->singleton(AccountLockService::class);
         $this->app->singleton(LoginAttemptManager::class);
+        $this->app->singleton(\Vendor\LaravelAuthentication\Services\Security\DistributedAttackDetector::class, function ($app) {
+            $rateConfig = $app['config']->get('authentication.security.rate_limit', []);
+
+            return new \Vendor\LaravelAuthentication\Services\Security\DistributedAttackDetector(
+                $app->make(\Illuminate\Cache\RateLimiter::class),
+                $app->make(\Illuminate\Contracts\Cache\Repository::class),
+                (int) ($rateConfig['decay_minutes'] ?? 5) * 60,
+                100,
+                100
+            );
+        });
         $this->app->singleton(\Vendor\LaravelAuthentication\Services\Security\AuthenticationAbusePolicy::class);
 
         // 5. Device, Session & Security Services
