@@ -118,9 +118,12 @@ class AuthenticationService implements AuthenticationServiceInterface
                 $this->lockService->recordFailureAndCheckLockout($user, $context);
             }
 
-            // Check abuse policy throttle after lockout recorded
+            // Check abuse policy throttle after lockout recorded.
+            // Only hard verdicts (throttle/deny) block the request. A `challenge`
+            // verdict is advisory: CaptchaService/CaptchaRequest enforces the CAPTCHA
+            // on the next submission, so it must NOT become a hard exception here.
             $decision = $this->abusePolicy->evaluate($data, $context);
-            if (!$decision->allowed) {
+            if (!$decision->allowed && in_array($decision->action, ['throttle', 'deny'], true)) {
                 $this->auditService->logEvent(
                     SecurityEventType::LOGIN_THROTTLED,
                     $data->identifier,

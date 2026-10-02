@@ -34,7 +34,7 @@ class RegisterController extends Controller
     public function showRegistrationForm(): View|JsonResponse
     {
         if (!$this->registrationService->isEnabled()) {
-            abort(404, __('authentication::messages.registration_disabled'));
+            abort(404, (string) __('authentication::messages.registration_disabled'));
         }
 
         $viewName = (string) config('authentication.views.register', 'authentication::register');
@@ -61,7 +61,7 @@ class RegisterController extends Controller
     public function register(RegisterRequest $request): RedirectResponse
     {
         if (!$this->registrationService->isEnabled()) {
-            abort(404, __('authentication::messages.registration_disabled'));
+            abort(404, (string) __('authentication::messages.registration_disabled'));
         }
 
         $dto = $request->toDto();

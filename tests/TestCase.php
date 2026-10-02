@@ -50,9 +50,6 @@ abstract class TestCase extends OrchestraTestCase
         $app['config']->set('authentication.login.default_strategy', 'username_or_email');
         $app['config']->set('authentication.security.rate_limit.enabled', true);
         $app['config']->set('authentication.security.rate_limit.max_attempts', 5);
-        // Legacy tests explicitly opt into the old composite limiter. Production
-        // defaults enable the multi-dimensional abuse policy in config/authentication.php.
-        $app['config']->set('authentication.security.abuse_policy.enabled', false);
         $app['config']->set('authentication.security.rate_limit.decay_minutes', 1);
         $app['config']->set('authentication.security.account_lockout.enabled', true);
         $app['config']->set('authentication.security.account_lockout.max_failed_attempts', 5);

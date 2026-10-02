@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `getRateLimitConfig()` return type expanded to include `challenge_threshold` and `challenge_token_ttl`
 
 ### Fixed
-- PHPStan Level 8 compliance for new security layer (2 pre-existing errors in RegisterController remain)
+- PHPStan Level 8 compliance across the package
 
 ### Security
 - Closes IP rotation bypass vulnerability (attacker can no longer rotate IP to reset account budget)
