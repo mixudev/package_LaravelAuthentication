@@ -149,14 +149,34 @@ class OtpService implements OtpServiceInterface
                     user: $user
                 );
 
-                if ((bool) config('authentication.mail.queue', false)) {
+                $queueEnabled = (bool) config('authentication.mail.queue', false);
+
+                if ($queueEnabled) {
                     \Illuminate\Support\Facades\Mail::to($recipientEmail)->queue($mailable);
+                    \Illuminate\Support\Facades\Log::info('OTP email queued', [
+                        'recipient' => $recipientEmail,
+                        'user_exists' => $user !== null,
+                    ]);
                 } else {
                     \Illuminate\Support\Facades\Mail::to($recipientEmail)->send($mailable);
+                    \Illuminate\Support\Facades\Log::info('OTP email sent synchronously', [
+                        'recipient' => $recipientEmail,
+                        'user_exists' => $user !== null,
+                    ]);
                 }
             } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('OTP email dispatch failed', [
+                    'recipient' => $recipientEmail,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
                 report($e);
             }
+        } else {
+            \Illuminate\Support\Facades\Log::warning('OTP email not sent: invalid recipient', [
+                'identifier' => $identifier,
+                'is_valid_email' => filter_var($identifier, FILTER_VALIDATE_EMAIL) !== false,
+            ]);
         }
     }
 
