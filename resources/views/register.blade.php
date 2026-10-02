@@ -46,7 +46,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
 
         <form method="POST" action="{{ $registerPerformRoute }}" class="space-y-4" novalidate
               x-data="{ submitting: false }"
-              @submit.prevent="submitting = true; $nextTick(() => $el.submit());">
+              @submit="submitting = true">
             @csrf
 
             <x-authentication::input 

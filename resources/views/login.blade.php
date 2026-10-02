@@ -113,7 +113,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
         {{-- Formulir Login Utama --}}
         <form method="POST" action="{{ $loginPerformRoute }}" class="space-y-4" novalidate
               x-data="{ submitting: false }"
-              @submit.prevent="submitting = true; $nextTick(() => $el.submit());">
+              @submit="submitting = true">
             @csrf
 
             {{-- Identifier (Email / Username) --}}
