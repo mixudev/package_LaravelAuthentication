@@ -18,6 +18,7 @@ use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Exceptions\AccountLockedException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Http\Requests\SendOtpRequest;
 use Vendor\LaravelAuthentication\Http\Requests\VerifyOtpRequest;
@@ -187,6 +188,11 @@ class OtpController extends Controller
                 'status'  => 'success',
                 'message' => 'If an account exists with that identifier, a verification code has been dispatched.',
             ]);
+        } catch (AuthenticationThrottledException $e) {
+            return response()->json([
+                'status'  => 'throttled',
+                'message' => (string) __('authentication::messages.throttle_error'),
+            ], 429);
         } catch (AuthenticationException $e) {
             // Jangan bocorkan detail internal (mis. "OTP was recently requested") —
             // pesan ini bisa dipakai attacker untuk mengkonfirmasi identifier valid.
@@ -255,6 +261,11 @@ class OtpController extends Controller
                 // SEC-03: safe user payload — jangan expose Eloquent model mentah (hash password dll).
                 'user'    => SafeUserPresenter::present($user),
             ]);
+        } catch (AuthenticationThrottledException $e) {
+            return response()->json([
+                'status'  => 'throttled',
+                'message' => (string) __('authentication::messages.throttle_error'),
+            ], 429);
         } catch (InvalidCredentialsException $e) {
             return response()->json([
                 'status'  => 'error',

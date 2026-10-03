@@ -9,15 +9,17 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Str;
 use SensitiveParameter;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\CredentialResolverInterface;
+use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Contracts\OtpServiceInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\OtpGenerated;
 use Vendor\LaravelAuthentication\Events\OtpVerified;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
-use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\Normalizers\EmailNormalizer;
 
@@ -31,7 +33,8 @@ class OtpService implements OtpServiceInterface
         private readonly Dispatcher $events,
         private readonly CredentialResolverInterface $resolver,
         private readonly AuditLoggerInterface $auditService,
-        private readonly AuthenticationConfig $config
+        private readonly AuthenticationConfig $config,
+        private readonly FeatureRateLimiterInterface $rateLimiter
     ) {}
 
     public function isEnabled(): bool
@@ -52,6 +55,13 @@ class OtpService implements OtpServiceInterface
         }
 
         $normalized = EmailNormalizer::normalize($identifier);
+
+        // Enforce composite per-identifier+IP bucket first (pre-existing cooldown is per-identifier only)
+        if ($this->rateLimiter->tooManyAttempts('otp_request', $normalized, $context->ipAddress, $context->clientId)) {
+            throw new AuthenticationThrottledException(
+                max(1, $this->rateLimiter->availableIn('otp_request', $normalized, $context->ipAddress, $context->clientId))
+            );
+        }
 
         if ($this->isThrottled($normalized, $context)) {
             throw new AuthenticationException('An OTP was recently requested. Please wait before requesting another.');
@@ -83,6 +93,9 @@ class OtpService implements OtpServiceInterface
         // Set cooldown throttle key
         $throttleSeconds = $this->config->getOtpThrottleSeconds();
         $this->cache->put($this->getThrottleKey($normalized), true, now()->addSeconds($throttleSeconds));
+
+        // Hit the composite request bucket on every successful generate
+        $this->rateLimiter->hit('otp_request', $normalized, $context->ipAddress, $context->clientId);
 
         // Attempt user lookup
         $emailCol = $this->config->getIdentifierColumn('email');
@@ -187,12 +200,21 @@ class OtpService implements OtpServiceInterface
         }
 
         $normalized = EmailNormalizer::normalize($identifier);
+
+        if ($this->rateLimiter->tooManyAttempts('otp_verify', $normalized, $context->ipAddress, $context->clientId)) {
+            throw new AuthenticationThrottledException(
+                max(1, $this->rateLimiter->availableIn('otp_verify', $normalized, $context->ipAddress, $context->clientId))
+            );
+        }
+
         $cacheKey = $this->getCacheKey($normalized);
 
         /** @var array{hash: string, attempts: int, max_attempts: int}|null $data */
         $data = $this->cache->get($cacheKey);
 
         if ($data === null) {
+            $this->rateLimiter->hit('otp_verify', $normalized, $context->ipAddress, $context->clientId);
+
             $this->auditService->logEvent(
                 SecurityEventType::OTP_FAILED,
                 $normalized,
@@ -203,6 +225,10 @@ class OtpService implements OtpServiceInterface
 
             throw new InvalidCredentialsException('The OTP code has expired or is invalid.');
         }
+
+        // Track every verification request in the feature bucket before the per-code
+        // counter can reject it, so rotating requests cannot bypass this budget.
+        $this->rateLimiter->hit('otp_verify', $normalized, $context->ipAddress, $context->clientId);
 
         // SEC-CRITICAL FIX: Increment only; never overwrite the atomic counter.
         // generate() pre-seeds this key with its TTL. add() is a race-safe fallback
@@ -243,6 +269,7 @@ class OtpService implements OtpServiceInterface
         $this->cache->forget($cacheKey);
         $this->cache->forget($cacheKey . ':attempts');
         $this->cache->forget($this->getThrottleKey($normalized));
+        $this->rateLimiter->clear('otp_verify', $normalized, $context->ipAddress, $context->clientId);
 
         $emailCol = $this->config->getIdentifierColumn('email');
         $usernameCol = $this->config->getIdentifierColumn('username');

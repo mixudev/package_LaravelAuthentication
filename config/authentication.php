@@ -155,9 +155,10 @@ return [
             ],
             'otp_request' => [
                 'enabled'       => true,
-                'max_attempts'  => 3,
+                'max_attempts'  => 10,
                 'decay_minutes' => 5,
-                'strategy'      => 'composite',
+                'strategy'      => 'ip', // IP-only: per-identifier cooldown (auth_otp_throttle) handles same-identifier reuse;
+                                         // this bucket defends against rotating-identifier flood from one IP.
             ],
             'otp_verify' => [
                 'enabled'       => true,
