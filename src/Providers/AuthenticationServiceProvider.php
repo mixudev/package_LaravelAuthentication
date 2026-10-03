@@ -259,6 +259,7 @@ class AuthenticationServiceProvider extends ServiceProvider
         // NOTE: alias package-specific (bukan 'password.confirm') agar tidak meng-override
         // alias bawaan Laravel yang dipakai host app lain.
         $router->aliasMiddleware('authentication.password-confirm', \Vendor\LaravelAuthentication\Http\Middleware\RequirePasswordConfirmation::class);
+        $router->aliasMiddleware('authentication.throttle', \Vendor\LaravelAuthentication\Http\Middleware\ThrottleAuthenticationRoutes::class);
 
         // Register package routes
         $this->registerRoutes();

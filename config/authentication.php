@@ -221,6 +221,16 @@ return [
         ],
 
         // CAPTCHA / Bot Protection Adaptif
+        /*
+        | Safety net per-IP untuk SEMUA route package. Batas atas (floor), bukan
+        | pengganti bucket per fitur yang lebih ketat dan per-identifier.
+        | Set max_attempts = 0 untuk menonaktifkan global throttle.
+        */
+        'global_throttle' => [
+            'max_attempts'  => 120,
+            'decay_minutes' => 1,
+        ],
+
         'captcha' => [
             'enabled'                       => false,
             'driver'                        => 'turnstile', // 'turnstile', 'recaptcha_v2', 'recaptcha_v3', 'hcaptcha'
@@ -409,12 +419,12 @@ return [
             'prefix'     => '',
             // EnsureSessionSecurity menambahkan security headers (nosniff,
             // X-Frame-Options, Referrer-Policy) ke semua halaman auth package.
-            'middleware' => ['web', 'authentication.session-security'],
+            'middleware' => ['web', 'authentication.session-security', 'authentication.throttle'],
         ],
         'api' => [
             'enabled'    => true,
             'prefix'     => 'api/v1/auth',
-            'middleware' => ['api', 'authentication.session-security'],
+            'middleware' => ['api', 'authentication.session-security', 'authentication.throttle']
         ],
     ],
 
