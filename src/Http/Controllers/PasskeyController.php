@@ -112,6 +112,19 @@ class PasskeyController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
+        $ip = (string) $request->ip();
+        $context = AuthenticationContext::fromRequest($request);
+        $userId = (string) $user->getAuthIdentifier();
+
+        if ($this->rateLimiter->tooManyAttempts('passkey_manage', $userId, $ip, $context->clientId)) {
+            return response()->json([
+                'status'  => 'throttled',
+                'message' => (string) __('authentication::messages.throttle_error'),
+            ], 429);
+        }
+
+        $this->rateLimiter->hit('passkey_manage', $userId, $ip, $context->clientId);
+
         $options = $this->passkeyService->generateCreationOptions($user);
 
         return response()->json($options->toArray());
