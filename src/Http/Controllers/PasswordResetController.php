@@ -13,12 +13,15 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
-use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
-use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
+use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
+use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\PasswordResetCompleted;
 use Vendor\LaravelAuthentication\Events\PasswordResetRequested;
-use Vendor\LaravelAuthentication\Enums\SecurityEventType;
-use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
+use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
+use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 
 class PasswordResetController extends Controller
@@ -26,7 +29,8 @@ class PasswordResetController extends Controller
     public function __construct(
         protected readonly PasswordService $passwordService,
         protected readonly Dispatcher $events,
-        protected readonly AuditLoggerInterface $auditService
+        protected readonly AuditLoggerInterface $auditService,
+        protected readonly FeatureRateLimiterInterface $rateLimiter
     ) {}
 
     public function showLinkRequestForm(): View|JsonResponse
@@ -48,6 +52,19 @@ class PasswordResetController extends Controller
     {
         if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
             abort(404, 'Password reset feature is currently disabled.');
+        }
+
+        if ($this->isForgotPasswordThrottled($request)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status'  => 'throttled',
+                    'message' => (string) __('authentication::messages.throttle_error'),
+                ], 429);
+            }
+
+            throw ValidationException::withMessages([
+                'email' => [(string) __('authentication::messages.throttle_error')],
+            ]);
         }
 
         // Intentionally discard the broker status result.
@@ -135,6 +152,13 @@ class PasswordResetController extends Controller
             ], 403);
         }
 
+        if ($this->isForgotPasswordThrottled($request)) {
+            return response()->json([
+                'status'  => 'throttled',
+                'message' => (string) __('authentication::messages.throttle_error'),
+            ], 429);
+        }
+
         // SEC-02 FIX: Timing normalization identical to web endpoint to prevent user enumeration
         Password::broker()->sendResetLink($request->only('email'));
 
@@ -191,5 +215,20 @@ class PasswordResetController extends Controller
             'status'  => 'failed',
             'message' => 'Unable to reset password. The reset link is invalid or has expired.',
         ], 400);
+    }
+
+    private function isForgotPasswordThrottled(Request $request): bool
+    {
+        $ip = (string) $request->ip();
+        $clientId = AuthenticationContext::fromRequest($request)->clientId;
+        $email = (string) $request->input('email', '');
+
+        if ($this->rateLimiter->tooManyAttempts('forgot_password', $email !== '' ? $email : null, $ip, $clientId)) {
+            return true;
+        }
+
+        $this->rateLimiter->hit('forgot_password', $email !== '' ? $email : null, $ip, $clientId);
+
+        return false;
     }
 }
