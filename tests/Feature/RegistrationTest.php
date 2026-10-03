@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Tests\Feature;
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
 use Vendor\LaravelAuthentication\Contracts\RegistrationServiceInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\DTO\RegisterData;
@@ -42,6 +43,30 @@ class RegistrationTest extends TestCase
         $this->assertTrue(Hash::check('SecurePassword123!', $user->password));
 
         Event::assertDispatched(UserRegistered::class);
+    }
+
+    public function test_registration_commits_password_history_with_user_creation(): void
+    {
+        config(['authentication.password.history.enabled' => true]);
+
+        /** @var RegistrationServiceInterface $service */
+        $service = app(RegistrationServiceInterface::class);
+        $passwordHistoryRepo = app(PasswordHistoryRepositoryInterface::class);
+
+        $user = $service->register(
+            new RegisterData(
+                name: 'History User',
+                email: 'history@example.com',
+                password: 'SecurePassword123!'
+            ),
+            new AuthenticationContext(
+                ipAddress: '127.0.0.1',
+                userAgent: 'PHPUnit',
+                channel: AuthenticationChannel::WEB
+            )
+        );
+
+        $this->assertTrue($passwordHistoryRepo->isPreviouslyUsed($user, 'SecurePassword123!'));
     }
 
     public function test_registration_can_be_disabled(): void

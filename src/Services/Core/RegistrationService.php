@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
@@ -69,11 +70,13 @@ class RegistrationService implements RegistrationServiceInterface
             $passwordColumn  => $this->hasher->make($data->password),
         ]);
 
-        $user->save();
+        DB::transaction(function () use ($user): void {
+            $user->save();
 
-        if ($this->config->isPasswordHistoryEnabled()) {
-            $this->passwordHistoryRepo->recordPassword($user, $user->getAuthPassword());
-        }
+            if ($this->config->isPasswordHistoryEnabled()) {
+                $this->passwordHistoryRepo->recordPassword($user, $user->getAuthPassword());
+            }
+        });
 
         $this->events->dispatch(new UserRegistered($user, $context));
 
