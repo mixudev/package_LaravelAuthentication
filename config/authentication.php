@@ -55,7 +55,7 @@ return [
     |          Cocok untuk aplikasi kecil-menengah dan development.
     | 
     | PRODUCTION HIGH-TRAFFIC: Set true + jalankan queue worker untuk performa:
-    |   php artisan queue:work --queue=auth-emails
+    |   php artisan queue:work
     | 
     | NOTE: Jika diset true, WAJIB ada queue worker yang jalan. Tanpa worker,
     |       email tidak akan terkirim sama sekali.
@@ -63,7 +63,6 @@ return [
     'mail' => [
         'queue'            => false,  // false = sync (instant), true = queue (butuh worker)
         'queue_connection' => null,  // null = ikuti default queue connection
-        'queue_name'       => 'auth-emails',
     ],
 
     /*

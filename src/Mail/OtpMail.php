@@ -33,14 +33,16 @@ class OtpMail extends Mailable
         public readonly ?string $customSubject = null,
         public readonly ?string $customView = null
     ) {
-        $queueName = (string) config('authentication.mail.queue_name', 'auth-emails');
+        // Queue connection can be customized via config
         $queueConnection = config('authentication.mail.queue_connection');
 
         if ($queueConnection) {
             $this->onConnection((string) $queueConnection);
         }
 
-        $this->onQueue($queueName);
+        // Use default queue unless explicitly overridden
+        // This allows 'php artisan queue:work' to process auth emails
+        // without requiring --queue=auth-emails flag
     }
 
     /**

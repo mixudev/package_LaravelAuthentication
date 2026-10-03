@@ -156,7 +156,6 @@ class OtpService implements OtpServiceInterface
                     \Illuminate\Support\Facades\Log::info('[AUTH] OTP email queued for background delivery', [
                         'recipient' => $recipientEmail,
                         'user_exists' => $user !== null,
-                        'queue' => config('authentication.mail.queue_name', 'auth-emails'),
                     ]);
                 } else {
                     \Illuminate\Support\Facades\Mail::to($recipientEmail)->send($mailable);

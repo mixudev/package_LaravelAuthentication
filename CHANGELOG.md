@@ -13,7 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Misleading Log Messages**: Log entries previously stated "OTP email sent synchronously" even when email was actually queued (due to `ShouldQueue` override). Logs now explicitly show `[AUTH] OTP email queued for background delivery` with queue name when queued, and `[AUTH] OTP email sent immediately (synchronous)` when synchronous.
 
 ### Changed
-- **BEHAVIOR CHANGE**: Config default `authentication.mail.queue` changed from `true` → `false`. Fresh installations now send OTP/new-device emails **synchronously by default**. Previous default (queue enabled since v1.9.0) caused silent failures when queue worker wasn't running, violating zero-config principle. New default matches Laravel core's password reset behavior. For production high-traffic applications, explicitly enable `authentication.mail.queue = true` and run `php artisan queue:work --queue=auth-emails`.
+- **BEHAVIOR CHANGE**: Config default `authentication.mail.queue` changed from `true` → `false`. Fresh installations now send OTP/new-device emails **synchronously by default**. Previous default (queue enabled since v1.9.0) caused silent failures when queue worker wasn't running, violating zero-config principle. New default matches Laravel core's password reset behavior. For production high-traffic applications, explicitly enable `authentication.mail.queue = true` and run `php artisan queue:work`.
+
+- **Queue Simplification**: Removed `authentication.mail.queue_name` config. Authentication emails now use Laravel's default queue, allowing `php artisan queue:work` to process them without requiring `--queue=auth-emails` flag. This eliminates setup friction and matches Laravel convention (most packages don't enforce custom queue names).
 
 ### Migration Guide (v1.9.x → v1.10.0)
 
@@ -24,9 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✅ No action needed — behavior unchanged, emails still queued.
 
 **If you have `mail.queue = true` but DON'T run queue workers:**
-- ⚠️ ACTION REQUIRED: Either start queue worker (`php artisan queue:work --queue=auth-emails`) or set `mail.queue = false` for synchronous delivery.
+- ⚠️ ACTION REQUIRED: Either start queue worker (`php artisan queue:work`) or set `mail.queue = false` for synchronous delivery.
 - Previous behavior: emails silently stuck in queue, never delivered.
 - New behavior: config respected — sync when false, queued when true.
+
+**Custom queue name users:**
+- Config `authentication.mail.queue_name` removed. Jobs now use default queue.
+- If you have Supervisor config with `--queue=auth-emails`, change to `--queue=default` or remove flag entirely.
+- Migration: No data loss, existing jobs in `auth-emails` queue can be manually moved or processed with `php artisan queue:work --queue=auth-emails,default`.
 
 ### Added
 - **2FA Segmented Code Input Component** - Reusable component for TOTP, recovery codes, and OTP with auto-advance, paste, and keyboard navigation

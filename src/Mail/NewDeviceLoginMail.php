@@ -29,14 +29,13 @@ class NewDeviceLoginMail extends Mailable
         public readonly ?string $customSubject = null,
         public readonly ?string $customView = null
     ) {
-        $queueName = (string) config('authentication.mail.queue_name', 'auth-emails');
         $queueConnection = config('authentication.mail.queue_connection');
 
         if ($queueConnection) {
             $this->onConnection((string) $queueConnection);
         }
 
-        $this->onQueue($queueName);
+        // Use default queue for simplicity
     }
 
     public function envelope(): Envelope
