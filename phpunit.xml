@@ -18,6 +18,9 @@
         <testsuite name="Security">
             <directory suffix="Test.php">./tests/Security</directory>
         </testsuite>
+        <testsuite name="Concurrency">
+            <directory suffix="Test.php">./tests/Concurrency</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
