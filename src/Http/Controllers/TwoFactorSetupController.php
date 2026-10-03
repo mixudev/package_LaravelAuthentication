@@ -31,6 +31,19 @@ class TwoFactorSetupController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
+        $ip = (string) $request->ip();
+        $context = \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request);
+        $userId = (string) $user->getAuthIdentifier();
+
+        if ($this->rateLimiter->tooManyAttempts('two_factor_setup', $userId, $ip, $context->clientId)) {
+            return response()->json([
+                'status'  => 'throttled',
+                'message' => (string) __('authentication::messages.throttle_error'),
+            ], 429);
+        }
+
+        $this->rateLimiter->hit('two_factor_setup', $userId, $ip, $context->clientId);
+
         // Jika 2FA sudah aktif & terkonfirmasi, tolak akses ke halaman setup QR code
         if ($this->twoFactorService->isEnabledFor($user)) {
             if ($request->expectsJson()) {

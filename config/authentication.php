@@ -216,6 +216,12 @@ return [
                 'decay_minutes' => 5,
                 'strategy'      => 'composite',
             ],
+            'two_factor_setup' => [
+                'enabled'       => true,
+                'max_attempts'  => 20,
+                'decay_minutes' => 5,
+                'strategy'      => 'composite',
+            ],
             'confirm_password' => [
                 'enabled'       => true,
                 'max_attempts'  => 5,
