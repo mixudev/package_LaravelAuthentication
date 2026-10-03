@@ -118,6 +118,9 @@ class PasskeyAuthenticationTest extends TestCase
         $this->assertTrue($result->isSuccess());
         $this->assertEquals($this->user->id, $result->user?->getAuthIdentifier());
         $this->assertEquals('passkey', $result->metadata['strategy']);
+
+        $this->expectException(\Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException::class);
+        $this->passkeyService->authenticate($assertionPayload, $context);
     }
 
     public function test_can_list_and_delete_passkeys(): void

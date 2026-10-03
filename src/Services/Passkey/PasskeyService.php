@@ -248,12 +248,20 @@ class PasskeyService
 
         $cacheKey = "passkey_auth_challenge:{$challenge}";
 
-        // SEC-CRITICAL FIX (v1.9.1): Atomic challenge consumption via pull()
-        // has() + forget() creates a 1-5ms race window where concurrent requests
-        // can reuse the same challenge. pull() atomically retrieves and deletes.
-        if (!$this->cache->pull($cacheKey)) {
+        // SEC-CRITICAL FIX: Repository::pull() is get() + forget(), not atomic.
+        // Claim the challenge with add() before any expensive verification so only
+        // one concurrent assertion can enter the authentication flow.
+        $consumedKey = $cacheKey . ':consumed';
+        if (!$this->cache->add($consumedKey, true, now()->addMinutes(5))) {
             throw new InvalidCredentialsException('Passkey challenge expired or invalid.');
         }
+
+        if (!$this->cache->get($cacheKey)) {
+            $this->cache->forget($consumedKey);
+            throw new InvalidCredentialsException('Passkey challenge expired or invalid.');
+        }
+
+        $this->cache->forget($cacheKey);
 
         // 1. Validate clientDataJSON (type, challenge, origin)
         try {

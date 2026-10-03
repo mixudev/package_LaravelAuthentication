@@ -56,9 +56,15 @@ if ($count > 5) {
 ```
 
 **Impact of Non-Atomic Store**:
-- File cache: Race conditions under concurrency
-- Array cache: Ephemeral (cleared on deploy/restart)
-- Database cache: Slow and still prone to races without pessimistic locks
+- File cache: atomic `add()` uses an exclusive file lock; suitable for one shared filesystem, but not a substitute for a shared distributed cache across nodes
+- Array cache: `Repository::add()` falls back to `get()` + `put()`; suitable only for single-process tests, never multi-worker or multi-server production
+- Database cache: the installed Laravel `DatabaseStore` pre-reads before `insertOrIgnore()`; do not rely on it for cross-process single-use gates or counters
+
+### Single-Use Security Requirement
+
+OTP codes, pending 2FA tokens, passkey registration challenges, and their consumed markers require an atomic `add()` gate. The package source was checked against the installed Laravel cache stores: Redis uses an atomic Lua-backed operation, Memcached uses its native add, and FileStore uses an exclusive lock. These are the production-supported options for the single-use guarantee. ArrayStore and DatabaseStore do not provide that guarantee under concurrent workers; they remain available for backward compatibility, but deployment on those stores must be treated as a security configuration failure for multi-worker or multi-server authentication.
+
+The package does not silently force Redis. Hosts may use Memcached or a shared FileStore where its operational model is appropriate. A host that selects ArrayStore or DatabaseStore must either run one process with no concurrent authentication workers or switch to Redis/Memcached before claiming single-use protection. The property tests in `tests/Concurrency/AtomicClaimGatePropertyTest.php` run on ArrayStore and prove logical invariants only; they are not evidence of true parallel atomicity.
 
 ### Redis Configuration
 
