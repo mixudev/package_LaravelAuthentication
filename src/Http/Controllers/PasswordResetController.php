@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
@@ -23,6 +24,7 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
 use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
+use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
 
 class PasswordResetController extends Controller
 {
@@ -30,7 +32,8 @@ class PasswordResetController extends Controller
         protected readonly PasswordService $passwordService,
         protected readonly Dispatcher $events,
         protected readonly AuditLoggerInterface $auditService,
-        protected readonly FeatureRateLimiterInterface $rateLimiter
+        protected readonly FeatureRateLimiterInterface $rateLimiter,
+        protected readonly SessionManagerService $sessionManager
     ) {}
 
     public function showLinkRequestForm(): View|JsonResponse
@@ -127,16 +130,22 @@ class PasswordResetController extends Controller
             abort(404, 'Password reset feature is currently disabled.');
         }
 
+        $claimKey = $this->claimResetToken($request);
+
+        if ($claimKey === null) {
+            return back()->withErrors(['email' => trans(Password::INVALID_TOKEN)]);
+        }
+
         $status = Password::broker()->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) use ($request) {
-                $this->passwordService->updatePassword($user, $password);
-                $this->events->dispatch(new PasswordResetCompleted(
-                    $user,
-                    \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
-                ));
+                $this->completeReset($user, $password, $request);
             }
         );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            Cache::forget($claimKey);
+        }
 
         return $status === Password::PASSWORD_RESET
             ? redirect()->route('login')->with('status', trans($status))
@@ -193,16 +202,25 @@ class PasswordResetController extends Controller
             ], 403);
         }
 
+        $claimKey = $this->claimResetToken($request);
+
+        if ($claimKey === null) {
+            return response()->json([
+                'status'  => 'failed',
+                'message' => 'Unable to reset password. The reset link is invalid or has expired.',
+            ], 400);
+        }
+
         $status = Password::broker()->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) use ($request) {
-                $this->passwordService->updatePassword($user, $password);
-                $this->events->dispatch(new PasswordResetCompleted(
-                    $user,
-                    \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
-                ));
+                $this->completeReset($user, $password, $request);
             }
         );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            Cache::forget($claimKey);
+        }
 
         if ($status === Password::PASSWORD_RESET) {
             return response()->json([
@@ -215,6 +233,59 @@ class PasswordResetController extends Controller
             'status'  => 'failed',
             'message' => 'Unable to reset password. The reset link is invalid or has expired.',
         ], 400);
+    }
+
+    /**
+     * Apply a validated password reset and terminate everything the old credential granted.
+     *
+     * PR-01: the callback runs inside PasswordBroker::reset(), which only deletes the
+     * reset token afterwards. Without an explicit revocation here, any session or
+     * remember-me token captured before the reset survives it, and the victim who reset
+     * the password during a compromise is still compromised.
+     *
+     * @param \Illuminate\Contracts\Auth\CanResetPassword $user
+     */
+    private function completeReset(
+        \Illuminate\Contracts\Auth\CanResetPassword $user,
+        #[\SensitiveParameter] string $password,
+        Request $request
+    ): void {
+        if (!$user instanceof \Illuminate\Contracts\Auth\Authenticatable) {
+            throw new \RuntimeException('Password reset user must implement Authenticatable.');
+        }
+
+        $this->passwordService->updatePassword($user, $password);
+        $this->sessionManager->revokeAllAfterCredentialChange($user);
+
+        $this->events->dispatch(new PasswordResetCompleted(
+            $user,
+            AuthenticationContext::fromRequest($request)
+        ));
+    }
+
+    /**
+     * Claim a reset credential before invoking Laravel's broker.
+     *
+     * PasswordBroker validates with exists() and deletes only after the callback,
+     * leaving a concurrent redemption window. This marker is not the token store and
+     * does not replace broker hashing/expiry validation; it is a short-lived atomic
+     * per-email/token claim that serializes package requests before that window.
+     */
+    private function claimResetToken(Request $request): ?string
+    {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $token = (string) $request->input('token', '');
+
+        if ($email === '' || $token === '') {
+            return null;
+        }
+
+        $claimKey = 'authentication:password-reset:claim:' . hash('sha256', $email . ':' . $token);
+        $ttlMinutes = max(1, (int) config('auth.passwords.users.expire', 60));
+
+        return Cache::add($claimKey, true, now()->addMinutes($ttlMinutes))
+            ? $claimKey
+            : null;
     }
 
     private function isForgotPasswordThrottled(Request $request): bool

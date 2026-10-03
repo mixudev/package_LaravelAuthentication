@@ -6,11 +6,12 @@ namespace Vendor\LaravelAuthentication\Tests\Fixtures;
 
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Model implements Authenticatable, MustVerifyEmail
+class User extends Model implements Authenticatable, CanResetPasswordContract, MustVerifyEmail
 {
     use AuthenticatableTrait, Notifiable;
 
@@ -22,6 +23,7 @@ class User extends Model implements Authenticatable, MustVerifyEmail
         'email',
         'employee_id',
         'password',
+        'remember_token',
     ];
 
     protected $hidden = [
@@ -56,5 +58,20 @@ class User extends Model implements Authenticatable, MustVerifyEmail
     public function getEmailForVerification(): string
     {
         return (string) $this->email;
+    }
+
+    public function getEmailForPasswordReset(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * Forward to the Notifiable trait so the reset notification is actually dispatched
+     * and can be asserted with Notification::fake(). A no-op here would silently make
+     * every forgot-password test vacuous.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \Illuminate\Auth\Notifications\ResetPassword($token));
     }
 }

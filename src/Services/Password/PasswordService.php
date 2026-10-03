@@ -42,6 +42,18 @@ class PasswordService
             }
         }
 
+        // PR-04: password history is opt-in, so without it a reset token holder could
+        // "reset" to the password they already know and nothing would change. Reuse of
+        // the CURRENT password is rejected unconditionally.
+        if ($user instanceof Model) {
+            $passwordColumn = $this->config->getIdentifierColumn('password');
+            $currentHash = (string) ($user->{$passwordColumn} ?? '');
+
+            if ($currentHash !== '' && $this->hasher->check($newPlainPassword, $currentHash)) {
+                throw new AuthenticationException('The new password must differ from the current password.');
+            }
+        }
+
         $hash = $this->hashPassword($newPlainPassword);
 
         if ($user instanceof Model) {

@@ -6,11 +6,14 @@ namespace Vendor\LaravelAuthentication\Services\Session;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Hashing\Hasher;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use SensitiveParameter;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
+use Vendor\LaravelAuthentication\Models\AuthenticationDevice;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 class SessionManagerService
@@ -117,6 +120,50 @@ class SessionManagerService
         return (bool) \Vendor\LaravelAuthentication\Models\AuthenticationDevice::where('user_id', $userId)
             ->where('id', $sessionId)
             ->delete();
+    }
+
+    /**
+     * Terminate every session and device credential that the previous password granted.
+     *
+     * PR-01: a password reset is the victim's response to a suspected compromise, so any
+     * session cookie or remember-me token captured beforehand must stop working. Without
+     * this the attacker keeps access while the victim believes the account is recovered.
+     *
+     * @return int number of revoked sessions/devices
+     */
+    public function revokeAllAfterCredentialChange(Authenticatable $user): int
+    {
+        $userId = $user->getAuthIdentifier();
+        $revoked = 0;
+
+        if ($user instanceof Model) {
+            // Rotate the remember-me token so captured "remember me" cookies die.
+            // Persist immediately: updatePassword() already ran and saved, so mutating
+            // the in-memory attribute alone would never reach the database.
+            $user->forceFill(['remember_token' => Str::random(60)])->save();
+        }
+
+        if (config('session.driver') === 'database') {
+            $tableName = (string) config('session.table', 'sessions');
+
+            if (DB::getSchemaBuilder()->hasTable($tableName)) {
+                $revoked += DB::table($tableName)->where('user_id', $userId)->delete();
+            }
+        }
+
+        // Drop trusted-device markers too: a device trusted under the old credential must
+        // not keep bypassing the second factor after a reset.
+        $revoked += AuthenticationDevice::where('user_id', $userId)
+            ->where(function ($query): void {
+                $query->where('is_trusted', true)->orWhereNotNull('trust_token_hash');
+            })
+            ->update([
+                'is_trusted'       => false,
+                'trusted_until'    => null,
+                'trust_token_hash' => null,
+            ]);
+
+        return $revoked;
     }
 
     /**
