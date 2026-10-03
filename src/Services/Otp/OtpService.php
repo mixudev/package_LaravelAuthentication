@@ -153,13 +153,14 @@ class OtpService implements OtpServiceInterface
 
                 if ($queueEnabled) {
                     \Illuminate\Support\Facades\Mail::to($recipientEmail)->queue($mailable);
-                    \Illuminate\Support\Facades\Log::info('OTP email queued', [
+                    \Illuminate\Support\Facades\Log::info('[AUTH] OTP email queued for background delivery', [
                         'recipient' => $recipientEmail,
                         'user_exists' => $user !== null,
+                        'queue' => config('authentication.mail.queue_name', 'auth-emails'),
                     ]);
                 } else {
                     \Illuminate\Support\Facades\Mail::to($recipientEmail)->send($mailable);
-                    \Illuminate\Support\Facades\Log::info('OTP email sent synchronously', [
+                    \Illuminate\Support\Facades\Log::info('[AUTH] OTP email sent immediately (synchronous)', [
                         'recipient' => $recipientEmail,
                         'user_exists' => $user !== null,
                     ]);

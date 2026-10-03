@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Email Queue Config Conflict (CRITICAL)**: `OtpMail` and `NewDeviceLoginMail` previously implemented `ShouldQueue`, causing emails to ALWAYS be queued regardless of `config('authentication.mail.queue')` setting. Per [Laravel documentation](https://laravel.com/docs/12.x/mail#queueing-by-default), Mailables with `ShouldQueue` are queued even when calling `Mail::send()`, making the config meaningless and requiring queue workers even when users wanted synchronous delivery. This caused silent failures when `mail.queue = true` but queue worker wasn't running. **FIX**: Removed `implements ShouldQueue` from both Mailable classes. Config `authentication.mail.queue` now correctly controls queue vs sync behavior. Matches Laravel's password reset pattern (synchronous by default, opt-in queue).
+
+- **Misleading Log Messages**: Log entries previously stated "OTP email sent synchronously" even when email was actually queued (due to `ShouldQueue` override). Logs now explicitly show `[AUTH] OTP email queued for background delivery` with queue name when queued, and `[AUTH] OTP email sent immediately (synchronous)` when synchronous.
+
+### Changed
+- **BEHAVIOR CHANGE**: Config default `authentication.mail.queue` changed from `true` → `false`. Fresh installations now send OTP/new-device emails **synchronously by default**. Previous default (queue enabled since v1.9.0) caused silent failures when queue worker wasn't running, violating zero-config principle. New default matches Laravel core's password reset behavior. For production high-traffic applications, explicitly enable `authentication.mail.queue = true` and run `php artisan queue:work --queue=auth-emails`.
+
+### Migration Guide (v1.9.x → v1.10.0)
+
+**If you have `mail.queue = false` (or never changed it in v1.8.x):**
+- ✅ No action needed — emails are now truly synchronous as configured.
+
+**If you have `mail.queue = true` AND run queue workers:**
+- ✅ No action needed — behavior unchanged, emails still queued.
+
+**If you have `mail.queue = true` but DON'T run queue workers:**
+- ⚠️ ACTION REQUIRED: Either start queue worker (`php artisan queue:work --queue=auth-emails`) or set `mail.queue = false` for synchronous delivery.
+- Previous behavior: emails silently stuck in queue, never delivered.
+- New behavior: config respected — sync when false, queued when true.
+
 ### Added
 - **2FA Segmented Code Input Component** - Reusable component for TOTP, recovery codes, and OTP with auto-advance, paste, and keyboard navigation
 - **Recovery Mode Persistence** - Invalid recovery code now returns to recovery mode instead of resetting to TOTP
