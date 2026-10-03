@@ -210,6 +210,12 @@ return [
                 // IP-only: protect provider OAuth redirect flood dan circuit-breaker exhaustion.
                 'strategy'      => 'ip',
             ],
+            'session_manage' => [
+                'enabled'       => true,
+                'max_attempts'  => 20,
+                'decay_minutes' => 5,
+                'strategy'      => 'composite',
+            ],
             'confirm_password' => [
                 'enabled'       => true,
                 'max_attempts'  => 5,

@@ -93,6 +93,19 @@ class SessionController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
+        $ip = (string) $request->ip();
+        $context = AuthenticationContext::fromRequest($request);
+        $userId = (string) $user->getAuthIdentifier();
+
+        if ($this->rateLimiter->tooManyAttempts('session_manage', $userId, $ip, $context->clientId)) {
+            return response()->json([
+                'status'  => 'throttled',
+                'message' => (string) __('authentication::messages.throttle_error'),
+            ], 429);
+        }
+
+        $this->rateLimiter->hit('session_manage', $userId, $ip, $context->clientId);
+
         $this->sessionManager->revokeSession($user, $sessionId);
 
         $this->events->dispatch(new SessionRevoked(
