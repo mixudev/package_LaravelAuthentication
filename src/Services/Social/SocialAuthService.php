@@ -162,27 +162,29 @@ class SocialAuthService implements SocialAuthServiceInterface
                 throw new AuthenticationException("No account linked to email [{$email}]. Registration is required.");
             }
 
-            // Automatically create local user record
+            // Automatically create local user record. createOrFirst() attempts the
+            // insert before deciding that the row is absent, then re-reads the winner
+            // on a unique-constraint race. A prior resolveByColumn() + save() allowed
+            // two concurrent callbacks for the same new email to both pass the lookup.
             $userModelClass = $this->config->getUserModel();
-            /** @var Model&Authenticatable $user */
-            $user = new $userModelClass();
+            $userQuery = $userModelClass::query();
             $passwordCol = $this->config->getIdentifierColumn('password');
 
             $payload = [
                 'name'         => $name ?: 'OAuth User',
-                $emailCol      => $email,
                 $passwordCol   => $this->hasher->make(Str::random(32)),
             ];
 
-            // If user model has email_verified_at column, populate it if email is verified
-            if ($emailVerified === true && method_exists($user, 'hasCast') && $user->isFillable('email_verified_at')) {
-                $payload['email_verified_at'] = now();
-            } elseif ($emailVerified === true && in_array('email_verified_at', $user->getFillable(), true)) {
-                $payload['email_verified_at'] = now();
-            }
+            /** @var Model&Authenticatable $user */
+            $user = $userQuery->createOrFirst([$emailCol => $email], $payload);
 
-            $user->forceFill($payload);
-            $user->save();
+            // Only mark a column that the host model explicitly allows. The returned
+            // winner from a create race must not be overwritten by this callback.
+            if ($emailVerified === true && method_exists($user, 'hasCast') && $user->isFillable('email_verified_at') && $user->getAttribute('email_verified_at') === null) {
+                $user->forceFill(['email_verified_at' => now()])->save();
+            } elseif ($emailVerified === true && in_array('email_verified_at', $user->getFillable(), true) && $user->getAttribute('email_verified_at') === null) {
+                $user->forceFill(['email_verified_at' => now()])->save();
+            }
         }
 
         // BP-03 FIX: Social login tidak boleh membypass account lockout.
