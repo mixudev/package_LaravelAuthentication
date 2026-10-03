@@ -14,6 +14,7 @@ use Vendor\LaravelAuthentication\Contracts\RegistrationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Http\Requests\RegisterRequest;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
@@ -67,7 +68,13 @@ class RegisterController extends Controller
         $dto = $request->toDto();
         $context = AuthenticationContext::fromRequest($request);
 
-        $user = $this->registrationService->register($dto, $context);
+        try {
+            $user = $this->registrationService->register($dto, $context);
+        } catch (AuthenticationThrottledException $e) {
+            return back()->withErrors([
+                'email' => [(string) __('authentication::messages.throttle_error')],
+            ]);
+        }
 
         // Auto-login user if configured
         if ($this->config->shouldAutoLoginOnRegister()) {
@@ -110,6 +117,12 @@ class RegisterController extends Controller
                 ],
                 'token'   => $token,
             ], 201);
+        } catch (AuthenticationThrottledException $e) {
+            return response()->json([
+                'status'            => 'throttled',
+                'message'           => (string) __('authentication::messages.throttle_error'),
+                'seconds_remaining' => $e->secondsRemaining,
+            ], 429);
         } catch (AuthenticationException $e) {
             return response()->json([
                 'status'  => 'error',

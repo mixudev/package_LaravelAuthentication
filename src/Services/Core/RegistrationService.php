@@ -8,6 +8,8 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\Eloquent\Model;
+use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
+use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
 use Vendor\LaravelAuthentication\Contracts\RegistrationServiceInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
@@ -15,7 +17,7 @@ use Vendor\LaravelAuthentication\DTO\RegisterData;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\UserRegistered;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
-use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 /**
@@ -28,7 +30,8 @@ class RegistrationService implements RegistrationServiceInterface
         private readonly Dispatcher $events,
         private readonly AuthenticationConfig $config,
         private readonly AuditLoggerInterface $auditService,
-        private readonly PasswordHistoryRepositoryInterface $passwordHistoryRepo
+        private readonly PasswordHistoryRepositoryInterface $passwordHistoryRepo,
+        private readonly FeatureRateLimiterInterface $rateLimiter,
     ) {}
 
     public function isEnabled(): bool
@@ -41,6 +44,16 @@ class RegistrationService implements RegistrationServiceInterface
         if (!$this->isEnabled()) {
             throw new AuthenticationException('Registration is currently disabled.');
         }
+
+        $ip = $context->ipAddress;
+
+        if ($this->rateLimiter->tooManyAttempts('registration', null, $ip, $context->clientId)) {
+            throw new AuthenticationThrottledException(
+                max(1, $this->rateLimiter->availableIn('registration', null, $ip, $context->clientId))
+            );
+        }
+
+        $this->rateLimiter->hit('registration', null, $ip, $context->clientId);
 
         $userModelClass = $this->config->getUserModel();
 
