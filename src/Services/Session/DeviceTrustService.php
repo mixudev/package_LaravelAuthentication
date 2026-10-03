@@ -64,7 +64,7 @@ class DeviceTrustService
         $expiresAt = now()->addDays($durationDays);
 
         /** @var AuthenticationDevice $device */
-        $device = AuthenticationDevice::firstOrCreate(
+        $device = AuthenticationDevice::query()->createOrFirst(
             ['user_id' => $userId, 'device_fingerprint' => $detection['fingerprint']],
             [
                 'ip_address'   => $request->ip(),

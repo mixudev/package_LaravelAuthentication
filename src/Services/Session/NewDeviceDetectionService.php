@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Services\Session;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Mail;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Events\NewDeviceLoginDetected;
@@ -35,31 +36,50 @@ class NewDeviceDetectionService
         $isNew = $device === null;
 
         if ($isNew) {
-            $device = AuthenticationDevice::create([
-                'user_id'            => $userId,
-                'device_fingerprint' => $detection['fingerprint'],
-                'ip_address'         => $context->ipAddress,
-                'user_agent'         => $context->userAgent,
-                'device_name'        => $detection['device_name'],
-                'platform'           => $detection['platform'],
-                'browser'            => $detection['browser'],
-                'location'           => $detection['location'],
-                'is_trusted'         => false,
-                'last_seen_at'       => now(),
-            ]);
+            try {
+                $device = AuthenticationDevice::create([
+                    'user_id'            => $userId,
+                    'device_fingerprint' => $detection['fingerprint'],
+                    'ip_address'         => $context->ipAddress,
+                    'user_agent'         => $context->userAgent,
+                    'device_name'        => $detection['device_name'],
+                    'platform'           => $detection['platform'],
+                    'browser'            => $detection['browser'],
+                    'location'           => $detection['location'],
+                    'is_trusted'         => false,
+                    'last_seen_at'       => now(),
+                ]);
+            } catch (UniqueConstraintViolationException) {
+                // Another concurrent login registered this device first. Re-read the
+                // winner and take the existing-device path; do not dispatch a duplicate
+                // new-device event or send a duplicate alert.
+                $device = AuthenticationDevice::where('user_id', $userId)
+                    ->where('device_fingerprint', $detection['fingerprint'])
+                    ->firstOrFail();
+                $isNew = false;
+            }
 
-            // Dispatch event
-            event(new NewDeviceLoginDetected($user, $device, $context));
+            if ($isNew) {
+                // Dispatch event only for the request that actually inserted the row.
+                event(new NewDeviceLoginDetected($user, $device, $context));
 
-            // Send email alert if enabled
-            if ($this->config->isNewDeviceNotificationEnabled() && !empty($user->email)) {
-                $mailable = new NewDeviceLoginMail($user, $device);
+                // Send email alert if enabled
+                if ($this->config->isNewDeviceNotificationEnabled() && !empty($user->email)) {
+                    $mailable = new NewDeviceLoginMail($user, $device);
 
-                if ($this->config->isMailQueueEnabled()) {
-                    Mail::to($user->email)->queue($mailable);
-                } else {
-                    Mail::to($user->email)->send($mailable);
+                    if ($this->config->isMailQueueEnabled()) {
+                        Mail::to($user->email)->queue($mailable);
+                    } else {
+                        Mail::to($user->email)->send($mailable);
+                    }
                 }
+            } else {
+                $device->update([
+                    'ip_address'   => $context->ipAddress,
+                    'user_agent'   => $context->userAgent,
+                    'location'     => $detection['location'] ?? $device->location,
+                    'last_seen_at' => now(),
+                ]);
             }
         } else {
             $device->update([
