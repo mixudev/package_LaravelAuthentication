@@ -189,6 +189,27 @@ return [
                 // (challenge disimpan di cache 5 menit per request).
                 'strategy'      => 'ip',
             ],
+            'passkey_login' => [
+                'enabled'       => true,
+                'max_attempts'  => 10,
+                'decay_minutes' => 5,
+                // Assertion verification lakukan crypto WebAuthn mahal per request — batas ketat.
+                'strategy'      => 'ip',
+            ],
+            'passkey_manage' => [
+                'enabled'       => true,
+                'max_attempts'  => 20,
+                'decay_minutes' => 5,
+                // Per-user pendaftaran passkey baru.
+                'strategy'      => 'composite',
+            ],
+            'social' => [
+                'enabled'       => true,
+                'max_attempts'  => 20,
+                'decay_minutes' => 5,
+                // IP-only: protect provider OAuth redirect flood dan circuit-breaker exhaustion.
+                'strategy'      => 'ip',
+            ],
             'confirm_password' => [
                 'enabled'       => true,
                 'max_attempts'  => 5,

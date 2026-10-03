@@ -53,6 +53,19 @@ class PasskeyController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
+        $ip = (string) $request->ip();
+        $clientId = AuthenticationContext::fromRequest($request)->clientId;
+        $subject = (string) ($request->input('id', '') ?: '');
+
+        if ($this->rateLimiter->tooManyAttempts('passkey_login', $subject !== '' ? $subject : null, $ip, $clientId)) {
+            return response()->json([
+                'status'  => 'throttled',
+                'message' => (string) __('authentication::messages.throttle_error'),
+            ], 429);
+        }
+
+        $this->rateLimiter->hit('passkey_login', $subject !== '' ? $subject : null, $ip, $clientId);
+
         $payload = $request->all();
         $context = AuthenticationContext::fromRequest($request);
 
