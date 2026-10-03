@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Symfony\Component\HttpFoundation\Response;
+use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Contracts\SocialAuthServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
@@ -34,7 +35,8 @@ class SocialAuthController extends Controller
         protected readonly AuthenticationConfig $config,
         protected readonly TwoFactorService $twoFactorService,
         protected readonly DeviceTrustService $deviceTrustService,
-        protected readonly CacheRepository $cache
+        protected readonly CacheRepository $cache,
+        protected readonly FeatureRateLimiterInterface $rateLimiter
     ) {}
 
     /**
@@ -45,6 +47,14 @@ class SocialAuthController extends Controller
         if (!$this->socialAuthService->isProviderEnabled($provider)) {
             abort(404, "Social provider [{$provider}] is disabled or unsupported.");
         }
+
+        $ip = (string) request()->ip();
+
+        if ($this->rateLimiter->tooManyAttempts('social', $provider, $ip)) {
+            abort(429, (string) __('authentication::messages.throttle_error'));
+        }
+
+        $this->rateLimiter->hit('social', $provider, $ip);
 
         return $this->socialAuthService->getRedirectResponse($provider);
     }
