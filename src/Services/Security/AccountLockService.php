@@ -60,29 +60,45 @@ class AccountLockService
         // Without lockForUpdate(), 10 concurrent requests can each read failed_attempts=4,
         // increment to 5, and save — bypassing the lockout threshold.
         return \Illuminate\Support\Facades\DB::transaction(function () use ($user, $userIdentifier, $maxAttempts, $context) {
-            /** @var AccountLockout|null $record */
+            // H-05 FIX: Use firstOrCreate with lockForUpdate to prevent duplicate insert race
+            // lockForUpdate on existing row prevents concurrent increments
+            // firstOrCreate handles the no-row case atomically (one winner creates, others read)
+            /** @var AccountLockout $record */
             $record = AccountLockout::query()
-                ->lockForUpdate()
                 ->where('user_identifier', $userIdentifier)
+                ->lockForUpdate()
                 ->first();
+            $wasCreated = false;
 
             if ($record === null) {
-                $record = AccountLockout::create([
-                    'user_identifier' => $userIdentifier,
-                    'failed_attempts' => 1,
-                    'last_failure_at' => \Illuminate\Support\Carbon::now(),
-                ]);
-            } else {
-                // SEC-15: re-check under the row lock — another request may have
-                // engaged the lock between the pre-check and acquiring the row.
-                if ($record->isLocked()) {
-                    return false;
+                // Race-safe creation: firstOrCreate ensures exactly one insert succeeds
+                // Unique constraint on user_identifier prevents duplicates at DB level
+                try {
+                    $record = AccountLockout::firstOrCreate(
+                        ['user_identifier' => $userIdentifier],
+                        [
+                            'failed_attempts' => 1,
+                            'last_failure_at' => \Illuminate\Support\Carbon::now(),
+                        ]
+                    );
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // Concurrent insert lost race; re-read the winner's row under lock
+                    $record = AccountLockout::query()
+                        ->where('user_identifier', $userIdentifier)
+                        ->lockForUpdate()
+                        ->firstOrFail();
                 }
-
-                $record->failed_attempts = (int) $record->failed_attempts + 1;
-                $record->last_failure_at = \Illuminate\Support\Carbon::now();
-                $record->save();
             }
+
+            // SEC-15: re-check under the row lock — another request may have
+            // engaged the lock between the pre-check and acquiring the row.
+            if ($record->isLocked()) {
+                return false;
+            }
+
+            $record->failed_attempts = (int) $record->failed_attempts + 1;
+            $record->last_failure_at = \Illuminate\Support\Carbon::now();
+            $record->save();
 
             if ($record->failed_attempts >= $maxAttempts) {
                 $lockoutMinutes = $this->config->getLockoutDurationMinutes();

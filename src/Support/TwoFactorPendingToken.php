@@ -45,33 +45,56 @@ final class TwoFactorPendingToken
         $token = \Illuminate\Support\Str::random(64);
         $ttlMinutes = (int) config('authentication.features.two_factor.pending_token_ttl_minutes', 10);
 
-        $this->cache->put(
-            $this->keyFor($token),
-            $userId,
-            now()->addMinutes($ttlMinutes)
-        );
+        $key = $this->keyFor($token);
+        $this->cache->put($key, $userId, now()->addMinutes($ttlMinutes));
+
+        // H-03: Clear any stale consumed marker from previous token with same hash (extremely rare)
+        $this->cache->forget($key . ':consumed');
 
         return $token;
     }
 
     /**
-     * Resolve user id dari token. Mengembalikan null jika token
-     * tidak dikenal / sudah kedaluwarsa / sudah dipakai.
+     * Resolve user id dari token dan consume atomically (single-use).
+     *
+     * H-03 FIX: Use cache->add() gate to ensure only one concurrent request
+     * can successfully resolve. This prevents replay attacks where multiple
+     * requests resolve the same token before any consume() is called.
      */
     public function resolve(string $token): int|string|null
     {
-        $userId = $this->cache->get($this->keyFor($token));
+        $key = $this->keyFor($token);
+        $consumedKey = $key . ':consumed';
 
-        return $userId === null ? null : $userId;
+        // Atomic claim: only first concurrent resolver succeeds
+        if (!$this->cache->add($consumedKey, true, now()->addMinutes(15))) {
+            return null; // Already consumed or concurrent resolution in progress
+        }
+
+        $userId = $this->cache->get($key);
+
+        if ($userId === null) {
+            // Token tidak ada/expired, hapus consumed marker
+            $this->cache->forget($consumedKey);
+            return null;
+        }
+
+        // Immediately consume to prevent any subsequent use
+        $this->cache->forget($key);
+
+        return $userId;
     }
 
     /**
-     * Konsumsi token (single-use). Panggil setelah verifikasi 2FA sukses
-     * ATAU GAGAL total — token tidak boleh dipakai dua kali.
+     * Konsumsi token (single-use).
+     *
+     * DEPRECATED after H-03 fix: resolve() now consumes atomically.
+     * Kept for backward compatibility but is now a no-op.
      */
     public function consume(string $token): void
     {
-        $this->cache->forget($this->keyFor($token));
+        // No-op: resolve() already consumed the token atomically
+        // Kept for backward compatibility with existing controller code
     }
 
     public function keyFor(string $token): string

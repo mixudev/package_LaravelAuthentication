@@ -81,7 +81,11 @@ class PasskeyService
         $userId = (string) $user->getAuthIdentifier();
 
         // Cache challenge for 5 minutes (single-use)
-        $this->cache->put("passkey_reg_challenge:{$userId}", $challenge, now()->addMinutes(5));
+        $challengeKey = "passkey_reg_challenge:{$userId}";
+        $this->cache->put($challengeKey, $challenge, now()->addMinutes(5));
+
+        // H-04: Clear any stale consumed marker from previous registration
+        $this->cache->forget($challengeKey . ':consumed');
 
         $userEmail = (string) ($user->email ?? $user->username ?? "user-{$userId}");
         $userName = (string) ($user->name ?? $userEmail);
@@ -131,14 +135,24 @@ class PasskeyService
     public function registerPasskey(Authenticatable $user, array $payload, string $name = 'Passkey'): PasskeyCredential
     {
         $userId = (string) $user->getAuthIdentifier();
-        $storedChallenge = $this->cache->get("passkey_reg_challenge:{$userId}");
+        $challengeKey = "passkey_reg_challenge:{$userId}";
+        $consumedKey = $challengeKey . ':consumed';
+
+        // H-04 FIX: Atomic challenge claim via add() gate
+        // Only first concurrent registration succeeds; prevents duplicate credentials
+        if (!$this->cache->add($consumedKey, true, now()->addMinutes(5))) {
+            throw new AuthenticationException('Passkey registration challenge expired or already used. Please retry.');
+        }
+
+        $storedChallenge = $this->cache->get($challengeKey);
 
         if (!$storedChallenge || !is_string($storedChallenge)) {
+            $this->cache->forget($consumedKey); // Release claim if challenge invalid
             throw new AuthenticationException('Passkey registration challenge expired. Please retry.');
         }
 
         // Invalidate challenge immediately (single-use anti-replay)
-        $this->cache->forget("passkey_reg_challenge:{$userId}");
+        $this->cache->forget($challengeKey);
 
         $response = (array) ($payload['response'] ?? []);
         $clientDataJSON = (string) ($response['clientDataJSON'] ?? '');

@@ -78,6 +78,7 @@ class OtpService implements OtpServiceInterface
         $maxAttempts = $this->config->getOtpMaxAttempts();
 
         $cacheKey = $this->getCacheKey($normalized);
+        $this->cache->forget($cacheKey . ':consumed');
         $payload = [
             'hash'         => hash('sha256', $code),
             'max_attempts' => $maxAttempts,
@@ -85,10 +86,10 @@ class OtpService implements OtpServiceInterface
 
         $this->cache->put($cacheKey, $payload, now()->addMinutes($expiryMinutes));
 
-        // SEC-CRITICAL FIX (v1.9.1): Pre-seed atomic attempt counter with exact TTL
-        // Eliminates TOCTOU race in verify() where put() during verification could overwrite
-        // concurrent increments.
-        $this->cache->put($cacheKey . ':attempts', 0, now()->addMinutes($expiryMinutes));
+        // H-02 FIX: Use add() instead of put() to prevent overwriting active counter
+        // If verify() has already incremented the counter, this add() will fail (key exists)
+        // and preserve the existing counter, preventing reset-to-zero race
+        $this->cache->add($cacheKey . ':attempts', 0, now()->addMinutes($expiryMinutes));
 
         // Set cooldown throttle key
         $throttleSeconds = $this->config->getOtpThrottleSeconds();
@@ -263,6 +264,14 @@ class OtpService implements OtpServiceInterface
             );
 
             throw new InvalidCredentialsException('The provided OTP code is incorrect.');
+        }
+
+        // H-01 FIX: Claim successful consumption with an atomic add operation.
+        // Only the first concurrent verifier can create this marker; all later
+        // verifiers are rejected even if they read the payload before deletion.
+        $consumedKey = $cacheKey . ':consumed';
+        if (!$this->cache->add($consumedKey, true, now()->addMinutes($this->config->getOtpExpiryMinutes()))) {
+            throw new InvalidCredentialsException('The OTP code has expired or is invalid.');
         }
 
         // Successfully verified: Invalidate immediately to prevent reuse
