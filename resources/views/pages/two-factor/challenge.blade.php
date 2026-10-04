@@ -30,7 +30,7 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
 
         {{-- Alert Notifikasi --}}
         @if ($errors->any())
-            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         {{-- Form Verifikasi 2FA --}}
@@ -41,7 +41,7 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
 
             {{-- Input Kode TOTP 6-Digit --}}
             <div x-show="!recovery">
-                <x-authentication::segmented-code-input
+                <x-authentication::forms.segmented-code-input
                     name="code"
                     :length="$totpDigits"
                     charset="numeric"
@@ -54,7 +54,7 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
 
             {{-- Input Kode Pemulihan Cadangan (10 karakter: ABCDE-12345) --}}
             <div x-show="recovery" x-cloak>
-                <x-authentication::segmented-code-input
+                <x-authentication::forms.segmented-code-input
                     name="recovery_code"
                     :length="10"
                     charset="alphanumeric-uppercase"
@@ -84,9 +84,9 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
             @endif
 
             {{-- Tombol Submit --}}
-            <x-authentication::button type="submit" variant="primary" block="true">
+            <x-authentication::forms.button type="submit" variant="primary" block="true">
                 {{ __('authentication::messages.two_factor_btn') }}
-            </x-authentication::button>
+            </x-authentication::forms.button>
 
             {{-- Switch antara TOTP dan Backup Code --}}
             <div class="text-center pt-2">

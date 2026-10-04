@@ -49,7 +49,7 @@ class TwoFactorChallengeController extends Controller
             ]);
         }
 
-        $viewName = $this->config->getView('two_factor_challenge', 'authentication::two-factor-challenge');
+        $viewName = $this->config->getView('two_factor_challenge', 'authentication::pages.two-factor.challenge');
 
         // Retrieve and remove flash mode marker
         $inputMode = (string) session()->pull('auth.2fa.input_mode', 'totp');

@@ -31,7 +31,7 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
 
         {{-- Alert Notifikasi --}}
         @if ($errors->any())
-            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         {{-- Visual QR Code Container --}}
@@ -93,7 +93,7 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
               @submit="submitting = true">
             @csrf
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="code"
                 type="text"
                 inputmode="numeric"
@@ -104,9 +104,9 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
                 icon="shield"
             />
 
-            <x-authentication::button type="submit" variant="primary" block="true">
+            <x-authentication::forms.button type="submit" variant="primary" block="true">
                 Aktifkan 2FA Sekarang
-            </x-authentication::button>
+            </x-authentication::forms.button>
         </form>
 
         {{-- Link Batal --}}

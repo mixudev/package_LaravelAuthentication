@@ -30,12 +30,12 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
 
         {{-- Alert di atas form, hilang otomatis dalam 3 detik --}}
         @if (session('status'))
-            <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
+            <x-authentication::feedback.alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
         {{-- @if (session('error'))
-            <x-authentication::alert type="error" :autodismiss="true" :message="session('error')" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="session('error')" />
         @elseif ($errors->any())
-            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif --}}
 
         <x-authentication::social-buttons />
@@ -49,7 +49,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
               @submit="submitting = true">
             @csrf
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="name"
                 :label="__('authentication::messages.full_name')"
                 :placeholder="__('authentication::messages.full_name_placeholder')"
@@ -58,7 +58,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
                 :autofocus="true"
             />
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="email"
                 type="email"
                 :label="__('authentication::messages.email_label')"
@@ -68,7 +68,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
             />
 
             @if (in_array(config('authentication.strategies.active'), ['username_password', 'username_or_email']))
-                <x-authentication::input
+                <x-authentication::forms.input
                     name="username"
                     :label="__('authentication::messages.identifier_label')"
                     :placeholder="__('authentication::messages.identifier_placeholder')"
@@ -76,7 +76,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
                 />
             @endif
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="password"
                 type="password"
                 :label="__('authentication::messages.password_label')"
@@ -85,7 +85,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
                 autocomplete="new-password"
             />
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="password_confirmation"
                 type="password"
                 :label="__('authentication::messages.confirm_password_label')"
@@ -95,18 +95,18 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
             />
 
             <div class="block pt-1">
-                <x-authentication::checkbox name="terms" :required="true">
+                <x-authentication::forms.checkbox name="terms" :required="true">
                     <span class="auth-subtext text-xs">
                         {{ __('authentication::messages.terms_agree') }}
                         <a href="#" class="auth-link underline">{{ __('authentication::messages.terms_label') }}</a>.
                     </span>
-                </x-authentication::checkbox>
+                </x-authentication::forms.checkbox>
             </div>
 
             <div class="pt-2">
-                <x-authentication::button type="submit" variant="primary">
+                <x-authentication::forms.button type="submit" variant="primary">
                     {{ __('authentication::messages.register_btn') }}
-                </x-authentication::button>
+                </x-authentication::forms.button>
             </div>
 
         </form>

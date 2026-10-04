@@ -43,7 +43,7 @@ class PasswordResetController extends Controller
             abort(404, 'Password reset feature is currently disabled.');
         }
 
-        $viewName = (string) config('authentication.views.forgot_password', 'authentication::forgot-password');
+        $viewName = (string) config('authentication.views.forgot_password', 'authentication::pages.password.forgot-password');
 
         if (view()->exists($viewName)) {
             return view($viewName);
@@ -111,7 +111,7 @@ class PasswordResetController extends Controller
             abort(404, 'Password reset feature is currently disabled.');
         }
 
-        $viewName = (string) config('authentication.views.reset_password', 'authentication::reset-password');
+        $viewName = (string) config('authentication.views.reset_password', 'authentication::pages.password.reset-password');
 
         if (view()->exists($viewName)) {
             return view($viewName, [

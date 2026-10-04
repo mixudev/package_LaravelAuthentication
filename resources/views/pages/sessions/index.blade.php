@@ -63,11 +63,11 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
 
         {{-- Alert Notifikasi Status --}}
         @if (session('status'))
-            <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
+            <x-authentication::feedback.alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
 
         @if ($errors->any())
-            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         {{-- Grid 2 Kolom: Modul Keamanan Utama --}}
@@ -137,7 +137,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                                         <button type="button" @click="showDisableModal = false" class="px-3 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 hover:underline cursor-pointer">
                                             Batal
                                         </button>
-                                        <x-authentication::button
+                                        <x-authentication::forms.button
                                             type="submit"
                                             variant="danger"
                                             size="sm"
@@ -145,7 +145,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                                             loadingText="Memproses..."
                                         >
                                             Ya, Matikan 2FA
-                                        </x-authentication::button>
+                                        </x-authentication::forms.button>
                                     </div>
                                 </form>
                             </div>
@@ -254,7 +254,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
             <div class="lg:col-span-2 space-y-6">
 
                 {{-- Modul 3: Manajemen Sesi & Perangkat Aktif --}}
-                <x-authentication::active-sessions :user="$user" />
+                <x-authentication::security.active-sessions :user="$user" />
 
                 {{-- Modul 4: Riwayat Aktivitas Login Terakhir --}}
                 @if (!empty($recentLogins))

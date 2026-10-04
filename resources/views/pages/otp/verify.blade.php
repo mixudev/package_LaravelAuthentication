@@ -37,12 +37,12 @@ Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 d
 
         {{-- Alert di atas form, hilang otomatis dalam 3 detik --}}
         @if (session('status'))
-            <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
+            <x-authentication::feedback.alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
         @if (session('error'))
-            <x-authentication::alert type="error" :autodismiss="true" :message="session('error')" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="session('error')" />
         @elseif ($errors->any())
-            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         <form method="POST" action="{{ $verifyRoute }}" class="space-y-4" novalidate
@@ -54,7 +54,7 @@ Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 d
 
             {{-- Kotak OTP 6 Digit — Auto-advance otomatis saat mengetik --}}
             <div class="py-2">
-                <x-authentication::otp-input
+                <x-authentication::forms.otp-input
                     name="code"
                     :length="$otpLength"
                     :autofocus="true"
@@ -62,7 +62,7 @@ Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 d
             </div>
 
             <div class="block pt-1">
-                <x-authentication::checkbox
+                <x-authentication::forms.checkbox
                     name="remember"
                     :checked="true"
                     :label="__('authentication::messages.remember_device')"
@@ -70,9 +70,9 @@ Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 d
             </div>
 
             <div class="pt-2">
-                <x-authentication::button type="submit" variant="primary">
+                <x-authentication::forms.button type="submit" variant="primary">
                     {{ __('authentication::messages.otp_verify_btn') }}
-                </x-authentication::button>
+                </x-authentication::forms.button>
             </div>
 
         </form>

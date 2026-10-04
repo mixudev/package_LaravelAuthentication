@@ -30,12 +30,12 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
 
         {{-- Alert di atas form, hilang otomatis dalam 3 detik --}}
         @if (session('status'))
-            <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
+            <x-authentication::feedback.alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
         @if (session('error'))
-            <x-authentication::alert type="error" :autodismiss="true" :message="session('error')" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="session('error')" />
         @elseif ($errors->any())
-            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         <form method="POST" action="{{ $updateRoute }}" class="space-y-4" novalidate
@@ -45,7 +45,7 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
 
             <input type="hidden" name="token" value="{{ $token ?? request()->route('token') }}">
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="email"
                 type="email"
                 :label="__('authentication::messages.email_label')"
@@ -55,7 +55,7 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
                 autocomplete="email"
             />
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="password"
                 type="password"
                 :label="__('authentication::messages.new_password_label')"
@@ -65,7 +65,7 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
                 :autofocus="true"
             />
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="password_confirmation"
                 type="password"
                 :label="__('authentication::messages.confirm_password_label')"
@@ -75,9 +75,9 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
             />
 
             <div class="pt-2">
-                <x-authentication::button type="submit" variant="primary">
+                <x-authentication::forms.button type="submit" variant="primary">
                     {{ __('authentication::messages.reset_btn') }}
-                </x-authentication::button>
+                </x-authentication::forms.button>
             </div>
 
         </form>

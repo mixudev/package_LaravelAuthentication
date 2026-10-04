@@ -364,6 +364,7 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
             border-color: #60a5fa;
             box-shadow: 0 4px 16px -2px rgb(96 165 250 / 0.28);
         }
+    </style>
 
     @stack('styles')
 </head>

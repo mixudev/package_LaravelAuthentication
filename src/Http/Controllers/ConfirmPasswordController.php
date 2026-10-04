@@ -32,7 +32,7 @@ class ConfirmPasswordController extends Controller
             ]);
         }
 
-        $viewName = $this->config->getView('confirm_password', 'authentication::confirm-password');
+        $viewName = $this->config->getView('confirm_password', 'authentication::pages.auth.confirm-password');
 
         return response()->view($viewName, [
             'brandName'    => config('authentication.ui.brand_name', config('app.name', 'Laravel')),

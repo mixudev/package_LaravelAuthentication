@@ -1,7 +1,7 @@
 # UX Improvements Guide
 
-**Package**: mixudev/laravel-authentication v1.9.0+  
-**Target**: Developers & UI/UX Designers  
+**Package**: mixudev/laravel-authentication v1.9.0+
+**Target**: Developers & UI/UX Designers
 **Last Updated**: 2026-10-01
 
 ---
@@ -23,7 +23,7 @@ Package ini telah dilengkapi dengan **4 UX enhancements** kritis yang meningkatk
 User yang terkena rate limit atau account lockout tidak tahu **berapa lama harus menunggu**. Pesan error seperti *"Please try again in 45 seconds"* statis dan tidak membantu user memantau waktu tersisa.
 
 ### Solution
-Komponen `<x-authentication::countdown-alert>` menampilkan:
+Komponen `<x-authentication::feedback.countdown-alert>` menampilkan:
 - **Live countdown**: "Silakan coba lagi dalam **43 detik**" (update setiap detik)
 - **Progress bar visual**: Bar yang mengecil smooth seiring waktu
 - **Auto-disable submit button**: Tombol login disabled selama countdown
@@ -45,15 +45,15 @@ Komponen `<x-authentication::countdown-alert>` menampilkan:
 
 ```blade
 {{-- Dengan retry_after eksplisit (integer detik) --}}
-<x-authentication::countdown-alert 
-    type="error" 
+<x-authentication::feedback.countdown-alert
+    type="error"
     :retryAfter="60"
     submitButton="#my-submit-btn"
 />
 
 {{-- Auto-detect dari message text --}}
-<x-authentication::countdown-alert 
-    type="error" 
+<x-authentication::feedback.countdown-alert
+    type="error"
     message="Too many attempts. Please try again in 120 seconds."
 />
 ```
@@ -86,7 +86,7 @@ Field password otomatis mendeteksi Caps Lock aktif dan menampilkan badge peringa
 Sudah **terintegrasi otomatis** di `components/input.blade.php` untuk semua field `type="password"`:
 
 ```blade
-<x-authentication::input 
+<x-authentication::forms.input
     name="password"
     type="password"
     :label="__('authentication::messages.password_label')"
@@ -121,9 +121,9 @@ Tombol submit otomatis:
 Sudah **terintegrasi otomatis** di `components/button.blade.php`:
 
 ```blade
-<x-authentication::button id="login-submit-btn" type="submit" variant="primary">
+<x-authentication::forms.button id="login-submit-btn" type="submit" variant="primary">
     {{ __('authentication::messages.sign_in_btn') }}
-</x-authentication::button>
+</x-authentication::forms.button>
 ```
 
 ### Features
@@ -135,13 +135,13 @@ Sudah **terintegrasi otomatis** di `components/button.blade.php`:
 **Manual usage**:
 
 ```blade
-<x-authentication::button 
-    type="submit" 
+<x-authentication::forms.button
+    type="submit"
     :loading="true"
     loadingText="Mengirim email..."
 >
     Kirim OTP
-</x-authentication::button>
+</x-authentication::forms.button>
 ```
 
 ---
@@ -172,7 +172,7 @@ btn.classList.remove('opacity-50', 'cursor-not-allowed');
 Specify target button via prop `submitButton`:
 
 ```blade
-<x-authentication::countdown-alert 
+<x-authentication::feedback.countdown-alert
     :retryAfter="session('auth_retry_after')"
     submitButton="#login-submit-btn"
 />
@@ -183,13 +183,13 @@ Specify target button via prop `submitButton`:
 ```blade
 {{-- Form 1: Login --}}
 <form id="login-form">
-    <x-authentication::countdown-alert submitButton="#login-btn" />
+    <x-authentication::feedback.countdown-alert submitButton="#login-btn" />
     <button id="login-btn">Masuk</button>
 </form>
 
 {{-- Form 2: OTP --}}
 <form id="otp-form">
-    <x-authentication::countdown-alert submitButton="#otp-btn" />
+    <x-authentication::feedback.countdown-alert submitButton="#otp-btn" />
     <button id="otp-btn">Verifikasi</button>
 </form>
 ```
@@ -230,7 +230,7 @@ public function customLogin(Request $request)
         // ... authentication logic
     } catch (AuthenticationThrottledException $e) {
         session()->flash('auth_retry_after', $e->secondsRemaining);
-        
+
         return back()->withErrors([
             'identifier' => "Too many attempts. Please try again in {$e->secondsRemaining} seconds."
         ]);
@@ -345,6 +345,6 @@ vendor/bin/phpunit tests/Unit/BladeComponentsTest.php
 
 ## Support
 
-**Issues**: https://github.com/mixudev/laravel-authentication/issues  
-**Docs**: https://github.com/mixudev/laravel-authentication/tree/main/docs  
+**Issues**: https://github.com/mixudev/laravel-authentication/issues
+**Docs**: https://github.com/mixudev/laravel-authentication/tree/main/docs
 **Examples**: Lihat `resources/views/login.blade.php` untuk implementasi lengkap

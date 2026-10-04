@@ -27,7 +27,7 @@ Deskripsi: Halaman konfirmasi kata sandi sebelum mengakses area sensitif.
 
         {{-- Alert Notifikasi --}}
         @if ($errors->any())
-            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         {{-- Form Konfirmasi Password --}}
@@ -36,7 +36,7 @@ Deskripsi: Halaman konfirmasi kata sandi sebelum mengakses area sensitif.
               @submit="submitting = true">
             @csrf
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="password"
                 type="password"
                 label="{{ __('authentication::messages.password_label') }}"
@@ -47,9 +47,9 @@ Deskripsi: Halaman konfirmasi kata sandi sebelum mengakses area sensitif.
             />
 
             {{-- Tombol Submit --}}
-            <x-authentication::button type="submit" variant="primary" block="true">
+            <x-authentication::forms.button type="submit" variant="primary" block="true">
                 {{ __('authentication::messages.confirm_password_btn') }}
-            </x-authentication::button>
+            </x-authentication::forms.button>
         </form>
 
         {{-- Link Batal / Kembali ke Dashboard --}}

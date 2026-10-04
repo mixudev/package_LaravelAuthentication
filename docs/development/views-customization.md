@@ -84,15 +84,6 @@ resources/views/vendor/authentication/
 │   ├── security/
 │   │   ├── active-sessions.blade.php
 │   │   └── passkey-button.blade.php
-│   ├── alert.blade.php (legacy alias)
-│   ├── countdown-alert.blade.php (legacy alias)
-│   ├── input.blade.php (legacy alias)
-│   ├── button.blade.php (legacy alias)
-│   ├── checkbox.blade.php (legacy alias)
-│   ├── otp-input.blade.php (legacy alias)
-│   ├── segmented-code-input.blade.php (legacy alias)
-│   ├── active-sessions.blade.php (legacy alias)
-│   ├── passkey-button.blade.php (legacy alias)
 │   ├── divider.blade.php
 │   ├── social-buttons.blade.php
 │   └── brand-panel.blade.php
@@ -117,11 +108,10 @@ resources/views/vendor/authentication/
 ├── emails/
 │   ├── otp.blade.php
 │   └── new-device.blade.php
-└── *.blade.php (legacy compatibility wrappers; do not customize)
 
-Canonical page overrides use the `pages/...` paths above. Flat files remain only
-as wrappers for hosts that already published the old tree; new customization
-should not edit them.
+Override a page by publishing and editing the matching `pages/...` path above.
+There are no legacy flat aliases: if you published views before the tree was
+grouped, republish with `php artisan vendor:publish --tag=authentication-views --force`.
 ```
 
 Laravel will automatically give precedence to the published views in your host application.

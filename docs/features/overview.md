@@ -88,7 +88,7 @@ Cukup tempelkan tag komponen Blade ini di halaman dashboard atau profile aplikas
 ```blade
 {{-- Halaman profile/dashboard host application --}}
 <div class="max-w-4xl mx-auto py-6 space-y-6">
-    <x-authentication::active-sessions />
+    <x-authentication::security.active-sessions />
 </div>
 ```
 Komponen ini otomatis merender daftar perangkat, badge *"Perangkat Ini"*, tombol cabut sesi individu, dan form konfirmasi password untuk keluar dari semua perangkat lain.

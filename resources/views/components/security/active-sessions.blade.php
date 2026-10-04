@@ -2,7 +2,7 @@
 =============================================================================
 KOMPONEN: ACTIVE SESSIONS & DEVICE MANAGEMENT (REUSABLE COMPONENT)
 Package: mixudev/laravel-authentication
-Penggunaan: <x-authentication::active-sessions />
+Penggunaan: <x-authentication::security.active-sessions />
 Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile project.
 =============================================================================
 --}}
@@ -129,9 +129,9 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
                         class="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-rose-500"
                         required
                     >
-                    <x-authentication::button type="submit" variant="primary" block="true" class="!bg-rose-600 hover:!bg-rose-700 !text-white text-xs">
+                    <x-authentication::forms.button type="submit" variant="primary" block="true" class="!bg-rose-600 hover:!bg-rose-700 !text-white text-xs">
                         Konfirmasi Cabut Semua Sesi Lain
-                    </x-authentication::button>
+                    </x-authentication::forms.button>
                 </form>
             </div>
         </div>

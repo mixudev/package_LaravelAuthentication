@@ -39,7 +39,7 @@ class RegisterController extends Controller
             abort(404, (string) __('authentication::messages.registration_disabled'));
         }
 
-        $viewName = (string) config('authentication.views.register', 'authentication::register');
+        $viewName = (string) config('authentication.views.register', 'authentication::pages.auth.register');
 
         if (view()->exists($viewName)) {
             return view($viewName, [

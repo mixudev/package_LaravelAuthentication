@@ -88,15 +88,6 @@ resources/views/vendor/authentication/
 │   ├── security/
 │   │   ├── active-sessions.blade.php
 │   │   └── passkey-button.blade.php
-│   ├── alert.blade.php (alias kompatibilitas)
-│   ├── countdown-alert.blade.php (alias kompatibilitas)
-│   ├── input.blade.php (alias kompatibilitas)
-│   ├── button.blade.php (alias kompatibilitas)
-│   ├── checkbox.blade.php (alias kompatibilitas)
-│   ├── otp-input.blade.php (alias kompatibilitas)
-│   ├── segmented-code-input.blade.php (alias kompatibilitas)
-│   ├── active-sessions.blade.php (alias kompatibilitas)
-│   ├── passkey-button.blade.php (alias kompatibilitas)
 │   ├── divider.blade.php
 │   ├── social-buttons.blade.php
 │   └── brand-panel.blade.php
@@ -121,8 +112,10 @@ resources/views/vendor/authentication/
 ├── emails/
 │   ├── otp.blade.php
 │   └── new-device.blade.php
-└── *.blade.php (wrapper kompatibilitas; jangan dikustomisasi)
 ```
+
+Override halaman dengan memublish lalu mengedit path `pages/...` yang sesuai. Tidak ada lagi alias flat: jika Anda pernah publish view sebelum pohon ini dikelompokkan, publish ulang dengan `php artisan vendor:publish --tag=authentication-views --force`.
+
 Laravel akan otomatis memprioritaskan view di folder `resources/views/vendor/authentication/` daripada file bawaan package.
 
 ---

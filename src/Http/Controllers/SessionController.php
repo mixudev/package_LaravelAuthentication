@@ -72,7 +72,7 @@ class SessionController extends Controller
             ]);
         }
 
-        $viewName = $this->config->getView('sessions', 'authentication::sessions');
+        $viewName = $this->config->getView('sessions', 'authentication::pages.sessions.index');
 
         return response()->view($viewName, [
             'user'               => $user,

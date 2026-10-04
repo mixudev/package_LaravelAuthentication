@@ -70,7 +70,7 @@ class TwoFactorSetupController extends Controller
             return response()->json($setupData);
         }
 
-        $viewName = $this->config->getView('two_factor_setup', 'authentication::two-factor-setup');
+        $viewName = $this->config->getView('two_factor_setup', 'authentication::pages.two-factor.setup');
 
         return response()->view($viewName, [
             'secret'        => $setupData['secret'],

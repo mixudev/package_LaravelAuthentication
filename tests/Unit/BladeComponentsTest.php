@@ -28,7 +28,7 @@ class BladeComponentsTest extends TestCase
     public function test_countdown_alert_renders_with_seconds(): void
     {
         $view = $this->blade(
-            '<x-authentication::countdown-alert type="error" :retryAfter="45" submitButton="#submit-btn" />'
+            '<x-authentication::feedback.countdown-alert type="error" :retryAfter="45" submitButton="#submit-btn" />'
         );
 
         $view->assertSee('Terlalu banyak percobaan', false);
@@ -40,7 +40,7 @@ class BladeComponentsTest extends TestCase
     public function test_countdown_alert_auto_detects_seconds_from_message(): void
     {
         $view = $this->blade(
-            '<x-authentication::countdown-alert type="error" message="Too many login attempts. Please try again in 60 seconds." />'
+            '<x-authentication::feedback.countdown-alert type="error" message="Too many login attempts. Please try again in 60 seconds." />'
         );
 
         $view->assertSee('seconds: 60', false);
@@ -50,7 +50,7 @@ class BladeComponentsTest extends TestCase
     public function test_countdown_alert_falls_back_to_normal_alert_without_seconds(): void
     {
         $view = $this->blade(
-            '<x-authentication::countdown-alert type="error" message="Invalid credentials." />'
+            '<x-authentication::feedback.countdown-alert type="error" message="Invalid credentials." />'
         );
 
         $view->assertSee('Invalid credentials.', false);
@@ -60,7 +60,7 @@ class BladeComponentsTest extends TestCase
     public function test_button_component_has_loading_state_support(): void
     {
         $view = $this->blade(
-            '<x-authentication::button type="submit" variant="primary">Masuk</x-authentication::button>'
+            '<x-authentication::forms.button type="submit" variant="primary">Masuk</x-authentication::forms.button>'
         );
 
         $view->assertSee('submitting', false);
@@ -83,7 +83,7 @@ class BladeComponentsTest extends TestCase
     {
         // Button takes attributes, class merging, and a slot.
         $button = $this->blade(
-            '<x-authentication::button type="submit" variant="primary" data-test="btn">Isi Tombol</x-authentication::button>'
+            '<x-authentication::forms.button type="submit" variant="primary" data-test="btn">Isi Tombol</x-authentication::forms.button>'
         );
 
         $button->assertSee('data-test="btn"', false);
@@ -92,7 +92,7 @@ class BladeComponentsTest extends TestCase
 
         // Checkbox forwards `name` (a plain attribute, not a declared prop) and slot.
         $checkbox = $this->blade(
-            '<x-authentication::checkbox name="remember">Ingat saya</x-authentication::checkbox>'
+            '<x-authentication::forms.checkbox name="remember">Ingat saya</x-authentication::forms.checkbox>'
         );
 
         $checkbox->assertSee('name="remember"', false);
@@ -100,7 +100,7 @@ class BladeComponentsTest extends TestCase
 
         // Input forwards declared props and attributes.
         $input = $this->blade(
-            '<x-authentication::input name="email" type="email" label="Email" data-test="in" />'
+            '<x-authentication::forms.input name="email" type="email" label="Email" data-test="in" />'
         );
 
         $input->assertSee('name="email"', false);
@@ -115,7 +115,7 @@ class BladeComponentsTest extends TestCase
     public function test_relocated_alert_alias_receives_declared_props(): void
     {
         $view = $this->blade(
-            '<x-authentication::alert type="error" :message="$m" />',
+            '<x-authentication::feedback.alert type="error" :message="$m" />',
             ['m' => 'Kredensial tidak valid']
         );
 

@@ -33,7 +33,7 @@ class LoginController extends Controller
      */
     public function showLoginForm(): View|JsonResponse
     {
-        $viewName = (string) config('authentication.views.login', 'authentication::login');
+        $viewName = (string) config('authentication.views.login', 'authentication::pages.auth.login');
 
         if (view()->exists($viewName)) {
             return view($viewName);

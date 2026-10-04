@@ -75,19 +75,19 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             Throttle/Lockout: countdown timer live yang disable tombol submit.
         --}}
         @if (session('status'))
-            <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
+            <x-authentication::feedback.alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
 
         {{-- @if (session('auth_retry_after'))
-            <x-authentication::countdown-alert
+            <x-authentication::feedback.countdown-alert
                 type="error"
                 :retryAfter="session('auth_retry_after')"
                 submitButton="#login-submit-btn"
             />
         @elseif ($credentialError)
-            <x-authentication::alert type="error" :message="$credentialError" />
+            <x-authentication::feedback.alert type="error" :message="$credentialError" />
         @elseif ($errors->any())
-            <x-authentication::alert type="error" :message="$errors->first()" />
+            <x-authentication::feedback.alert type="error" :message="$errors->first()" />
         @endif --}}
 
         {{-- Tombol Login Alternatif: Social (Google/GitHub sebelahan) + Passkey --}}
@@ -103,7 +103,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
 
                 {{-- Login with Passkey — full width di bawah --}}
                 @if ($hasPasskey)
-                    <x-authentication::passkey-button />
+                    <x-authentication::security.passkey-button />
                 @endif
             </div>
 
@@ -117,7 +117,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             @csrf
 
             {{-- Identifier (Email / Username) --}}
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="identifier"
                 :label="__('authentication::messages.identifier_label')"
                 :placeholder="__('authentication::messages.identifier_placeholder')"
@@ -127,7 +127,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             />
 
             {{-- Password dengan link lupa password --}}
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="password"
                 type="password"
                 :label="__('authentication::messages.password_label')"
@@ -142,11 +142,11 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
                         </a>
                     </x-slot:labelRight>
                 @endif
-            </x-authentication::input>
+            </x-authentication::forms.input>
 
             {{-- Checkbox Ingat Saya --}}
             <div class="block pt-1">
-                <x-authentication::checkbox
+                <x-authentication::forms.checkbox
                     name="remember"
                     :label="__('authentication::messages.remember_me')"
                 />
@@ -199,9 +199,9 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
 
             {{-- Tombol Submit --}}
             <div class="pt-2">
-                <x-authentication::button id="login-submit-btn" type="submit" variant="primary">
+                <x-authentication::forms.button id="login-submit-btn" type="submit" variant="primary">
                     {{ __('authentication::messages.sign_in_btn') }}
-                </x-authentication::button>
+                </x-authentication::forms.button>
             </div>
 
         </form>

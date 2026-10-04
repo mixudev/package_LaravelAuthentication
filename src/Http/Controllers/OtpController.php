@@ -55,7 +55,7 @@ class OtpController extends Controller
             abort(404, 'OTP authentication is disabled.');
         }
 
-        $viewName = (string) config('authentication.views.otp_request', 'authentication::otp-request');
+        $viewName = (string) config('authentication.views.otp_request', 'authentication::pages.otp.request');
 
         if (view()->exists($viewName)) {
             return view($viewName);
@@ -100,7 +100,7 @@ class OtpController extends Controller
         }
 
         $identifier = (string) $request->query('identifier', session('otp_identifier', ''));
-        $viewName = (string) config('authentication.views.otp_verify', 'authentication::otp-verify');
+        $viewName = (string) config('authentication.views.otp_verify', 'authentication::pages.otp.verify');
 
         if (view()->exists($viewName)) {
             return view($viewName, ['identifier' => $identifier]);

@@ -30,12 +30,12 @@ Deskripsi: Halaman lupa password dengan alert di atas form dan auto-dismiss 3 de
 
         {{-- Alert di atas form, hilang otomatis dalam 3 detik --}}
         @if (session('status'))
-            <x-authentication::alert type="success" :autodismiss="true" :message="session('status')" />
+            <x-authentication::feedback.alert type="success" :autodismiss="true" :message="session('status')" />
         @endif
         @if (session('error'))
-            <x-authentication::alert type="error" :autodismiss="true" :message="session('error')" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="session('error')" />
         @elseif ($errors->any())
-            <x-authentication::alert type="error" :autodismiss="true" :message="$errors->first()" />
+            <x-authentication::feedback.alert type="error" :autodismiss="true" :message="$errors->first()" />
         @endif
 
         <form method="POST" action="{{ $emailRoute }}" class="space-y-4" novalidate
@@ -43,7 +43,7 @@ Deskripsi: Halaman lupa password dengan alert di atas form dan auto-dismiss 3 de
               @submit="submitting = true">
             @csrf
 
-            <x-authentication::input
+            <x-authentication::forms.input
                 name="email"
                 type="email"
                 :label="__('authentication::messages.email_label')"
@@ -54,9 +54,9 @@ Deskripsi: Halaman lupa password dengan alert di atas form dan auto-dismiss 3 de
             />
 
             <div class="pt-2">
-                <x-authentication::button type="submit" variant="primary">
+                <x-authentication::forms.button type="submit" variant="primary">
                     {{ __('authentication::messages.forgot_btn') }}
-                </x-authentication::button>
+                </x-authentication::forms.button>
             </div>
 
         </form>
