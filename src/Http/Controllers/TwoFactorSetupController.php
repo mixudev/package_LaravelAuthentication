@@ -14,6 +14,7 @@ use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class TwoFactorSetupController extends Controller
 {
@@ -38,7 +39,9 @@ class TwoFactorSetupController extends Controller
         if ($this->rateLimiter->tooManyAttempts('two_factor_setup', $userId, $ip, $context->clientId)) {
             return response()->json([
                 'status'  => 'throttled',
-                'message' => (string) __('authentication::messages.throttle_error'),
+                'message' => ThrottleMessage::forSeconds(
+                    $this->rateLimiter->availableIn('two_factor_setup', $userId, $ip, $context->clientId)
+                ),
             ], 429);
         }
 
@@ -112,7 +115,7 @@ class TwoFactorSetupController extends Controller
         if ($this->rateLimiter->tooManyAttempts('two_factor', (string) $user->getAuthIdentifier(), $ip)) {
             $seconds = $this->rateLimiter->availableIn('two_factor', (string) $user->getAuthIdentifier(), $ip);
             throw ValidationException::withMessages([
-                'code' => [__('authentication::messages.throttle_error', ['seconds' => $seconds])],
+                'code' => [ThrottleMessage::forSeconds($seconds)],
             ]);
         }
 
@@ -154,7 +157,7 @@ class TwoFactorSetupController extends Controller
         if ($this->rateLimiter->tooManyAttempts('confirm_password', (string) $user->getAuthIdentifier(), $ip)) {
             $seconds = $this->rateLimiter->availableIn('confirm_password', (string) $user->getAuthIdentifier(), $ip);
             throw ValidationException::withMessages([
-                'password' => [__('authentication::messages.throttle_error', ['seconds' => $seconds])],
+                'password' => [ThrottleMessage::forSeconds($seconds)],
             ]);
         }
 

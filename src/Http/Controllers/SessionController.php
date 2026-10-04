@@ -21,6 +21,7 @@ use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class SessionController extends Controller
 {
@@ -100,7 +101,9 @@ class SessionController extends Controller
         if ($this->rateLimiter->tooManyAttempts('session_manage', $userId, $ip, $context->clientId)) {
             return response()->json([
                 'status'  => 'throttled',
-                'message' => (string) __('authentication::messages.throttle_error'),
+                'message' => ThrottleMessage::forSeconds(
+                    $this->rateLimiter->availableIn('session_manage', $userId, $ip, $context->clientId)
+                ),
             ], 429);
         }
 
@@ -154,7 +157,7 @@ class SessionController extends Controller
         if ($this->rateLimiter->tooManyAttempts('confirm_password', (string) $user->getAuthIdentifier(), $ip)) {
             $seconds = $this->rateLimiter->availableIn('confirm_password', (string) $user->getAuthIdentifier(), $ip);
             throw ValidationException::withMessages([
-                'password' => [__('authentication::messages.throttle_error', ['seconds' => $seconds])],
+                'password' => [ThrottleMessage::forSeconds($seconds)],
             ]);
         }
 

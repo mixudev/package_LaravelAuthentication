@@ -16,6 +16,7 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Services\Passkey\PasskeyService;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
+use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class PasskeyController extends Controller
 {
@@ -60,7 +61,9 @@ class PasskeyController extends Controller
         if ($this->rateLimiter->tooManyAttempts('passkey_login', $subject !== '' ? $subject : null, $ip, $clientId)) {
             return response()->json([
                 'status'  => 'throttled',
-                'message' => (string) __('authentication::messages.throttle_error'),
+                'message' => ThrottleMessage::forSeconds(
+                    $this->rateLimiter->availableIn('passkey_login', $subject !== '' ? $subject : null, $ip, $clientId)
+                ),
             ], 429);
         }
 
@@ -119,7 +122,9 @@ class PasskeyController extends Controller
         if ($this->rateLimiter->tooManyAttempts('passkey_manage', $userId, $ip, $context->clientId)) {
             return response()->json([
                 'status'  => 'throttled',
-                'message' => (string) __('authentication::messages.throttle_error'),
+                'message' => ThrottleMessage::forSeconds(
+                    $this->rateLimiter->availableIn('passkey_manage', $userId, $ip, $context->clientId)
+                ),
             ], 429);
         }
 

@@ -1,6 +1,6 @@
 {{-- 
 =============================================================================
-LAYOUT UTAMA: BASE AUTHENTICATION (COMPONENT VERSION)
+LAYOUT UTAMA: BASE AUTHENTICATION
 Package: mixudev/laravel-authentication
 Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto mode,
            kontras tinggi, Alpine.js terintegrasi, dan deteksi Vite/Tailwind otomatis.
@@ -99,6 +99,9 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
     @endif
 
     <style>
+        /* Alpine.js x-cloak: prevent FOUC */
+        [x-cloak] { display: none !important; }
+
         body {
             font-family: 'Figtree', 'Inter', ui-sans-serif, system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -133,7 +136,7 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
             background-color: #1e293b;
         }
 
-        /* Light Mode Divider */
+        /* Auth Divider (OR separator line) */
         html.light .auth-divider {
             border-color: #e2e8f0;
         }
@@ -255,7 +258,112 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
         html.dark .auth-field-error {
             color: #fb7185;
         }
-    </style>
+
+        /* ============================================================
+           MODERN SOCIAL & PASSKEY BUTTONS — Flex, Icon Left, Text Right
+           ============================================================ */
+        .auth-btn-social {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            letter-spacing: 0.005em;
+            padding: 0.625rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease;
+            position: relative;
+            user-select: none;
+            cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+            outline: none;
+        }
+        .auth-btn-social:hover {
+            transform: translateY(-1px);
+        }
+        .auth-btn-social:active {
+            transform: translateY(0);
+            opacity: 0.88;
+        }
+        .auth-btn-social:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        /* Icon: fixed size, flex-shrink 0 agar tidak gepeng */
+        .auth-btn-social .auth-btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Label text */
+        .auth-btn-social .auth-btn-label {
+            line-height: 1;
+        }
+
+        /* Light Mode */
+        html.light .auth-btn-social,
+        html:not(.dark) .auth-btn-social {
+            background-color: #ffffff;
+            border: 1.5px solid #d1d5db;
+            color: #111827;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+        }
+        html.light .auth-btn-social:hover,
+        html:not(.dark) .auth-btn-social:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+            box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.1);
+            color: #030712;
+        }
+        html.light .auth-btn-social-google:hover,
+        html:not(.dark) .auth-btn-social-google:hover {
+            border-color: #4285F4;
+            box-shadow: 0 4px 14px -2px rgb(66 133 244 / 0.18);
+        }
+        html.light .auth-btn-social-github:hover,
+        html:not(.dark) .auth-btn-social-github:hover {
+            border-color: #374151;
+            box-shadow: 0 4px 14px -2px rgb(15 23 42 / 0.14);
+        }
+        html.light .auth-btn-passkey:hover,
+        html:not(.dark) .auth-btn-passkey:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 14px -2px rgb(59 130 246 / 0.18);
+        }
+
+        /* Dark Mode */
+        html.dark .auth-btn-social {
+            background-color: #1c1c1e;
+            border: 1.5px solid #3a3a3c;
+            color: #f2f2f7;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.04);
+        }
+        html.dark .auth-btn-social:hover {
+            background-color: #2c2c2e;
+            border-color: #636366;
+            box-shadow: 0 4px 16px -2px rgb(0 0 0 / 0.65);
+            color: #ffffff;
+        }
+        html.dark .auth-btn-social-google:hover {
+            border-color: #4285F4;
+            box-shadow: 0 4px 16px -2px rgb(66 133 244 / 0.22);
+        }
+        html.dark .auth-btn-social-github:hover {
+            border-color: #8e8e93;
+            box-shadow: 0 4px 16px -2px rgb(255 255 255 / 0.1);
+        }
+        html.dark .auth-btn-passkey:hover {
+            border-color: #60a5fa;
+            box-shadow: 0 4px 16px -2px rgb(96 165 250 / 0.28);
+        }
 
     @stack('styles')
 </head>

@@ -23,6 +23,7 @@ return [
     'unauthenticated'         => 'Sesi Anda belum terautentikasi.',
     'throttled'               => 'Terlalu banyak percobaan masuk. Silakan coba lagi dalam :seconds detik.',
     'throttle_error'          => 'Terlalu banyak percobaan. Silakan coba lagi dalam :seconds detik.',
+    'throttle_error_unknown'  => 'Terlalu banyak percobaan. Silakan coba lagi nanti.',
     'account_locked'          => 'Akun Anda sementara dikunci karena alasan keamanan.',
     'logged_out'              => 'Anda berhasil keluar dari sistem.',
     'password_history'        => 'Anda tidak dapat menggunakan kata sandi yang pernah dipakai sebelumnya.',
@@ -215,6 +216,17 @@ return [
     |--------------------------------------------------------------------------
     */
     'security_null_byte'         => ':attribute mengandung karakter null byte yang dilarang.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | String countdown / hitung mundur
+    |--------------------------------------------------------------------------
+    */
+    'retry_wait'             => 'Terlalu banyak percobaan. Silakan coba lagi dalam',
+    'retry_wait_finished'    => 'Waktu tunggu telah berakhir. Silakan coba masuk kembali.',
+    'retry_minutes'          => ':minutes menit',
+    'retry_minutes_seconds'  => ':minutes menit :seconds detik',
+    'retry_seconds_only'     => ':seconds detik',
 
     'divider'                 => 'ATAU',
 ];

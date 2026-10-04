@@ -23,6 +23,7 @@ use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
+use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
 class SocialAuthController extends Controller
@@ -51,7 +52,9 @@ class SocialAuthController extends Controller
         $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve(request());
 
         if ($this->rateLimiter->tooManyAttempts('social', $provider, $ip)) {
-            abort(429, (string) __('authentication::messages.throttle_error'));
+            abort(429, ThrottleMessage::forSeconds(
+                $this->rateLimiter->availableIn('social', $provider, $ip)
+            ));
         }
 
         $this->rateLimiter->hit('social', $provider, $ip);

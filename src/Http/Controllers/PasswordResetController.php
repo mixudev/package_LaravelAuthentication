@@ -25,6 +25,7 @@ use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
 use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
+use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class PasswordResetController extends Controller
 {
@@ -61,12 +62,12 @@ class PasswordResetController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'status'  => 'throttled',
-                    'message' => (string) __('authentication::messages.throttle_error'),
+                    'message' => $this->forgotPasswordThrottleMessage($request),
                 ], 429);
             }
 
             throw ValidationException::withMessages([
-                'email' => [(string) __('authentication::messages.throttle_error')],
+                'email' => [$this->forgotPasswordThrottleMessage($request)],
             ]);
         }
 
@@ -164,7 +165,7 @@ class PasswordResetController extends Controller
         if ($this->isForgotPasswordThrottled($request)) {
             return response()->json([
                 'status'  => 'throttled',
-                'message' => (string) __('authentication::messages.throttle_error'),
+                'message' => $this->forgotPasswordThrottleMessage($request),
             ], 429);
         }
 
@@ -286,6 +287,17 @@ class PasswordResetController extends Controller
         return Cache::add($claimKey, true, now()->addMinutes($ttlMinutes))
             ? $claimKey
             : null;
+    }
+
+    private function forgotPasswordThrottleMessage(Request $request): string
+    {
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
+        $clientId = AuthenticationContext::fromRequest($request)->clientId;
+        $email = (string) $request->input('email', '');
+
+        return ThrottleMessage::forSeconds(
+            $this->rateLimiter->availableIn('forgot_password', $email !== '' ? $email : null, $ip, $clientId)
+        );
     }
 
     private function isForgotPasswordThrottled(Request $request): bool

@@ -23,6 +23,7 @@ return [
     'unauthenticated'         => 'Your session is unauthenticated.',
     'throttled'               => 'Too many login attempts. Please try again in :seconds seconds.',
     'throttle_error'          => 'Too many attempts. Please try again in :seconds seconds.',
+    'throttle_error_unknown'  => 'Too many attempts. Please try again later.',
     'account_locked'          => 'Your account is temporarily locked for security reasons.',
     'logged_out'              => 'You have been logged out successfully.',
     'password_history'        => 'You cannot reuse any of your recent passwords.',
@@ -215,6 +216,17 @@ return [
     |--------------------------------------------------------------------------
     */
     'security_null_byte'         => 'The :attribute contains forbidden null byte characters.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Countdown / Retry countdown strings
+    |--------------------------------------------------------------------------
+    */
+    'retry_wait'             => 'Too many attempts. Please try again in',
+    'retry_wait_finished'    => 'Wait time is over. You can try again.',
+    'retry_minutes'          => ':minutes minutes',
+    'retry_minutes_seconds'  => ':minutes minutes :seconds seconds',
+    'retry_seconds_only'     => ':seconds seconds',
 
     'divider'                 => 'OR',
 ];

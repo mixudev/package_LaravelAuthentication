@@ -29,6 +29,7 @@ use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
+use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
 class OtpController extends Controller
@@ -191,7 +192,7 @@ class OtpController extends Controller
         } catch (AuthenticationThrottledException $e) {
             return response()->json([
                 'status'  => 'throttled',
-                'message' => (string) __('authentication::messages.throttle_error'),
+                'message' => ThrottleMessage::forSeconds($e->secondsRemaining),
             ], 429);
         } catch (AuthenticationException $e) {
             // Jangan bocorkan detail internal (mis. "OTP was recently requested") —
@@ -264,7 +265,7 @@ class OtpController extends Controller
         } catch (AuthenticationThrottledException $e) {
             return response()->json([
                 'status'  => 'throttled',
-                'message' => (string) __('authentication::messages.throttle_error'),
+                'message' => ThrottleMessage::forSeconds($e->secondsRemaining),
             ], 429);
         } catch (InvalidCredentialsException $e) {
             return response()->json([

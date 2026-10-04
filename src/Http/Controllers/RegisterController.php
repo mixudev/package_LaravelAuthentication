@@ -18,6 +18,7 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Http\Requests\RegisterRequest;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class RegisterController extends Controller
 {
@@ -72,7 +73,7 @@ class RegisterController extends Controller
             $user = $this->registrationService->register($dto, $context);
         } catch (AuthenticationThrottledException $e) {
             return back()->withErrors([
-                'email' => [(string) __('authentication::messages.throttle_error')],
+                'email' => [ThrottleMessage::forSeconds($e->secondsRemaining)],
             ]);
         }
 
@@ -120,7 +121,7 @@ class RegisterController extends Controller
         } catch (AuthenticationThrottledException $e) {
             return response()->json([
                 'status'            => 'throttled',
-                'message'           => (string) __('authentication::messages.throttle_error'),
+                'message'           => ThrottleMessage::forSeconds($e->secondsRemaining),
                 'seconds_remaining' => $e->secondsRemaining,
             ], 429);
         } catch (AuthenticationException $e) {

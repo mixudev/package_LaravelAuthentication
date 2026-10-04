@@ -510,6 +510,7 @@ return [
     'views' => [
         'login'                => 'authentication::login',
         'register'             => 'authentication::register',
+        'confirm_password'     => 'authentication::confirm-password',
         'forgot_password'      => 'authentication::forgot-password',
         'reset_password'       => 'authentication::reset-password',
         'otp_request'          => 'authentication::otp-request',
@@ -517,7 +518,6 @@ return [
         'otp_email'            => 'authentication::emails.otp', // @deprecated gunakan features.otp.email_view
         'two_factor_challenge' => 'authentication::two-factor-challenge',
         'two_factor_setup'     => 'authentication::two-factor-setup',
-        'confirm_password'     => 'authentication::confirm-password',
         'sessions'             => 'authentication::sessions',
         'new_device_email'     => 'authentication::emails.new-device',
     ],

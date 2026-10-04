@@ -72,24 +72,56 @@ resources/views/vendor/authentication/
 │   │   ├── auth.blade.php
 │   │   ├── split.blade.php
 │   │   └── card.blade.php
-│   ├── active-sessions.blade.php
-│   ├── input.blade.php
-│   ├── button.blade.php
-│   ├── checkbox.blade.php
-│   ├── alert.blade.php
+│   ├── feedback/
+│   │   ├── alert.blade.php
+│   │   └── countdown-alert.blade.php
+│   ├── forms/
+│   │   ├── input.blade.php
+│   │   ├── button.blade.php
+│   │   ├── checkbox.blade.php
+│   │   ├── otp-input.blade.php
+│   │   └── segmented-code-input.blade.php
+│   ├── security/
+│   │   ├── active-sessions.blade.php
+│   │   └── passkey-button.blade.php
+│   ├── alert.blade.php (legacy alias)
+│   ├── countdown-alert.blade.php (legacy alias)
+│   ├── input.blade.php (legacy alias)
+│   ├── button.blade.php (legacy alias)
+│   ├── checkbox.blade.php (legacy alias)
+│   ├── otp-input.blade.php (legacy alias)
+│   ├── segmented-code-input.blade.php (legacy alias)
+│   ├── active-sessions.blade.php (legacy alias)
+│   ├── passkey-button.blade.php (legacy alias)
 │   ├── divider.blade.php
-│   ├── otp-input.blade.php
 │   ├── social-buttons.blade.php
 │   └── brand-panel.blade.php
-├── login.blade.php
-├── register.blade.php
-├── forgot-password.blade.php
-├── reset-password.blade.php
-├── otp-request.blade.php
-├── otp-verify.blade.php
-├── sessions.blade.php
-├── two-factor-setup.blade.php
-└── two-factor-challenge.blade.php
+├── pages/
+│   ├── auth/
+│   │   ├── login.blade.php
+│   │   ├── register.blade.php
+│   │   └── confirm-password.blade.php
+│   ├── password/
+│   │   ├── forgot-password.blade.php
+│   │   └── reset-password.blade.php
+│   ├── otp/
+│   │   ├── request.blade.php
+│   │   └── verify.blade.php
+│   ├── sessions/
+│   │   └── index.blade.php
+│   ├── two-factor/
+│   │   ├── challenge.blade.php
+│   │   └── setup.blade.php
+│   └── system/
+│       └── setup-warning.blade.php
+├── emails/
+│   ├── otp.blade.php
+│   └── new-device.blade.php
+└── *.blade.php (legacy compatibility wrappers; do not customize)
+
+Canonical page overrides use the `pages/...` paths above. Flat files remain only
+as wrappers for hosts that already published the old tree; new customization
+should not edit them.
 ```
 
 Laravel will automatically give precedence to the published views in your host application.

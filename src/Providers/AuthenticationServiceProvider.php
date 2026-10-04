@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\Providers;
 
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Contracts\Auth\CanResetPassword;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationAbusePolicyInterface;
@@ -42,6 +49,7 @@ use Vendor\LaravelAuthentication\Services\TwoFactor\TotpService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationStrategyRegistry;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
 /**
@@ -263,6 +271,9 @@ class AuthenticationServiceProvider extends ServiceProvider
 
         // Register package routes
         $this->registerRoutes();
+
+        // Point Laravel's built-in notifications at the package route names
+        $this->registerNotificationUrls();
     }
 
     /**
@@ -276,6 +287,57 @@ class AuthenticationServiceProvider extends ServiceProvider
 
         if (config('authentication.routes.api.enabled', false)) {
             $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
+        }
+    }
+
+    /**
+     * Route Laravel's default auth notifications to the namespaced package routes.
+     *
+     * `Illuminate\Auth\Notifications\ResetPassword` hardcodes `route('password.reset')`
+     * and `VerifyEmail` hardcodes `verification.verify`. Package route names live under
+     * `authentication.`, so without this callback sending a reset link throws
+     * "Route [password.reset] not defined" — the notification is built lazily, so the
+     * failure surfaces only when a user requests a reset, not at boot.
+     *
+     * A host application that already registered its own callback keeps it: package
+     * providers boot after the application's own providers.
+     */
+    protected function registerNotificationUrls(): void
+    {
+        if (! config('authentication.routes.web.enabled', true)) {
+            return;
+        }
+
+        $router = $this->app->make('router');
+
+        $resetRoute = RouteConfig::name('password.reset');
+
+        if ($router->has($resetRoute) && ResetPassword::$createUrlCallback === null) {
+            ResetPassword::createUrlUsing(
+                static function (CanResetPassword $notifiable, string $token) use ($resetRoute): string {
+                    return route($resetRoute, [
+                        'token' => $token,
+                        'email' => $notifiable->getEmailForPasswordReset(),
+                    ]);
+                }
+            );
+        }
+
+        $verifyRoute = RouteConfig::name('verification.verify');
+
+        if ($router->has($verifyRoute) && VerifyEmail::$createUrlCallback === null) {
+            VerifyEmail::createUrlUsing(
+                static function (MustVerifyEmail $notifiable) use ($verifyRoute): string {
+                    return URL::temporarySignedRoute(
+                        $verifyRoute,
+                        Carbon::now()->addMinutes((int) config('auth.verification.expire', 60)),
+                        [
+                            'id'   => $notifiable instanceof Model ? $notifiable->getKey() : throw new \LogicException('Email verification notifiable must be an Eloquent model.'),
+                            'hash' => sha1($notifiable->getEmailForVerification()),
+                        ]
+                    );
+                }
+            );
         }
     }
 

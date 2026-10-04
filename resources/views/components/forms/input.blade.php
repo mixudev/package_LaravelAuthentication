@@ -1,0 +1,137 @@
+{{-- 
+=============================================================================
+KOMPONEN: FORM INPUT (MODERN ZINC - FULL AUTH SCOPED)
+Package: mixudev/laravel-authentication
+Deskripsi: Input form standar dengan label, error binding, dan toggle password.
+           Menggunakan .auth-* scoped CSS untuk penegakan warna light/dark yang konsisten.
+           Class .input-error dipakai untuk border error yang tetap saat focus.
+=============================================================================
+--}}
+@props([
+    'name',
+    'id'                 => null,
+    'type'               => 'text',
+    'label'              => null,
+    'placeholder'        => '',
+    'value'              => null,
+    'required'           => false,
+    'autocomplete'       => null,
+    'autofocus'          => false,
+    'hint'               => null,
+    'showTogglePassword' => true,
+])
+
+@php
+    $inputId      = $id ?? $name;
+    $hasError     = isset($errors) ? $errors->has($name) : false;
+    $inputValue   = old($name, $value);
+    $isPassword   = ($type === 'password');
+    $uniqueToggleId = 'toggle-' . $inputId . '-' . uniqid();
+@endphp
+
+<div class="space-y-1.5">
+
+    {{-- Label Input --}}
+    @if ($label)
+        <div class="flex items-center justify-between">
+            <label for="{{ $inputId }}" class="auth-label block font-medium text-xs uppercase tracking-wider">
+                {{ $label }}
+                @if ($required)
+                    <span class="text-rose-500 ml-0.5">*</span>
+                @endif
+            </label>
+
+            {{-- Link samping label (misal: Lupa Password) --}}
+            @if (isset($labelRight))
+                <div>{{ $labelRight }}</div>
+            @endif
+        </div>
+    @endif
+
+    {{-- Container Input --}}
+    <div class="relative" 
+        @if($isPassword)
+        x-data="{ capsLockOn: false }"
+        @endif
+    >
+        <input 
+            {{ $attributes->merge([
+                'id'           => $inputId,
+                'name'         => $name,
+                'type'         => $isPassword ? 'password' : $type,
+                'value'        => $inputValue,
+                'placeholder'  => $placeholder,
+                'required'     => $required,
+                'autocomplete' => $autocomplete,
+                'autofocus'    => $autofocus,
+            ]) }}
+            class="auth-input block w-full border rounded-lg shadow-xs text-sm px-3.5 py-2.5 outline-none transition duration-150
+                {{ $isPassword && $showTogglePassword ? 'pr-10' : '' }}
+                {{ $hasError ? 'input-error' : '' }}"
+            @if($isPassword)
+            @keydown="capsLockOn = $event.getModifierState && $event.getModifierState('CapsLock')"
+            @keyup="capsLockOn = $event.getModifierState && $event.getModifierState('CapsLock')"
+            @endif
+        />
+
+        {{-- Toggle Password Button - Menggunakan vanilla JS murni, tidak bergantung Alpine --}}
+        @if ($isPassword && $showTogglePassword)
+            <button 
+                type="button" 
+                id="{{ $uniqueToggleId }}"
+                onclick="(function(btn){
+                    var inputEl = btn.closest('.relative').querySelector('input');
+                    if (!inputEl) return;
+                    var isText = inputEl.type === 'text';
+                    inputEl.type = isText ? 'password' : 'text';
+                    btn.querySelector('.eye-open').style.display = isText ? '' : 'none';
+                    btn.querySelector('.eye-closed').style.display = isText ? 'none' : '';
+                })(this)"
+                class="auth-eye-btn absolute inset-y-0 right-0 pr-3.5 flex items-center transition-colors focus:outline-none cursor-pointer"
+                tabindex="-1"
+                aria-label="Tampilkan atau sembunyikan kata sandi"
+            >
+                {{-- Mata terbuka (default: password tersembunyi) --}}
+                <svg class="eye-open w-4 h-4" style="display:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                {{-- Mata tertutup (password terlihat) --}}
+                <svg class="eye-closed w-4 h-4" style="display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>
+                </svg>
+            </button>
+        @endif
+
+        {{-- Caps Lock Warning Indicator --}}
+        @if ($isPassword)
+            <div 
+                x-show="capsLockOn"
+                x-transition.opacity.duration.150ms
+                x-cloak
+                class="mt-2 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 font-medium"
+            >
+                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>Caps Lock aktif</span>
+            </div>
+        @endif
+    </div>
+
+    {{-- Hint --}}
+    @if ($hint && !$hasError)
+        <p class="auth-subtext text-xs mt-1">{{ $hint }}</p>
+    @endif
+
+    {{-- Pesan Validasi Per-Field --}}
+    @if (isset($errors) && $errors->has($name))
+        <p class="auth-field-error text-xs mt-1.5 font-medium flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ $errors->first($name) }}</span>
+        </p>
+    @endif
+
+</div>
