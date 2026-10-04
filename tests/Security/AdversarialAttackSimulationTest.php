@@ -35,6 +35,14 @@ class AdversarialAttackSimulationTest extends TestCase
         // Enable abuse_policy for adversarial testing
         config(['authentication.security.abuse_policy.enabled' => true]);
 
+        // Turnstile is a bot gate, not a password factor. Binding it here keeps the
+        // credential tests focused on authentication rather than third-party failure modes.
+        config([
+            'authentication.security.captcha.enabled'   => false,
+            'authentication.security.captcha.site_key'  => '',
+            'authentication.security.captcha.secret_key' => '',
+        ]);
+
         // Create victim accounts for testing
         for ($i = 0; $i < 100; $i++) {
             $this->victims[] = User::create([
@@ -81,7 +89,7 @@ class AdversarialAttackSimulationTest extends TestCase
         }
 
         // Assert: Zero successful bypasses
-        $this->assertEquals(0, $successfulAttempts, 
+        $this->assertEquals(0, $successfulAttempts,
             'IP rotation attack succeeded - attacker bypassed defenses via IP rotation!');
 
         // Assert: Account lockout triggered (primary defense)
@@ -120,7 +128,7 @@ class AdversarialAttackSimulationTest extends TestCase
         // Simulate attacker trying 100 different identifiers from same IP
         for ($i = 0; $i < 100; $i++) {
             $targetEmail = "victim{$i}@example.com";
-            
+
             // Create victim on-demand if doesn't exist
             if ($i >= count($this->victims)) {
                 User::create([

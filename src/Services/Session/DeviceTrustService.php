@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
 use Vendor\LaravelAuthentication\Models\AuthenticationDevice;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\ClientIpResolver;
 
 class DeviceTrustService
 {
@@ -33,7 +34,7 @@ class DeviceTrustService
         }
 
         $userId = $user->getAuthIdentifier();
-        $detection = $this->detector->detect($request->userAgent(), (string) $request->ip(), $userId);
+        $detection = $this->detector->detect($request->userAgent(), ClientIpResolver::resolve($request), $userId);
 
         /** @var AuthenticationDevice|null $device */
         $device = AuthenticationDevice::where('user_id', $userId)
@@ -59,7 +60,7 @@ class DeviceTrustService
     public function createTrustCookie(Authenticatable $user, Request $request): SymfonyCookie
     {
         $userId = $user->getAuthIdentifier();
-        $detection = $this->detector->detect($request->userAgent(), (string) $request->ip(), $userId);
+        $detection = $this->detector->detect($request->userAgent(), ClientIpResolver::resolve($request), $userId);
         $durationDays = $this->config->getDeviceTrustDurationDays();
         $expiresAt = now()->addDays($durationDays);
 
@@ -67,7 +68,7 @@ class DeviceTrustService
         $device = AuthenticationDevice::query()->createOrFirst(
             ['user_id' => $userId, 'device_fingerprint' => $detection['fingerprint']],
             [
-                'ip_address'   => $request->ip(),
+                'ip_address'   => ClientIpResolver::resolve($request),
                 'user_agent'   => $request->userAgent(),
                 'device_name'  => $detection['device_name'],
                 'platform'     => $detection['platform'],

@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: OTP REQUEST
 Package: mixudev/laravel-authentication
@@ -6,24 +6,24 @@ Deskripsi: Halaman permintaan OTP dengan alert di atas form dan auto-dismiss 3 d
 =============================================================================
 --}}
 @php
-    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
-        ? 'authentication::layouts.split' 
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split'
+        ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $sendRoute = Route::has('authentication.otp.send') 
-        ? route('authentication.otp.send') 
-        : (Route::has('otp.send') ? route('otp.send') : url('/otp/request'));
+    $sendRoute = Route::has('authentication.otp.send')
+        ? route('authentication.otp.send')
+        : (Route::has('authentication.otp.send') ? route('authentication.otp.send') : url('/otp/request'));
 
-    $loginRoute = Route::has('authentication.login') 
-        ? route('authentication.login') 
-        : (Route::has('login') ? route('login') : url('/login'));
+    $loginRoute = Route::has('authentication.login')
+        ? route('authentication.login')
+        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.otp_request_title')">
-    
+
     <div class="space-y-4">
-        
-        <x-authentication::header 
+
+        <x-authentication::header
             :title="__('authentication::messages.otp_request_title')"
             :subtitle="__('authentication::messages.otp_request_subtitle')"
         />
@@ -43,7 +43,7 @@ Deskripsi: Halaman permintaan OTP dengan alert di atas form dan auto-dismiss 3 d
               @submit="submitting = true">
             @csrf
 
-            <x-authentication::input 
+            <x-authentication::input
                 name="identifier"
                 :label="__('authentication::messages.identifier_label')"
                 :placeholder="__('authentication::messages.identifier_placeholder')"

@@ -31,11 +31,11 @@ class RequirePasswordConfirmation
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
 
-            return redirect()->guest(route('login'));
+            return redirect()->guest(route('authentication.login'));
         }
 
         $timeout = $customTimeout ?? $this->config->getConfirmPasswordTimeout();
-        
+
         $confirmedAt = 0;
         if ($request->hasSession()) {
             $confirmedAt = (int) $request->session()->get('auth.password_confirmed_at', 0);
@@ -55,7 +55,7 @@ class RequirePasswordConfirmation
                 $request->session()->put('url.intended', $request->fullUrl());
             }
 
-            return redirect()->route('password.confirm');
+            return redirect()->route('authentication.password.confirm');
         }
 
         return $next($request);

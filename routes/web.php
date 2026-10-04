@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,8 +18,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+$webMiddleware = array_values(array_unique(array_merge(
+    (array) config('authentication.routes.web.middleware', ['web']),
+    ['authentication.throttle']
+)));
+
 Route::group([
-    'middleware' => config('authentication.routes.web.middleware', ['web']),
+    'prefix' => RouteConfig::webUrlPrefix(),
+    'middleware' => $webMiddleware,
 ], function () {
     /*
     |--------------------------------------------------------------------------

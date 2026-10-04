@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: LOGIN
 Package: mixudev/laravel-authentication
@@ -8,27 +8,27 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
 @php
     use Vendor\LaravelAuthentication\Services\Security\CaptchaService;
 
-    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
-        ? 'authentication::layouts.split' 
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split'
+        ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $loginPerformRoute = Route::has('login.perform') 
-        ? route('login.perform') 
+    $loginPerformRoute = Route::has('authentication.login.perform')
+        ? route('authentication.login.perform')
         : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
 
-    $forgotPasswordRoute = Route::has('password.request') 
-        ? route('password.request') 
+    $forgotPasswordRoute = Route::has('authentication.password.request')
+        ? route('authentication.password.request')
         : (Route::has('authentication.password.request') ? route('authentication.password.request') : url('/forgot-password'));
 
-    $otpRequestRoute = Route::has('otp.request.form') 
-        ? route('otp.request.form') 
+    $otpRequestRoute = Route::has('authentication.otp.request.form')
+        ? route('authentication.otp.request.form')
         : (Route::has('authentication.otp.request') ? route('authentication.otp.request') : url('/otp/login'));
 
-    $registerRoute = Route::has('register') 
-        ? route('register') 
+    $registerRoute = Route::has('authentication.register')
+        ? route('authentication.register')
         : (Route::has('authentication.register') ? route('authentication.register') : url('/register'));
 
-    $credentialError = $errors->first('credentials') 
+    $credentialError = $errors->first('credentials')
         ?: $errors->first('identifier')
         ?: $errors->first('password')
         ?: session('error');
@@ -60,16 +60,16 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             @endpush
         @endif
     @endif
-    
+
     <div class="space-y-4">
-        
+
         {{-- Header Halaman --}}
-        <x-authentication::header 
+        <x-authentication::header
             :title="__('authentication::messages.sign_in')"
             :subtitle="__('authentication::messages.sign_in_subtitle')"
         />
 
-        {{-- 
+        {{--
             Alert Notifikasi — Tampil di atas form, hilang otomatis dalam 3 detik.
             Sukses: setelah logout / redirect. Error: kredensial salah.
             Throttle/Lockout: countdown timer live yang disable tombol submit.
@@ -79,8 +79,8 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
         @endif
 
         {{-- @if (session('auth_retry_after'))
-            <x-authentication::countdown-alert 
-                type="error" 
+            <x-authentication::countdown-alert
+                type="error"
                 :retryAfter="session('auth_retry_after')"
                 submitButton="#login-submit-btn"
             />
@@ -117,7 +117,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             @csrf
 
             {{-- Identifier (Email / Username) --}}
-            <x-authentication::input 
+            <x-authentication::input
                 name="identifier"
                 :label="__('authentication::messages.identifier_label')"
                 :placeholder="__('authentication::messages.identifier_placeholder')"
@@ -127,7 +127,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             />
 
             {{-- Password dengan link lupa password --}}
-            <x-authentication::input 
+            <x-authentication::input
                 name="password"
                 type="password"
                 :label="__('authentication::messages.password_label')"
@@ -146,13 +146,13 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
 
             {{-- Checkbox Ingat Saya --}}
             <div class="block pt-1">
-                <x-authentication::checkbox 
+                <x-authentication::checkbox
                     name="remember"
                     :label="__('authentication::messages.remember_me')"
                 />
             </div>
 
-            {{-- 
+            {{--
                 CAPTCHA Widget Adaptif
                 Muncul otomatis setelah trigger_after_failed_attempts kali gagal login.
                 Cloudflare Turnstile: field "cf-turnstile-response"

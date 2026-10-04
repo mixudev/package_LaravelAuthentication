@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException;
 
 /**
  * Per-IP safety net applied to every package route.
@@ -27,12 +28,20 @@ final class ThrottleAuthenticationRoutes
     {
         $maxAttempts = (int) config('authentication.security.global_throttle.max_attempts', 120);
 
-        if ($maxAttempts <= 0) {
+        // Fail-closed on a corrupted setting: a negative or malformed value must not
+        // silently disable the safety net. Only an explicit 0 is treated as "off".
+        if ($maxAttempts < 0) {
+            throw new AuthenticationConfigurationException(
+                'authentication.security.global_throttle.max_attempts must be 0 (disabled) or a positive integer.'
+            );
+        }
+
+        if ($maxAttempts === 0) {
             return $next($request);
         }
 
         $decaySeconds = max(1, (int) config('authentication.security.global_throttle.decay_minutes', 1)) * 60;
-        $key = 'auth_global_rl:' . hash('sha256', (string) $request->ip());
+        $key = 'auth_global_rl:' . hash('sha256', \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request));
 
         if ($this->rateLimiter->tooManyAttempts($key, $maxAttempts)) {
             $seconds = $this->rateLimiter->availableIn($key);

@@ -29,7 +29,7 @@ class PasskeyController extends Controller
      */
     public function loginOptions(Request $request): JsonResponse
     {
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
 
         // Rate limit per IP: tiap request menyimpan challenge di cache 5 menit —
         // tanpa limit, attacker bisa membanjiri cache (DoS).
@@ -53,7 +53,7 @@ class PasskeyController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
         $clientId = AuthenticationContext::fromRequest($request)->clientId;
         $subject = (string) ($request->input('id', '') ?: '');
 
@@ -112,7 +112,7 @@ class PasskeyController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
         $context = AuthenticationContext::fromRequest($request);
         $userId = (string) $user->getAuthIdentifier();
 
@@ -181,14 +181,14 @@ class PasskeyController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'status'  => $deleted ? 'success' : 'not_found',
-                'message' => $deleted 
-                    ? __('authentication::messages.passkey_deleted') 
+                'message' => $deleted
+                    ? __('authentication::messages.passkey_deleted')
                     : 'Passkey not found.',
             ], $deleted ? 200 : 404);
         }
 
         return back()->with(
-            $deleted ? 'status' : 'error', 
+            $deleted ? 'status' : 'error',
             $deleted ? __('authentication::messages.passkey_deleted') : 'Passkey not found.'
         );
     }

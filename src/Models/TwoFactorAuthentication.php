@@ -14,6 +14,7 @@ use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
  * @property int|string $user_id
  * @property string $secret
  * @property array<string>|null $recovery_codes
+ * @property int|null $last_used_timestep
  * @property \Illuminate\Support\Carbon|null $confirmed_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -25,6 +26,7 @@ class TwoFactorAuthentication extends Model
         'secret',
         'recovery_codes',
         'confirmed_at',
+        'last_used_timestep',
     ];
 
     public function getTable(): string
@@ -39,8 +41,9 @@ class TwoFactorAuthentication extends Model
      */
     protected $casts = [
         'secret'         => 'encrypted',
-        'recovery_codes' => 'encrypted:array',
-        'confirmed_at'   => 'datetime',
+        'recovery_codes'     => 'encrypted:array',
+        'confirmed_at'       => 'datetime',
+        'last_used_timestep' => 'integer',
     ];
 
     /**

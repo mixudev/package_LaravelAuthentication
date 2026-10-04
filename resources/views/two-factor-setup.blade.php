@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: PENGATURAN 2FA (TOTP SETUP)
 Package: mixudev/laravel-authentication
@@ -6,25 +6,25 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
 =============================================================================
 --}}
 @php
-    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
-        ? 'authentication::layouts.split' 
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split'
+        ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $confirmRoute = Route::has('two-factor.enable') 
-        ? route('two-factor.enable') 
+    $confirmRoute = Route::has('authentication.two-factor.enable')
+        ? route('authentication.two-factor.enable')
         : url('/auth/two-factor/confirm');
 
-    $cancelRoute = Route::has('auth.sessions.index')
-        ? route('auth.sessions.index')
+    $cancelRoute = Route::has('authentication.auth.sessions.index')
+        ? route('authentication.auth.sessions.index')
         : config('authentication.redirects.login', '/dashboard');
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.two_factor_title')">
-    
+
     <div class="space-y-4" x-data="{ manualEntry: false }">
-        
+
         {{-- Header Halaman --}}
-        <x-authentication::header 
+        <x-authentication::header
             :title="__('authentication::messages.two_factor_title')"
             subtitle="Pindai QR Code di bawah menggunakan aplikasi Google Authenticator, Authy, atau 1Password di ponsel Anda."
         />
@@ -38,9 +38,9 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
         <div class="p-4 bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col items-center justify-center space-y-3 text-center">
             @if (!empty($qrCodeUrl))
                 <div class="p-3 bg-white rounded-xl shadow-xs border border-zinc-200 dark:border-zinc-700 inline-block">
-                    <img 
-                        src="{{ $qrCodeUrl }}" 
-                        alt="QR Code Autentikasi 2 Langkah" 
+                    <img
+                        src="{{ $qrCodeUrl }}"
+                        alt="QR Code Autentikasi 2 Langkah"
                         class="w-48 h-48 block mx-auto rounded-lg"
                         loading="eager"
                     />
@@ -51,8 +51,8 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
             @endif
 
             {{-- Toggle Input Manual --}}
-            <button 
-                type="button" 
+            <button
+                type="button"
                 @click="manualEntry = !manualEntry"
                 class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold hover:underline transition pt-1 cursor-pointer"
                 x-text="manualEntry ? 'Tutup Kunci Manual' : 'Tidak bisa scan? Gunakan Kunci Manual'"
@@ -93,9 +93,9 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
               @submit="submitting = true">
             @csrf
 
-            <x-authentication::input 
-                name="code" 
-                type="text" 
+            <x-authentication::input
+                name="code"
+                type="text"
                 inputmode="numeric"
                 maxlength="6"
                 label="Masukkan Kode 6-Digit dari Aplikasi untuk Konfirmasi"

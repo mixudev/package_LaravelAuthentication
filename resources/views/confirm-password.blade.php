@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: CONFIRM PASSWORD
 Package: mixudev/laravel-authentication
@@ -6,21 +6,21 @@ Deskripsi: Halaman konfirmasi kata sandi sebelum mengakses area sensitif.
 =============================================================================
 --}}
 @php
-    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
-        ? 'authentication::layouts.split' 
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split'
+        ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $confirmRoute = Route::has('password.confirm.submit') 
-        ? route('password.confirm.submit') 
+    $confirmRoute = Route::has('authentication.password.confirm.submit')
+        ? route('authentication.password.confirm.submit')
         : url('/confirm-password');
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.confirm_password_title')">
-    
+
     <div class="space-y-4">
-        
+
         {{-- Header Halaman --}}
-        <x-authentication::header 
+        <x-authentication::header
             :title="__('authentication::messages.confirm_password_title')"
             :subtitle="__('authentication::messages.confirm_password_subtitle')"
         />
@@ -36,11 +36,11 @@ Deskripsi: Halaman konfirmasi kata sandi sebelum mengakses area sensitif.
               @submit="submitting = true">
             @csrf
 
-            <x-authentication::input 
-                name="password" 
-                type="password" 
+            <x-authentication::input
+                name="password"
+                type="password"
                 label="{{ __('authentication::messages.password_label') }}"
-                placeholder="{{ __('authentication::messages.password_placeholder') }}" 
+                placeholder="{{ __('authentication::messages.password_placeholder') }}"
                 autocomplete="current-password"
                 autofocus
                 icon="lock"

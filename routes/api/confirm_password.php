@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Http\Controllers\ConfirmPasswordController;
 
 /*
@@ -13,7 +14,7 @@ use Vendor\LaravelAuthentication\Http\Controllers\ConfirmPasswordController;
 
 if (config('authentication.features.confirm_password.enabled', true)) {
     Route::middleware(
-        config('authentication.routes.api.auth_middleware', ['auth:sanctum'])
+        RouteConfig::apiAuthMiddleware()
     )->group(function () {
         Route::post('/confirm-password', [ConfirmPasswordController::class, 'confirm'])
             ->name('api.auth.password.confirm');

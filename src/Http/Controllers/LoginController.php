@@ -54,7 +54,7 @@ class LoginController extends Controller
             $this->authService->authenticate($loginData, $context);
             return redirect()->intended(config('authentication.redirects.login', '/dashboard'));
         } catch (TwoFactorChallengeRequiredException) {
-            return redirect()->route('two-factor.challenge');
+            return redirect()->route('authentication.two-factor.challenge');
         } catch (AuthenticationThrottledException $e) {
             session()->flash('auth_retry_after', max(0, (int) $e->secondsRemaining));
             throw ValidationException::withMessages([

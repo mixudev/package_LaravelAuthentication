@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 KOMPONEN: TOMBOL SOCIAL AUTH — Google & GitHub (2 kolom sebelahan)
 Package: mixudev/laravel-authentication
@@ -13,12 +13,12 @@ Deskripsi: Google & GitHub berdampingan (grid 2 kolom), styling via Tailwind lan
     $googleEnabled = $isSocialEnabled && ($providers['google']['enabled'] ?? false);
     $githubEnabled = $isSocialEnabled && ($providers['github']['enabled'] ?? false);
 
-    $googleUrl = Route::has('social.redirect')
-        ? route('social.redirect', ['provider' => 'google'])
+    $googleUrl = Route::has('authentication.social.redirect')
+        ? route('authentication.social.redirect', ['provider' => 'google'])
         : (Route::has('authentication.social.redirect') ? route('authentication.social.redirect', ['provider' => 'google']) : url('/auth/google/redirect'));
 
-    $githubUrl = Route::has('social.redirect')
-        ? route('social.redirect', ['provider' => 'github'])
+    $githubUrl = Route::has('authentication.social.redirect')
+        ? route('authentication.social.redirect', ['provider' => 'github'])
         : (Route::has('authentication.social.redirect') ? route('authentication.social.redirect', ['provider' => 'github']) : url('/auth/github/redirect'));
 
     $btnBase = 'flex items-center justify-center gap-2 w-full rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer no-underline select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 hover:-translate-y-px active:translate-y-0 active:opacity-80';

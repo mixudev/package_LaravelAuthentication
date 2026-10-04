@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: RESET PASSWORD
 Package: mixudev/laravel-authentication
@@ -6,24 +6,24 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
 =============================================================================
 --}}
 @php
-    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
-        ? 'authentication::layouts.split' 
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split'
+        ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $updateRoute = Route::has('authentication.password.update') 
-        ? route('authentication.password.update') 
-        : (Route::has('password.update') ? route('password.update') : url('/reset-password'));
+    $updateRoute = Route::has('authentication.password.update')
+        ? route('authentication.password.update')
+        : (Route::has('authentication.password.update') ? route('authentication.password.update') : url('/reset-password'));
 
-    $loginRoute = Route::has('authentication.login') 
-        ? route('authentication.login') 
-        : (Route::has('login') ? route('login') : url('/login'));
+    $loginRoute = Route::has('authentication.login')
+        ? route('authentication.login')
+        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.reset_title')">
-    
+
     <div class="space-y-4">
-        
-        <x-authentication::header 
+
+        <x-authentication::header
             :title="__('authentication::messages.reset_title')"
             :subtitle="__('authentication::messages.reset_subtitle')"
         />
@@ -45,7 +45,7 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
 
             <input type="hidden" name="token" value="{{ $token ?? request()->route('token') }}">
 
-            <x-authentication::input 
+            <x-authentication::input
                 name="email"
                 type="email"
                 :label="__('authentication::messages.email_label')"
@@ -55,7 +55,7 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
                 autocomplete="email"
             />
 
-            <x-authentication::input 
+            <x-authentication::input
                 name="password"
                 type="password"
                 :label="__('authentication::messages.new_password_label')"
@@ -65,7 +65,7 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
                 :autofocus="true"
             />
 
-            <x-authentication::input 
+            <x-authentication::input
                 name="password_confirmation"
                 type="password"
                 :label="__('authentication::messages.confirm_password_label')"

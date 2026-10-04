@@ -39,7 +39,11 @@ class OtpAuthenticationTest extends TestCase
         // 1. Generate OTP
         $code = $otpService->generate('alice@example.com', $context);
         $this->assertEquals(6, strlen($code));
-        Event::assertDispatched(OtpGenerated::class);
+        Event::assertDispatched(OtpGenerated::class, function (OtpGenerated $event): bool {
+            $this->assertFalse(property_exists($event, 'code'));
+
+            return true;
+        });
 
         // 2. Verify OTP
         $verifiedUser = $otpService->verify('alice@example.com', $code, $context);

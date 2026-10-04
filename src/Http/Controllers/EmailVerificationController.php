@@ -45,7 +45,7 @@ class EmailVerificationController extends Controller
         if ($user === null) {
             return $request->expectsJson()
                 ? response()->json(['message' => 'Unauthenticated.'], 401)
-                : redirect()->route('login');
+                : redirect()->route('authentication.login');
         }
 
         // Pastikan {id} di URL sesuai dengan user yang login

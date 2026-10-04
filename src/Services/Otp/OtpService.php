@@ -115,7 +115,7 @@ class OtpService implements OtpServiceInterface
 
         // Dispatch framework event only if user exists (for internal hooks)
         if ($user !== null) {
-            $this->events->dispatch(new OtpGenerated($user, $normalized, $code, $context, $expiryMinutes));
+            $this->events->dispatch(new OtpGenerated($user, $normalized, $context, $expiryMinutes));
         }
 
         $this->auditService->logEvent(
@@ -168,19 +168,19 @@ class OtpService implements OtpServiceInterface
                 if ($queueEnabled) {
                     \Illuminate\Support\Facades\Mail::to($recipientEmail)->queue($mailable);
                     \Illuminate\Support\Facades\Log::info('[AUTH] OTP email queued for background delivery', [
-                        'recipient' => $recipientEmail,
+                        'recipient' => \Vendor\LaravelAuthentication\Support\SecurityHelper::maskIdentifier($recipientEmail),
                         'user_exists' => $user !== null,
                     ]);
                 } else {
                     \Illuminate\Support\Facades\Mail::to($recipientEmail)->send($mailable);
                     \Illuminate\Support\Facades\Log::info('[AUTH] OTP email sent immediately (synchronous)', [
-                        'recipient' => $recipientEmail,
+                        'recipient' => \Vendor\LaravelAuthentication\Support\SecurityHelper::maskIdentifier($recipientEmail),
                         'user_exists' => $user !== null,
                     ]);
                 }
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error('OTP email dispatch failed', [
-                    'recipient' => $recipientEmail,
+                    'recipient' => \Vendor\LaravelAuthentication\Support\SecurityHelper::maskIdentifier($recipientEmail),
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                 ]);
@@ -188,7 +188,7 @@ class OtpService implements OtpServiceInterface
             }
         } else {
             \Illuminate\Support\Facades\Log::warning('OTP email not sent: invalid recipient', [
-                'identifier' => $identifier,
+                'identifier' => \Vendor\LaravelAuthentication\Support\SecurityHelper::maskIdentifier($identifier),
                 'is_valid_email' => filter_var($identifier, FILTER_VALIDATE_EMAIL) !== false,
             ]);
         }

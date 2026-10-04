@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Http\Controllers\SessionController;
 
 /*
@@ -13,7 +14,7 @@ use Vendor\LaravelAuthentication\Http\Controllers\SessionController;
 
 if (config('authentication.features.session_management.enabled', true)) {
     Route::middleware(
-        config('authentication.routes.api.auth_middleware', ['auth:sanctum'])
+        RouteConfig::apiAuthMiddleware()
     )->group(function () {
         Route::get('/sessions', [SessionController::class, 'index'])
             ->name('api.auth.sessions.index');

@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -19,7 +20,7 @@ use Vendor\LaravelAuthentication\Models\AuthenticationDevice;
  * - true: Background delivery via queue worker
  * - false: Immediate synchronous delivery
  */
-class NewDeviceLoginMail extends Mailable
+class NewDeviceLoginMail extends Mailable implements ShouldBeEncrypted
 {
     use Queueable, SerializesModels;
 

@@ -96,13 +96,22 @@ Kirim email via background queue:
 // config/authentication.php
 'mail' => [
     'queue' => true,
-    'queue_name' => 'auth-emails',
 ],
 ```
 
 ```bash
-php artisan queue:work --queue=auth-emails
+# Worker package yang memproses email pada queue default dan audit package.
+php artisan queue:work --queue=default,auth-audit
 ```
+
+`php artisan queue:work` tanpa `--queue` hanya memproses queue `default`.
+Karena audit asynchronous package memakai queue bernama `auth-audit`, gunakan
+`--queue=default,auth-audit` atau set `authentication.audit.queue_name` ke
+`default` jika ingin satu queue saja.
+
+Tidak perlu menjalankan worker satu per satu. Satu proses dengan daftar queue
+tersebut memproses semuanya berdasarkan prioritas dari kiri ke kanan. Untuk
+produksi, jalankan worker di bawah Supervisor, systemd, Docker, atau Horizon.
 
 ---
 

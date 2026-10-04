@@ -128,15 +128,15 @@ REDIS_QUEUE_DB=1  # Queue (separate database)
 
 ### Queue Workers
 
-**Required for v1.9.0+** (email queue + async audit enabled by default):
+**Required only when queued email or asynchronous audit is enabled**:
 ```bash
-# Start queue worker (production)
-php artisan queue:work redis --queue=auth-emails,auth-audit --sleep=3 --tries=3 --max-time=3600
+# One worker handles the default queue and the package audit queue.
+php artisan queue:work redis --queue=default,auth-audit --sleep=3 --tries=3 --max-time=3600
 
 # Supervisor config (production)
 [program:laravel-auth-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/html/artisan queue:work redis --queue=auth-emails,auth-audit --sleep=3 --tries=3 --max-time=3600
+command=php /var/www/html/artisan queue:work redis --queue=default,auth-audit --sleep=3 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -161,21 +161,16 @@ Monitor queue: `http://your-app.com/horizon`
 
 ## Configuration Checklist
 
-### 1. Enable Email Queue (v1.9.0+)
+### 1. Enable Queued Email (optional)
 ```php
 // config/authentication.php
 'mail' => [
-    'queue' => true,  // ✓ Already enabled by default in v1.9.0
+    'queue' => false,  // default: synchronous delivery, no worker required
     'queue_connection' => null,  // Use default (redis recommended)
-    'queue_name' => 'auth-emails',
 ],
 ```
 
-**Verify**:
-```bash
-php artisan queue:monitor auth-emails --max=100
-# Should show: "auth-emails ....................... HEALTHY"
-```
+When enabled, the mailable runs on the application default queue, so any worker already consuming `default` delivers it. `php artisan queue:work` with no `--queue` flag is sufficient for email.
 
 ---
 
@@ -199,6 +194,11 @@ php artisan queue:monitor auth-emails --max=100
 - **Before**: 2 synchronous DB writes per login (~50-100ms latency)
 - **After**: Async dispatch (~1-2ms), writes handled by queue workers
 - **Scaling**: Horizontal (add more queue workers vs vertical DB scaling)
+
+**Data safety when no worker is running**: `queue_fallback = 'sync'` means a failed
+dispatch writes the audit record inline instead of dropping it. Audit data is
+never lost when the worker is down; only the latency benefit is lost. Set
+`queue_fallback = 'log'` to log-only instead of writing inline.
 
 **Verify**:
 ```bash
@@ -520,7 +520,7 @@ readinessProbe:
 - Login success rate (should be >95%)
 - Login p95 latency (target: <500ms excluding password hash)
 - Account lockout events (spike = potential attack)
-- Queue depth (`auth-emails` queue, target: <100 jobs)
+- Queue depth (`default` queue, and `auth-audit` when async audit is on; target: <100 jobs)
 - Failed authentication attempts per minute (baseline: <10/min)
 
 **Infrastructure Metrics**:
@@ -674,7 +674,7 @@ spec:
       containers:
       - name: worker
         image: your-registry/laravel-app:v1.9.0
-        command: ["php", "artisan", "queue:work", "redis", "--queue=auth-emails", "--tries=3", "--max-time=3600"]
+        command: ["php", "artisan", "queue:work", "redis", "--queue=default,auth-audit", "--tries=3", "--max-time=3600"]
         resources:
           requests:
             memory: "256Mi"
@@ -812,7 +812,7 @@ resource "aws_wafv2_web_acl" "auth" {
 ```php
 // Middleware
 if (auth()->user()->isAdmin() && !session('2fa_verified')) {
-    return redirect()->route('two-factor.challenge');
+    return redirect()->route('authentication.two-factor.challenge');
 }
 ```
 
@@ -830,12 +830,12 @@ if (!$twoFactorService->isEnabledFor($user)) {
 
 ### Queue Not Processing
 
-**Symptom**: Emails not sent, `auth-emails` queue depth increasing.
+**Symptom**: Emails not sent, `default` queue depth increasing.
 
 **Check**:
 ```bash
-php artisan queue:monitor auth-emails
-# Shows: auth-emails ......................... [WARNING] (jobs: 345)
+php artisan queue:monitor default
+# Shows: default ......................... [WARNING] (jobs: 345)
 ```
 
 **Solution**:
@@ -844,7 +844,7 @@ php artisan queue:monitor auth-emails
 sudo supervisorctl restart laravel-auth-worker:*
 
 # Or manually
-php artisan queue:work redis --queue=auth-emails
+php artisan queue:work redis --queue=default,auth-audit
 ```
 
 ---

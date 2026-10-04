@@ -94,7 +94,7 @@ class SessionManagerService
                 'device_name'       => $device->device_name ?? 'Unknown Device',
                 'location'          => $device->location,
                 'last_activity'     => $device->last_seen_at,
-                'is_current_device' => $device->ip_address === request()->ip(),
+                'is_current_device' => $device->ip_address === \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve(request()),
             ];
         }
 

@@ -208,15 +208,20 @@ Performance Improvement:
 - Lockout fix: Behavior unchanged from user perspective (still locks at max_attempts)
 
 ### Recommended Actions for Host Apps
-1. **Enable Queue Worker** (if using default mail.queue=true):
+1. **Enable Queue Worker** (if you set `mail.queue=true`):
    ```bash
-   php artisan queue:work --queue=auth-emails
+   # Queued auth mail runs on the application default queue.
+   php artisan queue:work
    # Or use Supervisor/systemd to run persistently
    ```
+   > Note: `mail.queue_name = 'auth-emails'` from this plan was later removed;
+   > mail now uses the default queue. Only `authentication.audit.queue_name`
+   > (`auth-audit`) is still a named queue, so an async-audit deployment needs
+   > `--queue=default,auth-audit`.
 
 2. **Monitor Queue Depth**:
    ```bash
-   php artisan queue:monitor auth-emails --max=100
+   php artisan queue:monitor default --max=100
    ```
 
 3. **Optional: Use Redis Queue** (better than database for high traffic):

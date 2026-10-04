@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 KOMPONEN: ACTIVE SESSIONS & DEVICE MANAGEMENT (REUSABLE COMPONENT)
 Package: mixudev/laravel-authentication
@@ -27,13 +27,13 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
 
     $cardTitle = $title ?? __('authentication::messages.sessions_title', [], null) ?? 'Sesi & Perangkat Aktif';
     $cardSubtitle = $subtitle ?? __('authentication::messages.sessions_subtitle', [], null) ?? 'Kelola dan cabut akses login Anda di perangkat lain.';
-    $revokeOthersRoute = Route::has('auth.sessions.destroy-others') 
-        ? route('auth.sessions.destroy-others') 
+    $revokeOthersRoute = Route::has('authentication.auth.sessions.destroy-others')
+        ? route('authentication.auth.sessions.destroy-others')
         : url('/auth/sessions/revoke-others');
 @endphp
 
 <div class="auth-card bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 sm:p-6 shadow-xs space-y-4">
-    
+
     {{-- Header Komponen --}}
     <div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
         <div class="space-y-0.5">
@@ -89,7 +89,7 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
                 </div>
 
                 @if (!$session['is_current_device'])
-                    <form method="POST" action="{{ route('auth.sessions.destroy', $session['id']) }}" onsubmit="return confirm('Cabut akses login untuk perangkat ini?');">
+                    <form method="POST" action="{{ route('authentication.auth.sessions.destroy', $session['id']) }}" onsubmit="return confirm('Cabut akses login untuk perangkat ini?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline px-2 py-1 cursor-pointer">
@@ -108,8 +108,8 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
     {{-- Tombol Cabut Semua Sesi Lain --}}
     @if (count($sessions) > 1)
         <div class="pt-2 border-t border-zinc-100 dark:border-zinc-800" x-data="{ openConfirm: false }">
-            <button 
-                type="button" 
+            <button
+                type="button"
                 @click="openConfirm = !openConfirm"
                 class="w-full text-center text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 transition py-1 cursor-pointer"
             >
@@ -122,10 +122,10 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
                 </p>
                 <form method="POST" action="{{ $revokeOthersRoute }}" class="space-y-2">
                     @csrf
-                    <input 
-                        name="password" 
-                        type="password" 
-                        placeholder="{{ __('authentication::messages.password_placeholder') }}" 
+                    <input
+                        name="password"
+                        type="password"
+                        placeholder="{{ __('authentication::messages.password_placeholder') }}"
                         class="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-rose-500"
                         required
                     >

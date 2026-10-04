@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: REGISTER
 Package: mixudev/laravel-authentication
@@ -6,24 +6,24 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
 =============================================================================
 --}}
 @php
-    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
-        ? 'authentication::layouts.split' 
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split'
+        ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $registerPerformRoute = Route::has('register.perform') 
-        ? route('register.perform') 
+    $registerPerformRoute = Route::has('authentication.register.perform')
+        ? route('authentication.register.perform')
         : (Route::has('authentication.register') ? route('authentication.register') : url('/register'));
 
-    $loginRoute = Route::has('login') 
-        ? route('login') 
+    $loginRoute = Route::has('authentication.login')
+        ? route('authentication.login')
         : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.register_title')">
-    
+
     <div class="space-y-4">
-        
-        <x-authentication::header 
+
+        <x-authentication::header
             :title="__('authentication::messages.register_title')"
             :subtitle="__('authentication::messages.register_subtitle')"
         />
@@ -49,7 +49,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
               @submit="submitting = true">
             @csrf
 
-            <x-authentication::input 
+            <x-authentication::input
                 name="name"
                 :label="__('authentication::messages.full_name')"
                 :placeholder="__('authentication::messages.full_name_placeholder')"
@@ -58,7 +58,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
                 :autofocus="true"
             />
 
-            <x-authentication::input 
+            <x-authentication::input
                 name="email"
                 type="email"
                 :label="__('authentication::messages.email_label')"
@@ -68,7 +68,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
             />
 
             @if (in_array(config('authentication.strategies.active'), ['username_password', 'username_or_email']))
-                <x-authentication::input 
+                <x-authentication::input
                     name="username"
                     :label="__('authentication::messages.identifier_label')"
                     :placeholder="__('authentication::messages.identifier_placeholder')"
@@ -76,7 +76,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
                 />
             @endif
 
-            <x-authentication::input 
+            <x-authentication::input
                 name="password"
                 type="password"
                 :label="__('authentication::messages.password_label')"
@@ -85,7 +85,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
                 autocomplete="new-password"
             />
 
-            <x-authentication::input 
+            <x-authentication::input
                 name="password_confirmation"
                 type="password"
                 :label="__('authentication::messages.confirm_password_label')"
@@ -97,7 +97,7 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
             <div class="block pt-1">
                 <x-authentication::checkbox name="terms" :required="true">
                     <span class="auth-subtext text-xs">
-                        {{ __('authentication::messages.terms_agree') }} 
+                        {{ __('authentication::messages.terms_agree') }}
                         <a href="#" class="auth-link underline">{{ __('authentication::messages.terms_label') }}</a>.
                     </span>
                 </x-authentication::checkbox>

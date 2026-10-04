@@ -94,11 +94,6 @@ final class AuthenticationConfig
         return $this->config->get('authentication.mail.queue_connection');
     }
 
-    public function getMailQueueName(): string
-    {
-        return (string) $this->config->get('authentication.mail.queue_name', 'auth-emails');
-    }
-
     public function getDefaultStrategy(): string
     {
         return (string) $this->config->get('authentication.login.default_strategy', 'username_or_email');

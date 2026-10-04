@@ -165,16 +165,18 @@ Log::channel($channel)->info('auth.event', $data); // BLOCKS until fsync()
 **Issue**: `Mail::send()` blocks until SMTP completes (200-2000ms depending on server)  
 **Config**: `config/authentication.php:54` has `mail.queue => false` by default
 
-**Fix**: Enable queue by default + document requirement:
+**Fix**: Document the requirement rather than flipping the default:
 ```php
 'mail' => [
-    'queue' => true, // CHANGE: false → true
+    'queue' => false, // stays false by default (zero-config); opt in per host
     'queue_connection' => null,
-    'queue_name' => 'auth-emails',
 ],
 ```
 
-**Migration Note**: Add to CHANGELOG as behavior change; require `queue:work` in production.
+**Migration Note**: `mail.queue` remains an explicit host opt-in. Queued mail runs
+on the application default queue, so `php artisan queue:work` is sufficient. A
+dedicated `mail.queue_name` was rejected in review (no mailable consumed it) and
+does not exist in the shipped config.
 
 ---
 

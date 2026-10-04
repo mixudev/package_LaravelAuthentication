@@ -17,15 +17,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+$apiMiddleware = array_values(array_unique(array_merge(
+    (array) config('authentication.routes.api.middleware', ['api']),
+    ['authentication.throttle']
+)));
+
 Route::group([
     'prefix' => config(
         'authentication.routes.api.prefix',
         'api/v1/auth'
     ),
-    'middleware' => config(
-        'authentication.routes.api.middleware',
-        ['api']
-    ),
+    'middleware' => $apiMiddleware,
 ], function () {
     /*
     |--------------------------------------------------------------------------

@@ -18,7 +18,7 @@ class SecurityHeadersTest extends TestCase
 {
     public function test_login_page_sends_security_headers(): void
     {
-        $response = $this->get(route('login'));
+        $response = $this->get(route('authentication.login'));
 
         $response->assertOk();
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
@@ -28,7 +28,7 @@ class SecurityHeadersTest extends TestCase
 
     public function test_register_page_sends_security_headers(): void
     {
-        $response = $this->get(route('register'));
+        $response = $this->get(route('authentication.register'));
 
         $response->assertOk();
         $response->assertHeader('X-Content-Type-Options', 'nosniff');

@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
@@ -21,7 +22,7 @@ use Illuminate\Queue\SerializesModels;
  *
  * The Queueable trait enables ->queue() support without forcing all emails into queue.
  */
-class OtpMail extends Mailable
+class OtpMail extends Mailable implements ShouldBeEncrypted
 {
     use Queueable, SerializesModels;
 

@@ -71,7 +71,7 @@ Di `config/authentication.php`:
 
 ```html
 <!-- resources/views/auth/login.blade.php -->
-<form method="POST" action="{{ route('login') }}">
+<form method="POST" action="{{ route('authentication.login.perform') }}">
     @csrf
     <input type="text" name="identifier" value="{{ old('identifier') }}" placeholder="Email atau Username" required>
     @error('identifier') <span>{{ $message }}</span> @enderror

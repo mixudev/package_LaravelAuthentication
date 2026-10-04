@@ -27,7 +27,7 @@ class AuthenticateWithCustomGuard
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
 
-            return redirect()->guest(route('login'));
+            return redirect()->guest(route('authentication.login'));
         }
 
         return $next($request);

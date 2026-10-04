@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: TWO-FACTOR CHALLENGE
 Package: mixudev/laravel-authentication
@@ -6,12 +6,12 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
 =============================================================================
 --}}
 @php
-    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
-        ? 'authentication::layouts.split' 
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split'
+        ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $verifyRoute = Route::has('two-factor.verify') 
-        ? route('two-factor.verify') 
+    $verifyRoute = Route::has('authentication.two-factor.verify')
+        ? route('authentication.two-factor.verify')
         : url('/two-factor-challenge');
 
     $inputMode = $inputMode ?? 'totp';
@@ -19,11 +19,11 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.two_factor_title')">
-    
+
     <div class="space-y-4" x-data="{ recovery: @js($inputMode === 'recovery') }">
-        
+
         {{-- Header Halaman --}}
-        <x-authentication::header 
+        <x-authentication::header
             :title="__('authentication::messages.two_factor_title')"
             :subtitle="__('authentication::messages.two_factor_subtitle')"
         />
@@ -70,10 +70,10 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
             {{-- Checkbox Percayai Perangkat --}}
             @if ($allowTrust ?? false)
                 <div class="flex items-center">
-                    <input 
-                        id="trust_device" 
-                        name="trust_device" 
-                        type="checkbox" 
+                    <input
+                        id="trust_device"
+                        name="trust_device"
+                        type="checkbox"
                         value="1"
                         class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     >
@@ -90,8 +90,8 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
 
             {{-- Switch antara TOTP dan Backup Code --}}
             <div class="text-center pt-2">
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     @click="recovery = !recovery"
                     class="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline transition"
                     x-text="recovery ? '{{ __('authentication::messages.two_factor_use_totp') }}' : '{{ __('authentication::messages.two_factor_use_recovery') }}'"
@@ -101,7 +101,7 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
 
         {{-- Link Kembali ke Login --}}
         <div class="text-center border-t border-slate-100 pt-3">
-            <a href="{{ route('login') }}" class="text-xs text-slate-500 hover:text-slate-700 transition">
+            <a href="{{ route('authentication.login') }}" class="text-xs text-slate-500 hover:text-slate-700 transition">
                 ← {{ __('authentication::messages.back_to_login_arrow') }}
             </a>
         </div>

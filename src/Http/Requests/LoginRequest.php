@@ -10,6 +10,7 @@ use Vendor\LaravelAuthentication\Rules\LoginIdentifierRule;
 use Vendor\LaravelAuthentication\Rules\SecurityPolicyRule;
 use Vendor\LaravelAuthentication\Rules\ValidCaptcha;
 use Vendor\LaravelAuthentication\Services\Security\CaptchaService;
+use Vendor\LaravelAuthentication\Support\ClientIpResolver;
 
 class LoginRequest extends FormRequest
 {
@@ -33,7 +34,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         $identifier = (string) ($this->input('identifier') ?? $this->input('email') ?? $this->input('username') ?? '');
-        $ip         = (string) $this->ip();
+        $ip         = ClientIpResolver::resolve($this);
 
         $availableStrategies = array_keys((array) config('authentication.login.strategies', []));
         $strategyRules = ['nullable', 'string', 'max:64'];

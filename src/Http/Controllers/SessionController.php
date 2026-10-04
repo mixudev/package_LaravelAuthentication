@@ -93,7 +93,7 @@ class SessionController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
         $context = AuthenticationContext::fromRequest($request);
         $userId = (string) $user->getAuthIdentifier();
 
@@ -146,7 +146,7 @@ class SessionController extends Controller
         }
 
         $currentSessionId = $request->hasSession() ? $request->session()->getId() : null;
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
 
         // Rate limit: endpoint ini menerima password — tanpa limit, attacker bisa
         // brute-force password via revoke-others (confirm_password punya rate limit,

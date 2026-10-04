@@ -29,7 +29,7 @@ class ValidCaptcha implements ValidationRule
             return;
         }
 
-        $ip = $this->ipAddress ?: (string) request()->ip();
+        $ip = $this->ipAddress ?: \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve(request());
 
         // If adaptive threshold not met, pass through
         if (!$captchaService->shouldShowCaptcha($this->identifier, $ip)) {

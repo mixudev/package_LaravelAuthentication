@@ -65,24 +65,33 @@ class TotpService
      */
     public function verify(#[SensitiveParameter] string $secret, string $code, int $window = 1, int $digits = 6, int $period = 30): bool
     {
+        return $this->verifyCounter($secret, $code, $window, $digits, $period) !== null;
+    }
+
+    /**
+     * Verify a code and return the accepted timestep for replay prevention.
+     * The caller must persist the returned counter atomically with its user record.
+     */
+    public function verifyCounter(#[SensitiveParameter] string $secret, string $code, int $window = 1, int $digits = 6, int $period = 30): ?int
+    {
         $code = trim($code);
 
-        if (strlen($code) !== $digits || !ctype_digit($code)) {
-            return false;
+        if ($period <= 0 || strlen($code) !== $digits || !ctype_digit($code)) {
+            return null;
         }
 
-        $currentTime = time();
+        $currentCounter = intdiv(time(), $period);
 
         for ($drift = -$window; $drift <= $window; $drift++) {
-            $timestamp = $currentTime + ($drift * $period);
-            $expectedCode = $this->calculateCode($secret, $timestamp, $digits, $period);
+            $counter = $currentCounter + $drift;
+            $expectedCode = $this->calculateCode($secret, $counter * $period, $digits, $period);
 
             if (hash_equals($expectedCode, $code)) {
-                return true;
+                return $counter;
             }
         }
 
-        return false;
+        return null;
     }
 
     /**

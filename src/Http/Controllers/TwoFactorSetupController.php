@@ -31,7 +31,7 @@ class TwoFactorSetupController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
         $context = \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request);
         $userId = (string) $user->getAuthIdentifier();
 
@@ -53,8 +53,8 @@ class TwoFactorSetupController extends Controller
                 ], 400);
             }
 
-            $redirectUrl = \Illuminate\Support\Facades\Route::has('auth.sessions.index')
-                ? route('auth.sessions.index')
+            $redirectUrl = \Illuminate\Support\Facades\Route::has('authentication.auth.sessions.index')
+                ? route('authentication.auth.sessions.index')
                 : (string) config('authentication.redirects.login', '/dashboard');
 
             return redirect($redirectUrl)
@@ -95,7 +95,7 @@ class TwoFactorSetupController extends Controller
                 ], 400);
             }
 
-            return redirect()->route('auth.sessions.index')
+            return redirect()->route('authentication.auth.sessions.index')
                 ->with('status', 'Two-factor authentication is already enabled.');
         }
 
@@ -104,7 +104,7 @@ class TwoFactorSetupController extends Controller
         ]);
 
         $code = (string) $request->input('code');
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
 
         // Rate limit: brute-force TOTP 6-digit saat setup confirmation.
         // HIGH-04 FIX: Gunakan channel 'two_factor' tersendiri agar tidak terjadi
@@ -132,7 +132,7 @@ class TwoFactorSetupController extends Controller
             ]);
         }
 
-        return redirect()->route('auth.sessions.index')->with('status', __('authentication::messages.two_factor_enabled'));
+        return redirect()->route('authentication.auth.sessions.index')->with('status', __('authentication::messages.two_factor_enabled'));
     }
 
     public function destroy(Request $request): RedirectResponse|JsonResponse
@@ -147,7 +147,7 @@ class TwoFactorSetupController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
 
         // Rate limit: disable 2FA menerima password — tanpa limit attacker bisa
         // brute-force password untuk mematikan proteksi 2FA korban.

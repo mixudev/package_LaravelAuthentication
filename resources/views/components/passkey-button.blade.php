@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 KOMPONEN: TOMBOL LOGIN DENGAN PASSKEY (FIDO2 / WEBAUTHN)
 Package: mixudev/laravel-authentication
@@ -7,11 +7,11 @@ Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn tanpa password.
 --}}
 @php
     $isPasskeyEnabled = config('authentication.features.passkey.enabled', true);
-    $optionsRoute = Route::has('passkey.login.options') 
-        ? route('passkey.login.options') 
+    $optionsRoute = Route::has('authentication.passkey.login.options')
+        ? route('authentication.passkey.login.options')
         : (Route::has('authentication.passkey.login.options') ? route('authentication.passkey.login.options') : url('/auth/passkey/login-options'));
-    $loginRoute = Route::has('passkey.login') 
-        ? route('passkey.login') 
+    $loginRoute = Route::has('authentication.passkey.login')
+        ? route('authentication.passkey.login')
         : (Route::has('authentication.passkey.login') ? route('authentication.passkey.login') : url('/auth/passkey/login'));
 
     $btnBase = 'flex items-center justify-center gap-2.5 w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-100 px-4 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer no-underline select-none shadow-xs hover:bg-gray-50 dark:hover:bg-zinc-800 hover:border-gray-400 dark:hover:border-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 active:scale-[0.99]';
@@ -19,8 +19,8 @@ Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn tanpa password.
 
 @if ($isPasskeyEnabled)
 <div class="w-full" id="auth-passkey-container">
-    <button 
-        type="button" 
+    <button
+        type="button"
         id="btn-login-passkey"
         onclick="window.startPasskeyLogin()"
         class="{{ $btnBase }}"
@@ -97,9 +97,18 @@ Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn tanpa password.
                 var identifierInput = document.querySelector('input[name="identifier"]') || document.querySelector('input[name="email"]');
                 var identifier = identifierInput ? identifierInput.value.trim() : '';
 
-                var url = '{{ $optionsRoute }}' + (identifier ? '?identifier=' + encodeURIComponent(identifier) : '');
+                var url = '{{ $optionsRoute }}';
+                var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
                 var optRes = await fetch(url, {
-                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(identifier ? { identifier: identifier } : {})
                 });
 
                 if (!optRes.ok) {

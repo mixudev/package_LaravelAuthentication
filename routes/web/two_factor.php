@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Http\Controllers\TwoFactorChallengeController;
 use Vendor\LaravelAuthentication\Http\Controllers\TwoFactorSetupController;
 
@@ -18,10 +19,10 @@ if (config('authentication.features.two_factor.enabled', true)) {
     */
     Route::middleware('guest')->group(function () {
         Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'show'])
-            ->name('two-factor.challenge');
+            ->name(RouteConfig::name('two-factor.challenge'));
 
         Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'verify'])
-            ->name('two-factor.verify');
+            ->name(RouteConfig::name('two-factor.verify'));
     });
 
     /*
@@ -29,12 +30,12 @@ if (config('authentication.features.two_factor.enabled', true)) {
     */
     Route::middleware('auth')->group(function () {
         Route::get('/auth/two-factor/setup', [TwoFactorSetupController::class, 'show'])
-            ->name('two-factor.setup');
+            ->name(RouteConfig::name('two-factor.setup'));
 
         Route::post('/auth/two-factor/confirm', [TwoFactorSetupController::class, 'confirm'])
-            ->name('two-factor.enable');
+            ->name(RouteConfig::name('two-factor.enable'));
 
         Route::delete('/auth/two-factor/disable', [TwoFactorSetupController::class, 'destroy'])
-            ->name('two-factor.disable');
+            ->name(RouteConfig::name('two-factor.disable'));
     });
 }

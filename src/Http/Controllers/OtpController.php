@@ -78,7 +78,7 @@ class OtpController extends Controller
         try {
             $this->otpService->generate($identifier, $context);
 
-            return redirect()->route('otp.verify.form', ['identifier' => $identifier])
+            return redirect()->route('authentication.otp.verify.form', ['identifier' => $identifier])
                 ->with('status', 'If an account exists with that identifier, a verification code has been dispatched.');
         } catch (AuthenticationException $e) {
             // Jangan bocorkan detail internal exception ke user.
@@ -143,7 +143,7 @@ class OtpController extends Controller
                         $request->session()->put('auth.2fa.user_id', $user->getAuthIdentifier());
                         $request->session()->put('auth.2fa.remember', $remember);
                     }
-                    return redirect()->route('two-factor.challenge');
+                    return redirect()->route('authentication.two-factor.challenge');
                 }
             }
 

@@ -50,13 +50,13 @@ return [
     |--------------------------------------------------------------------------
     | Kontrol apakah email OTP/new-device dikirim via queue worker (async)
     | atau langsung/synchronous.
-    | 
+    |
     | DEFAULT: false (synchronous) - Email dikirim langsung tanpa queue worker.
     |          Cocok untuk aplikasi kecil-menengah dan development.
-    | 
+    |
     | PRODUCTION HIGH-TRAFFIC: Set true + jalankan queue worker untuk performa:
     |   php artisan queue:work
-    | 
+    |
     | NOTE: Jika diset true, WAJIB ada queue worker yang jalan. Tanpa worker,
     |       email tidak akan terkirim sama sekali.
     */
@@ -265,6 +265,21 @@ return [
             'decay_minutes' => 1,
         ],
 
+        /*
+        | Trusted proxies (opsional, default kosong = forwarded headers diabaikan).
+        |
+        | Package membaca alamat klien untuk rate limit, lockout, device trust,
+        | dan 2FA. Alamat diambil dari TCP peer (REMOTE_ADDR) KECUALI peer terdaftar
+        | di daftar ini. X-Forwarded-For / X-Real-IP / Client-IP adalah header yang
+        | dikendalikan penyerang, jadi jangan isi dengan '0.0.0.0/0' atau '*'.
+        |
+        | Contoh: ['10.0.0.10', '172.16.0.0/12', '2001:db8::/32']
+        */
+        'trusted_proxies' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('AUTH_TRUSTED_PROXIES', ''))
+        ))),
+
         'captcha' => [
             'enabled'                       => false,
             'driver'                        => 'turnstile', // 'turnstile', 'recaptcha_v2', 'recaptcha_v3', 'hcaptcha'
@@ -449,8 +464,20 @@ return [
     // Route bawaan package untuk Web (session) dan API (token)
     'routes' => [
         'web' => [
-            'enabled'    => true,
-            'prefix'     => '',
+            'enabled' => true,
+            // URL prefix untuk seluruh route web package, mis. 'account' -> /account/login
+            'prefix'  => '',
+            /*
+            | Prefix NAMA route web package.
+            |
+            | Prefix wajib non-empty. Package mendaftarkan nama route global seperti
+            | 'login' dan 'password.confirm'; bila host app juga mendaftarkan nama
+            | yang sama, lookup name terdaftar terakhir menimpa yang sebelumnya, dan
+            | redirect()->route('authentication.login') bisa mengarah ke route milik host.
+            | Prefix 'authentication.' menempatkan seluruh nama package di namespace
+            | sendiri sehingga tidak dapat bentrok dengan route host.
+            */
+            'route_name_prefix' => 'authentication.',
             // EnsureSessionSecurity menambahkan security headers (nosniff,
             // X-Frame-Options, Referrer-Policy) ke semua halaman auth package.
             'middleware' => ['web', 'authentication.session-security', 'authentication.throttle'],
@@ -458,7 +485,18 @@ return [
         'api' => [
             'enabled'    => true,
             'prefix'     => 'api/v1/auth',
-            'middleware' => ['api', 'authentication.session-security', 'authentication.throttle']
+            /*
+            | Middleware autentikasi untuk route API yang butuh user login.
+            |
+            | WAJIB berisi minimal satu middleware yang benar-benar mengautentikasi
+            | (auth, auth:sanctum, auth.basic, auth.session). Nilai kosong membuat
+            | route logout, sessions, passkey management, confirm-password, dan 2FA
+            | management terbuka untuk anonymous. Package melempar
+            | AuthenticationConfigurationException saat boot bila daftar ini kosong
+            | atau tidak mengautentikasi.
+            */
+            'auth_middleware' => ['auth:sanctum'],
+            'middleware'     => ['api', 'authentication.session-security', 'authentication.throttle'],
         ],
     ],
 

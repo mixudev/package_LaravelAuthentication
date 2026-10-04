@@ -40,7 +40,7 @@ class TwoFactorChallengeFlowTest extends TestCase
         session(['auth.2fa.user_id' => $this->user->id]);
 
         // Submit invalid recovery code
-        $response = $this->post(route('two-factor.verify'), [
+        $response = $this->post(route('authentication.two-factor.verify'), [
             'recovery_code' => 'WRONG-12345',
         ]);
 
@@ -51,7 +51,7 @@ class TwoFactorChallengeFlowTest extends TestCase
         $this->assertEquals('recovery', session('auth.2fa.input_mode'));
 
         // GET challenge again and assert recovery mode is active
-        $showResponse = $this->get(route('two-factor.challenge'));
+        $showResponse = $this->get(route('authentication.two-factor.challenge'));
         $showResponse->assertStatus(200);
 
         // The view should receive inputMode='recovery'
@@ -63,7 +63,7 @@ class TwoFactorChallengeFlowTest extends TestCase
         session(['auth.2fa.user_id' => $this->user->id]);
 
         // Submit invalid TOTP code
-        $response = $this->post(route('two-factor.verify'), [
+        $response = $this->post(route('authentication.two-factor.verify'), [
             'code' => '000000',
         ]);
 
@@ -74,7 +74,7 @@ class TwoFactorChallengeFlowTest extends TestCase
         $this->assertContains(session('auth.2fa.input_mode'), ['totp', null]);
 
         // GET challenge again and assert TOTP mode is active
-        $showResponse = $this->get(route('two-factor.challenge'));
+        $showResponse = $this->get(route('authentication.two-factor.challenge'));
         $showResponse->assertStatus(200);
         $showResponse->assertViewHas('inputMode', 'totp');
     }
@@ -83,7 +83,7 @@ class TwoFactorChallengeFlowTest extends TestCase
     {
         session(['auth.2fa.user_id' => $this->user->id]);
 
-        $response = $this->post(route('two-factor.verify'), [
+        $response = $this->post(route('authentication.two-factor.verify'), [
             'recovery_code' => 'SECRET-CODE',
         ]);
 
@@ -102,7 +102,7 @@ class TwoFactorChallengeFlowTest extends TestCase
 
         $validCode = $this->plainRecoveryCodes[0];
 
-        $response = $this->post(route('two-factor.verify'), [
+        $response = $this->post(route('authentication.two-factor.verify'), [
             'recovery_code' => $validCode,
         ]);
 

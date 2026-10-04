@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Http\Controllers\PasskeyController;
 
 /*
@@ -25,7 +26,7 @@ if (config('authentication.features.passkey.enabled', true)) {
     | Authenticated: Passkey Registration & Management
     */
     Route::middleware(
-        config('authentication.routes.api.auth_middleware', ['auth:sanctum'])
+        RouteConfig::apiAuthMiddleware()
     )->group(function () {
         Route::post('/passkey/register-options', [PasskeyController::class, 'registerOptions'])
             ->name('api.auth.passkey.register.options');

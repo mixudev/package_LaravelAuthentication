@@ -30,6 +30,9 @@ final class SecurityHelper
             'password_confirmation',
             'token',
             'secret',
+            'code',
+            'otp',
+            'recovery',
             'api_token',
             'remember_token',
             'totp_secret',
@@ -122,7 +125,7 @@ final class SecurityHelper
     {
         $replace['attribute'] = $attribute;
         $baseRule = explode('.', $rule)[0];
-        
+
         // 1. Try package translation namespace first
         $packageKey = 'authentication::messages.validation_' . $baseRule;
         $packageTrans = trans($packageKey, $replace);

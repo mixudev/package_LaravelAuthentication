@@ -6,6 +6,7 @@ namespace Vendor\LaravelAuthentication\DTO;
 
 use Illuminate\Http\Request;
 use Vendor\LaravelAuthentication\Enums\AuthenticationChannel;
+use Vendor\LaravelAuthentication\Support\ClientIpResolver;
 
 /**
  * Purpose:
@@ -34,7 +35,7 @@ final class AuthenticationContext
         }
 
         return new self(
-            ipAddress: (string) $request->ip(),
+            ipAddress: ClientIpResolver::resolve($request),
             userAgent: $request->userAgent(),
             channel: $channel,
             guard: $guard ?? (string) config('authentication.guard', 'web'),

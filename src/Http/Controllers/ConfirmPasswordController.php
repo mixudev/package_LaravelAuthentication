@@ -54,7 +54,7 @@ class ConfirmPasswordController extends Controller
             ]);
         }
 
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
 
         if ($this->rateLimiter->tooManyAttempts('confirm_password', (string) $user->getAuthIdentifier(), $ip)) {
             $seconds = $this->rateLimiter->availableIn('confirm_password', (string) $user->getAuthIdentifier(), $ip);

@@ -118,16 +118,16 @@ class TwoFactorService
         );
 
         if ($isValid) {
-            $record->update(['confirmed_at' => now()]);
-            return true;
-        }
+                    $record->update(['confirmed_at' => now(), 'last_used_timestep' => null]);
+                    return true;
+                }
 
-        return false;
-    }
+                return false;
+            }
 
-    /**
-     * Disable 2FA after checking password.
-     */
+            /**
+             * Disable 2FA after checking password.
+             */
     public function disable(Authenticatable $user, #[SensitiveParameter] string $password): bool
     {
         $passwordColumn = $this->config->getIdentifierColumn('password');
@@ -180,60 +180,65 @@ class TwoFactorService
     {
         $userId = $user->getAuthIdentifier();
 
-        // TOTP is stateless and does not consume a stored credential.
-        /** @var TwoFactorAuthentication|null $record */
-        $record = TwoFactorAuthentication::where('user_id', $userId)->first();
-        if (!$record || !$record->isConfirmed()) {
-            return false;
-        }
+        $cleanInput = str_replace(['-', ' '], '', trim($code));
 
-        if ($this->totp->verify(
-            $record->secret,
-            $code,
-            $this->config->getTwoFactorWindow(),
-            $this->config->getTwoFactorDigits(),
-            $this->config->getTwoFactorPeriod()
-        )) {
-            return true;
-        }
+                // TOTP is a replayable credential: the same code stays valid for the whole
+                // drift window. Claim the timestep under a row lock so a code observed once
+                // (phishing, malware, shoulder surfing) cannot be redeemed again.
+                return DB::transaction(function () use ($userId, $code, $cleanInput): bool {
+                    /** @var TwoFactorAuthentication|null $lockedRecord */
+                    $lockedRecord = TwoFactorAuthentication::query()
+                        ->where('user_id', $userId)
+                        ->lockForUpdate()
+                        ->first();
 
-        // Recovery codes are one-time credentials. Lock the row inside a
-        // transaction so two concurrent requests cannot consume the same code.
-        return DB::transaction(function () use ($userId, $code): bool {
-            /** @var TwoFactorAuthentication|null $lockedRecord */
-            $lockedRecord = TwoFactorAuthentication::query()
-                ->where('user_id', $userId)
-                ->lockForUpdate()
-                ->first();
+                    if (!$lockedRecord || !$lockedRecord->isConfirmed()) {
+                        return false;
+                    }
 
-            if (!$lockedRecord || !$lockedRecord->isConfirmed()) {
-                return false;
+                    $timestep = $this->totp->verifyCounter(
+                        $lockedRecord->secret,
+                        $code,
+                        $this->config->getTwoFactorWindow(),
+                        $this->config->getTwoFactorDigits(),
+                        $this->config->getTwoFactorPeriod()
+                    );
+
+                    if ($timestep !== null) {
+                        if ((int) $lockedRecord->last_used_timestep >= $timestep) {
+                            return false; // Replay of an already-redeemed (or older) timestep.
+                        }
+
+                        $lockedRecord->update(['last_used_timestep' => $timestep]);
+
+                        return true;
+                    }
+
+                    // Recovery codes are one-time credentials. Lock the row inside a
+                    // transaction so two concurrent requests cannot consume the same code.
+                    $recoveryCodes = (array) ($lockedRecord->recovery_codes ?? []);
+
+                    foreach ($recoveryCodes as $index => $storedCode) {
+                        if (!is_string($storedCode)) {
+                            continue;
+                        }
+
+                        $isMatch = str_starts_with($storedCode, '$2y$')
+                            || str_starts_with($storedCode, '$argon2id$')
+                            || str_starts_with($storedCode, '$2a$')
+                            ? $this->hasher->check($cleanInput, $storedCode)
+                            : hash_equals(str_replace(['-', ' '], '', trim($storedCode)), $cleanInput);
+
+                        if ($isMatch) {
+                            unset($recoveryCodes[$index]);
+                            $lockedRecord->update(['recovery_codes' => array_values($recoveryCodes)]);
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
             }
-
-            $cleanInput = str_replace(['-', ' '], '', trim($code));
-            $recoveryCodes = (array) ($lockedRecord->recovery_codes ?? []);
-
-            foreach ($recoveryCodes as $index => $storedCode) {
-                if (!is_string($storedCode)) {
-                    continue;
-                }
-
-                $isMatch = str_starts_with($storedCode, '$2y$')
-                    || str_starts_with($storedCode, '$argon2id$')
-                    || str_starts_with($storedCode, '$2a$')
-                    ? $this->hasher->check($cleanInput, $storedCode)
-                    : hash_equals(str_replace(['-', ' '], '', trim($storedCode)), $cleanInput);
-
-                if ($isMatch) {
-                    unset($recoveryCodes[$index]);
-                    $lockedRecord->update(['recovery_codes' => array_values($recoveryCodes)]);
-                    return true;
-                }
-            }
-
-            return false;
-        });
-    }
 
     /**
      * Generate list of high-entropy formatted recovery codes (e.g. "ABCDE-12345").

@@ -122,7 +122,7 @@ class ComprehensiveSecurityRemediationTest extends TestCase
         ]);
 
         // Must redirect to two-factor challenge rather than dashboard
-        $response->assertRedirect(route('two-factor.challenge'));
+        $response->assertRedirect(route('authentication.two-factor.challenge'));
         $this->assertEquals($user->id, session('auth.2fa.user_id'));
     }
 

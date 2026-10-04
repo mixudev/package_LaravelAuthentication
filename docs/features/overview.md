@@ -281,13 +281,20 @@ Mencegah request login, register, atau request OTP terblokir/lambat saat koneksi
 ### Konfigurasi di `config/authentication.php`:
 ```php
 'mail' => [
-    'queue'            => true, // Set true untuk dispatch email lewat background worker queue
-    'queue_connection' => null, // null = mengikuti default queue connection Laravel
-    'queue_name'       => 'auth-emails',
+    'queue'            => false, // default sync; set true untuk background worker
+    'queue_connection' => null,  // null = mengikuti default queue connection Laravel
 ],
 ```
 
-Saat `mail.queue => true`, mailable `OtpMail` dan `NewDeviceLoginMail` otomatis dikirim via antrean worker `php artisan queue:work --queue=auth-emails`.
+Saat `mail.queue => true`, `OtpMail` dan `NewDeviceLoginMail` masuk ke queue
+`default`, sehingga `php artisan queue:work` sudah cukup. Jika audit async juga
+diaktifkan (`audit.queue => true`), gunakan satu worker untuk keduanya:
+
+```bash
+php artisan queue:work --queue=default,auth-audit
+```
+
+`mail.queue_name` tidak tersedia karena mailable tidak memakainya.
 
 ---
 

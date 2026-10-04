@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: OTP VERIFY
 Package: mixudev/laravel-authentication
@@ -6,31 +6,31 @@ Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 d
 =============================================================================
 --}}
 @php
-    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
-        ? 'authentication::layouts.split' 
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split'
+        ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $verifyRoute = Route::has('authentication.otp.verify.perform') 
-        ? route('authentication.otp.verify.perform') 
+    $verifyRoute = Route::has('authentication.otp.verify.perform')
+        ? route('authentication.otp.verify.perform')
         : (Route::has('otp.verify.perform') ? route('otp.verify.perform') : url('/otp/verify'));
 
-    $sendRoute = Route::has('authentication.otp.send') 
-        ? route('authentication.otp.send') 
-        : (Route::has('otp.send') ? route('otp.send') : url('/otp/request'));
+    $sendRoute = Route::has('authentication.otp.send')
+        ? route('authentication.otp.send')
+        : (Route::has('authentication.otp.send') ? route('authentication.otp.send') : url('/otp/request'));
 
-    $loginRoute = Route::has('authentication.login') 
-        ? route('authentication.login') 
-        : (Route::has('login') ? route('login') : url('/login'));
+    $loginRoute = Route::has('authentication.login')
+        ? route('authentication.login')
+        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
 
     $identifier = $identifier ?? old('identifier', request('identifier', ''));
     $otpLength  = (int) config('authentication.features.otp.length', 6);
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.otp_verify_title')">
-    
+
     <div class="space-y-4">
-        
-        <x-authentication::header 
+
+        <x-authentication::header
             :title="__('authentication::messages.otp_verify_title')"
             :subtitle="__('authentication::messages.otp_verify_subtitle')"
         />
@@ -54,7 +54,7 @@ Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 d
 
             {{-- Kotak OTP 6 Digit — Auto-advance otomatis saat mengetik --}}
             <div class="py-2">
-                <x-authentication::otp-input 
+                <x-authentication::otp-input
                     name="code"
                     :length="$otpLength"
                     :autofocus="true"
@@ -62,7 +62,7 @@ Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 d
             </div>
 
             <div class="block pt-1">
-                <x-authentication::checkbox 
+                <x-authentication::checkbox
                     name="remember"
                     :checked="true"
                     :label="__('authentication::messages.remember_device')"

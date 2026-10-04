@@ -2,7 +2,7 @@
 
 [![CI Tests](https://github.com/mixudev/package_LaravelAuthentication/actions/workflows/ci.yml/badge.svg)](https://github.com/mixudev/package_LaravelAuthentication/actions)
 [![Latest Version](https://img.shields.io/github/v/tag/mixudev/package_LaravelAuthentication?label=version&color=blue)](https://github.com/mixudev/package_LaravelAuthentication/releases)
-[![PHP Version](https://img.shields.io/badge/php-%5E8.1%20%7C%20%5E8.2%20%7C%20%5E8.3%20%7C%20%5E8.4%20%7C%20%5E8.5-8892BF.svg)](https://php.net)
+[![PHP Version](https://img.shields.io/badge/php-%5E8.2%20%7C%20%5E8.3%20%7C%20%5E8.4%20%7C%20%5E8.5-8892BF.svg)](https://php.net)
 [![Laravel Version](https://img.shields.io/badge/laravel-10.x%20%7C%2011.x%20%7C%2012.x%20%7C%2013.x-FF2D20.svg)](https://laravel.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -50,6 +50,23 @@ Wires 12 auth events (login, lockout, 2FA, device, password, session) into real-
 ```bash
 composer require mixudev/laravel-authentication
 ```
+
+### Dependency matrix
+
+The package's Composer dependencies are installed automatically by the command above. The following integrations are optional and are required only when their feature is enabled:
+
+| Feature | Required package / service | Install or setup |
+| :--- | :--- | :--- |
+| Web login, registration, password reset, OTP, 2FA, sessions | Laravel application with database, cache, session, mail, and queue configuration | Included in Laravel; run package migrations |
+| API bearer tokens | `laravel/sanctum` and `HasApiTokens` on the configured user model | `composer require laravel/sanctum`; configure `auth:sanctum` |
+| Social login | `laravel/socialite` | `composer require laravel/socialite`; configure Google/GitHub credentials |
+| CAPTCHA | Turnstile, reCAPTCHA, or hCaptcha account | Configure provider keys in `.env` only when CAPTCHA is enabled |
+| Passkey / WebAuthn | HTTPS outside localhost and a browser with WebAuthn support | No extra Composer package; configure RP/origin correctly |
+| QR code for TOTP setup | `chillerlan/php-qrcode` | Installed as a required Composer dependency |
+| Asynchronous email or audit persistence | A configured Laravel queue backend and a running worker | `php artisan queue:work --queue=default,auth-audit` |
+| Redis rate limiting / queue / cache | Redis extension or a supported Redis client, depending on the Laravel setup | Optional; use database/file cache for development if suitable |
+
+The package does not require Sanctum, Socialite, CAPTCHA, Redis, or a queue worker for every installation. Install and configure only the integrations used by the enabled features. API token flows fail closed without Sanctum instead of returning unusable tokens; social routes fail closed with an installation message when Socialite is missing.
 
 > [!NOTE]
 > Untuk instalasi lokal / path repository (Monorepo), tambahkan repository path pada `composer.json` aplikasi Anda lalu jalankan `composer require mixudev/laravel-authentication:@dev`.

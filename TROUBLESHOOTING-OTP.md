@@ -15,6 +15,11 @@ User requests OTP code but email never arrives, even though API returns success 
 ],
 ```
 
+Queued OTP mail runs on the application **default** queue, so a plain
+`php artisan queue:work` handles it. Only `authentication.audit.queue` uses a
+named queue (`auth-audit`); if you enabled it, the worker needs
+`--queue=default,auth-audit`.
+
 **Diagnosis:**
 ```bash
 # Check Laravel log
@@ -28,6 +33,9 @@ tail -f storage/logs/laravel.log
 ```bash
 # Start queue worker in production/development
 php artisan queue:work
+
+# If asynchronous audit is also enabled:
+php artisan queue:work --queue=default,auth-audit
 
 # Or use Supervisor (recommended for production)
 # See: https://laravel.com/docs/queues#supervisor-configuration

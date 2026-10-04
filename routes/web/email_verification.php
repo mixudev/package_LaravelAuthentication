@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Http\Controllers\EmailVerificationController;
 
 /*
@@ -13,13 +14,13 @@ use Vendor\LaravelAuthentication\Http\Controllers\EmailVerificationController;
 
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', [EmailVerificationController::class, 'notice'])
-        ->name('verification.notice');
+        ->name(RouteConfig::name('verification.notice'));
 
     Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
         ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
+        ->name(RouteConfig::name('verification.verify'));
 
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
         ->middleware(['throttle:6,1'])
-        ->name('verification.send');
+        ->name(RouteConfig::name('verification.send'));
 });

@@ -148,7 +148,7 @@ class PasswordResetController extends Controller
         }
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', trans($status))
+            ? redirect()->route('authentication.login')->with('status', trans($status))
             : back()->withErrors(['email' => trans($status)]);
     }
 
@@ -290,7 +290,7 @@ class PasswordResetController extends Controller
 
     private function isForgotPasswordThrottled(Request $request): bool
     {
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
         $clientId = AuthenticationContext::fromRequest($request)->clientId;
         $email = (string) $request->input('email', '');
 

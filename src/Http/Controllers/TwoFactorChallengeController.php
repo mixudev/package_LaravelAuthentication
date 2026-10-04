@@ -39,7 +39,7 @@ class TwoFactorChallengeController extends Controller
     public function show(Request $request): HttpResponse|JsonResponse|RedirectResponse
     {
         if (!$request->session()->has('auth.2fa.user_id')) {
-            return redirect()->route('login');
+            return redirect()->route('authentication.login');
         }
 
         if ($request->expectsJson()) {
@@ -89,7 +89,7 @@ class TwoFactorChallengeController extends Controller
         if (!$userId) {
             return $request->expectsJson()
                 ? response()->json(['message' => 'Invalid or expired two-factor session.'], 401)
-                : redirect()->route('login');
+                : redirect()->route('authentication.login');
         }
 
         if ($request->has('trust_device')) {
@@ -133,7 +133,7 @@ class TwoFactorChallengeController extends Controller
             ]);
         }
 
-        $ip = (string) $request->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
 
         if ($this->rateLimiter->tooManyAttempts('two_factor', (string) $userId, $ip)) {
             $seconds = $this->rateLimiter->availableIn('two_factor', (string) $userId, $ip);
@@ -146,7 +146,7 @@ class TwoFactorChallengeController extends Controller
         $user      = $userModel::find($userId);
 
         if (!$user) {
-            return redirect()->route('login');
+            return redirect()->route('authentication.login');
         }
 
         if (!$this->twoFactorService->verifyChallenge($user, $code)) {

@@ -7,7 +7,6 @@ namespace Vendor\LaravelAuthentication\Events;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use SensitiveParameter;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 
 /**
@@ -20,8 +19,6 @@ class OtpGenerated
     public function __construct(
         public readonly ?Authenticatable $user,
         public readonly string $identifier,
-        #[SensitiveParameter]
-        public readonly string $code,
         public readonly AuthenticationContext $context,
         public readonly int $expiryMinutes
     ) {}

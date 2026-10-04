@@ -48,7 +48,7 @@ class SocialAuthController extends Controller
             abort(404, "Social provider [{$provider}] is disabled or unsupported.");
         }
 
-        $ip = (string) request()->ip();
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve(request());
 
         if ($this->rateLimiter->tooManyAttempts('social', $provider, $ip)) {
             abort(429, (string) __('authentication::messages.throttle_error'));
@@ -96,7 +96,7 @@ class SocialAuthController extends Controller
                         $request->session()->put('auth.2fa.user_id', $user->getAuthIdentifier());
                         $request->session()->put('auth.2fa.remember', true);
                     }
-                    return redirect()->route('two-factor.challenge');
+                    return redirect()->route('authentication.two-factor.challenge');
                 }
             }
 
@@ -108,16 +108,16 @@ class SocialAuthController extends Controller
             return redirect()->intended($this->config->getRedirect('login', '/dashboard'))
                 ->with('status', "Successfully signed in with " . ucfirst($provider) . ".");
         } catch (AccountLockedException $e) {
-            return redirect()->route('login')
+            return redirect()->route('authentication.login')
                 ->withErrors(['identifier' => 'Your account has been temporarily locked for security reasons. Please try again later.']);
         } catch (AuthenticationException $e) {
             report($e);
 
-            return redirect()->route('login')
+            return redirect()->route('authentication.login')
                 ->withErrors(['identifier' => "Social sign-in with {$provider} failed. Please try again."]);
         } catch (\Throwable $e) {
             report($e);
-            return redirect()->route('login')
+            return redirect()->route('authentication.login')
                 ->withErrors(['identifier' => "Social sign-in with {$provider} failed. Please try again."]);
         }
     }

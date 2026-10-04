@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Http\Controllers\RegisterController;
 
 /*
@@ -14,9 +15,9 @@ use Vendor\LaravelAuthentication\Http\Controllers\RegisterController;
 if (config('authentication.features.registration.enabled', true)) {
     Route::middleware('guest')->group(function () {
         Route::get('/register', [RegisterController::class, 'showRegistrationForm'])
-            ->name('register');
+            ->name(RouteConfig::name('register'));
 
         Route::post('/register', [RegisterController::class, 'register'])
-            ->name('register.perform');
+            ->name(RouteConfig::name('register.perform'));
     });
 }

@@ -440,11 +440,11 @@ Verifies the TOTP 6-digit code or a single-use backup recovery code during login
 | `GET` | `/email/verify` | `verification.notice` | Auth | Notifikasi verifikasi email. |
 | `GET` | `/email/verify/{id}/{hash}` | `verification.verify` | Auth | Validasi link verifikasi. |
 | `POST` | `/email/verification-notification` | `verification.send` | Auth | Kirim ulang email verifikasi. |
-| `GET` | `/auth/passkey/login-options` | `passkey.login.options` | Guest | Challenge options WebAuthn login. |
-| `POST` | `/auth/passkey/login` | `passkey.login` | Guest | Validasi respon biometrik login. |
-| `GET` | `/auth/passkey/register-options` | `passkey.register.options` | Auth | Challenge options registrasi. |
-| `POST` | `/auth/passkey/register` | `passkey.register` | Auth | Simpan public key passkey. |
-| `DELETE` | `/auth/passkey/{id}` | `passkey.destroy` | Auth | Hapus passkey terdaftar. |
+| `POST` | `/auth/passkey/login-options` | `authentication.passkey.login.options` | Guest | Challenge options WebAuthn login. POST-only karena membuat challenge state. |
+| `POST` | `/auth/passkey/login` | `authentication.passkey.login` | Guest | Validasi respon biometrik login. |
+| `POST` | `/auth/passkey/register-options` | `authentication.passkey.register.options` | Auth | Challenge options registrasi. POST-only karena membuat challenge state. |
+| `POST` | `/auth/passkey/register` | `authentication.passkey.register` | Auth | Simpan public key passkey. |
+| `DELETE` | `/auth/passkey/{id}` | `authentication.passkey.destroy` | Auth | Hapus passkey terdaftar. |
 
 ## B. Endpoint REST API (`/api/v1/auth/*`)
 

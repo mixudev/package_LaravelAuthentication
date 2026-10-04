@@ -10,7 +10,7 @@ verifikasi, dan events).
 
 | Kebutuhan | Versi |
 | :--- | :--- |
-| PHP | 8.1+ (rekomendasi 8.2+) |
+| PHP | 8.2 - 8.5+ |
 | Laravel | 10.x, 11.x, 12.x, 13.x |
 | Database | MySQL, MariaDB, PostgreSQL, SQLite |
 | Composer | 2.x |
@@ -239,6 +239,54 @@ Jika kredensial salah, harusnya mendapat response 401 `InvalidCredentialsExcepti
 3. Setelah 5x gagal → rate limit (`Too many attempts`)
 4. Setelah threshold lockout → `Account is locked`
 5. Login benar → redirect ke dashboard, session ter-regenerate
+
+---
+
+## 7bis. Paket Tambahan yang Opsional
+
+Package ini **tidak** mewajibkan Sanctum, Socialite, CAPTCHA, atau Redis.
+Pasang hanya bila fitur terkait diaktifkan.
+
+| Fitur | Yang perlu dipasang | Perilaku bila tidak ada |
+| :--- | :--- | :--- |
+| API bearer token | `composer require laravel/sanctum` + trait `HasApiTokens` pada user model | Endpoint API token melempar `AuthenticationConfigurationException` (fail-closed), bukan mengembalikan token palsu |
+| Social login (Google/GitHub) | `composer require laravel/socialite` | Route social melempar exception berisi perintah install |
+| CAPTCHA | Akun Turnstile / reCAPTCHA / hCaptcha + `AUTH_CAPTCHA_SITE_KEY` & `AUTH_CAPTCHA_SECRET_KEY` | CAPTCHA dilewati karena `captcha.enabled = false` (default) |
+| Asynchronous audit | Queue backend + worker | Audit ditulis sinkron (`audit.queue = false` default) |
+| QR code TOTP | `chillerlan/php-qrcode` | Sudah dependency wajib, terpasang otomatis |
+
+Verifikasi cepat:
+
+```bash
+php artisan authentication:health --detailed
+```
+
+---
+
+## 7ter. Queue Worker
+
+Queue worker **tidak wajib** untuk instalasi standar: `mail.queue` dan
+`audit.queue` sama-sama default `false` (sinkron). Default mati dipilih agar
+instalasi baru tidak menggantungkan pengiriman OTP atau pencatatan audit pada
+worker yang belum dikonfigurasi. Untuk production high-traffic, aktifkan queue
+secara eksplisit setelah backend queue dan process supervisor siap.
+
+Kalau Anda mengaktifkan salah satunya, satu perintah worker cukup:
+
+```bash
+# Email queued saja → queue default, worker tanpa flag sudah cukup
+php artisan queue:work
+
+# Audit async juga aktif → queue bernama 'auth-audit' ikut diproses
+php artisan queue:work --queue=default,auth-audit
+```
+
+Tidak perlu menjalankan worker satu per satu: satu proses dengan daftar queue
+memproses semuanya, dengan prioritas dari kiri ke kanan. Alternatif: set
+`authentication.audit.queue_name` ke `default` agar semuanya di satu queue.
+
+Untuk produksi, jalankan worker di bawah Supervisor, systemd, Docker, atau
+[Laravel Horizon](https://laravel.com/docs/horizon).
 
 ---
 

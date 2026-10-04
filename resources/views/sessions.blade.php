@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: PUSAT KEAMANAN & MANAJEMEN AKUN (SECURITY DASHBOARD)
 Package: mixudev/laravel-authentication
@@ -12,26 +12,26 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
     $userName = $user->name ?? 'Pengguna';
     $isEmailVerified = method_exists($user, 'hasVerifiedEmail') ? $user->hasVerifiedEmail() : true;
 
-    $twoFactorSetupRoute = Route::has('two-factor.setup') 
-        ? route('two-factor.setup') 
+    $twoFactorSetupRoute = Route::has('authentication.two-factor.setup')
+        ? route('authentication.two-factor.setup')
         : url('/auth/two-factor/setup');
 
-    $twoFactorDisableRoute = Route::has('two-factor.disable') 
-        ? route('two-factor.disable') 
+    $twoFactorDisableRoute = Route::has('authentication.two-factor.disable')
+        ? route('authentication.two-factor.disable')
         : url('/auth/two-factor/disable');
 
-    $logoutRoute = Route::has('logout') 
-        ? route('logout') 
+    $logoutRoute = Route::has('authentication.logout')
+        ? route('authentication.logout')
         : url('/logout');
 
-    $confirmPasswordRoute = Route::has('password.confirm') 
-        ? route('password.confirm') 
+    $confirmPasswordRoute = Route::has('authentication.password.confirm')
+        ? route('authentication.password.confirm')
         : url('/confirm-password');
 @endphp
 
 <x-authentication::layouts.auth :title="'Pusat Keamanan Akun — ' . $brandName">
     <div class="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-6">
-        
+
         {{-- Navbar / Top Header --}}
         <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-zinc-200 dark:border-zinc-800 gap-4">
             <div class="flex items-center gap-3">
@@ -75,7 +75,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
 
             {{-- Kolom Kiri: Profil & Autentikasi 2 Langkah (2FA) --}}
             <div class="lg:col-span-1 space-y-6">
-                
+
                 {{-- Modul 1: Autentikasi 2 Langkah (2FA TOTP) --}}
                 <div class="auth-card bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-xs space-y-4" x-data="{ showDisableModal: false }">
                     <div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
@@ -85,7 +85,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                             </svg>
                             <h2 class="text-sm font-bold text-zinc-900 dark:text-zinc-100">Autentikasi 2 Langkah</h2>
                         </div>
-                        
+
                         @if ($isTwoFactorEnabled)
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
                                 Aktif
@@ -106,8 +106,8 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                     </p>
 
                     @if ($isTwoFactorEnabled)
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             @click="showDisableModal = true"
                             class="w-full text-center text-xs font-semibold py-2 px-3 rounded-lg border border-rose-200 dark:border-rose-900 bg-rose-50/50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 transition cursor-pointer"
                         >
@@ -126,11 +126,11 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                                       @submit="submitting = true">
                                     @csrf
                                     @method('DELETE')
-                                    <input 
-                                        type="password" 
-                                        name="password" 
+                                    <input
+                                        type="password"
+                                        name="password"
                                         placeholder="{{ __('authentication::messages.disable_2fa_password_placeholder') }}"
-                                        required 
+                                        required
                                         class="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400"
                                     >
                                     <div class="flex items-center justify-end gap-2 pt-1">
@@ -151,7 +151,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                             </div>
                         </div>
                     @else
-                        <a 
+                        <a
                             href="{{ $twoFactorSetupRoute }}"
                             class="block w-full text-center text-xs font-semibold py-2 px-3 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-white transition shadow-xs"
                         >
@@ -196,7 +196,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                                             <p class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $pk->name }}</p>
                                             <p class="text-[10px] text-zinc-400">Terakhir dipakai: {{ $pk->last_used_at ? \Carbon\Carbon::parse($pk->last_used_at)->diffForHumans() : 'Belum pernah' }}</p>
                                         </div>
-                                        <form method="POST" action="{{ route('passkey.destroy', $pk->id) }}" onsubmit="return confirm('Hapus kunci sandi ini?');">
+                                        <form method="POST" action="{{ route('authentication.passkey.destroy', $pk->id) }}" onsubmit="return confirm('Hapus kunci sandi ini?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-rose-600 hover:text-rose-700 text-xs font-semibold hover:underline cursor-pointer">
@@ -209,8 +209,8 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                         @endif
 
                         <div class="pt-1">
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onclick="window.registerNewPasskey()"
                                 class="w-full text-center text-xs font-semibold py-2 px-3 rounded-lg border border-blue-600/30 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition shadow-2xs cursor-pointer flex items-center justify-center gap-2"
                             >
@@ -252,7 +252,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
 
             {{-- Kolom Kanan: Manajemen Sesi Perangkat & Riwayat Login --}}
             <div class="lg:col-span-2 space-y-6">
-                
+
                 {{-- Modul 3: Manajemen Sesi & Perangkat Aktif --}}
                 <x-authentication::active-sessions :user="$user" />
 
@@ -337,9 +337,18 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                 if (!passkeyName) return;
 
                 try {
-                    // 1. Dapatkan creation options dari server
-                    var optRes = await fetch('{{ route("passkey.register.options") }}', {
-                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    // 1. Dapatkan creation options dari server.
+                    // POST wajib: challenge adalah state keamanan, bukan sumber daya idempotent.
+                    var csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
+
+                    var optRes = await fetch('{{ route("authentication.passkey.register.options") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
                     });
 
                     if (!optRes.ok) throw new Error('Gagal menginisiasi registrasi Passkey.');
@@ -371,9 +380,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                         }
                     };
 
-                    var csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
-
-                    var regRes = await fetch('{{ route("passkey.register") }}', {
+                    var regRes = await fetch('{{ route("authentication.passkey.register") }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

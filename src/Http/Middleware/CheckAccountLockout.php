@@ -29,7 +29,7 @@ class CheckAccountLockout
                 ], 403);
             }
 
-            return redirect()->route('login')->withErrors([
+            return redirect()->route('authentication.login')->withErrors([
                 'identifier' => 'Account is temporarily locked.',
             ]);
         }

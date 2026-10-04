@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Http\Controllers\ConfirmPasswordController;
 
 /*
@@ -14,9 +15,9 @@ use Vendor\LaravelAuthentication\Http\Controllers\ConfirmPasswordController;
 if (config('authentication.features.confirm_password.enabled', true)) {
     Route::middleware('auth')->group(function () {
         Route::get('/confirm-password', [ConfirmPasswordController::class, 'show'])
-            ->name('password.confirm');
+            ->name(RouteConfig::name('password.confirm'));
 
         Route::post('/confirm-password', [ConfirmPasswordController::class, 'confirm'])
-            ->name('password.confirm.submit');
+            ->name(RouteConfig::name('password.confirm.submit'));
     });
 }

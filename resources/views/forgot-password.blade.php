@@ -1,4 +1,4 @@
-{{-- 
+{{--
 =============================================================================
 HALAMAN VIEW: FORGOT PASSWORD
 Package: mixudev/laravel-authentication
@@ -6,24 +6,24 @@ Deskripsi: Halaman lupa password dengan alert di atas form dan auto-dismiss 3 de
 =============================================================================
 --}}
 @php
-    $activeLayout = config('authentication.ui.layout', 'card') === 'split' 
-        ? 'authentication::layouts.split' 
+    $activeLayout = config('authentication.ui.layout', 'card') === 'split'
+        ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $emailRoute = Route::has('authentication.password.email') 
-        ? route('authentication.password.email') 
-        : (Route::has('password.email') ? route('password.email') : url('/forgot-password'));
+    $emailRoute = Route::has('authentication.password.email')
+        ? route('authentication.password.email')
+        : (Route::has('authentication.password.email') ? route('authentication.password.email') : url('/forgot-password'));
 
-    $loginRoute = Route::has('authentication.login') 
-        ? route('authentication.login') 
-        : (Route::has('login') ? route('login') : url('/login'));
+    $loginRoute = Route::has('authentication.login')
+        ? route('authentication.login')
+        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.forgot_title')">
-    
+
     <div class="space-y-4">
-        
-        <x-authentication::header 
+
+        <x-authentication::header
             :title="__('authentication::messages.forgot_title')"
             :subtitle="__('authentication::messages.forgot_subtitle')"
         />
@@ -43,7 +43,7 @@ Deskripsi: Halaman lupa password dengan alert di atas form dan auto-dismiss 3 de
               @submit="submitting = true">
             @csrf
 
-            <x-authentication::input 
+            <x-authentication::input
                 name="email"
                 type="email"
                 :label="__('authentication::messages.email_label')"

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Http\Controllers\TwoFactorChallengeController;
 use Vendor\LaravelAuthentication\Http\Controllers\TwoFactorSetupController;
 
@@ -23,7 +24,7 @@ if (config('authentication.features.two_factor.enabled', true)) {
     | Authenticated: 2FA Setup & Management
     */
     Route::middleware(
-        config('authentication.routes.api.auth_middleware', ['auth:sanctum'])
+        RouteConfig::apiAuthMiddleware()
     )->group(function () {
         Route::get('/two-factor/setup', [TwoFactorSetupController::class, 'show'])
             ->name('api.auth.two-factor.setup');
