@@ -15,6 +15,7 @@ use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\EmailVerified;
+use Vendor\LaravelAuthentication\Support\AuthenticationView;
 
 class EmailVerificationController extends Controller
 {
@@ -24,11 +25,12 @@ class EmailVerificationController extends Controller
 
     public function notice(): View|JsonResponse
     {
-        if (view()->exists('authentication::verify-email')) {
-            return view('authentication::verify-email');
-        }
+        // This view never shipped, so the old `view()->exists()` guard always failed
+        // and GET /email/verify answered with a JSON "verify your email" message
+        // instead of a page. The view now exists and the guard is gone.
+        $viewName = AuthenticationView::resolve('verify_email', 'authentication::pages.auth.verify-email');
 
-        return response()->json(['message' => 'Please verify your email address.']);
+        return view($viewName);
     }
 
     /**

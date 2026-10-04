@@ -30,6 +30,7 @@ class BladeViewContractTest extends TestCase
             'two_factor_challenge' => ['authentication::pages.two-factor.challenge'],
             'two_factor_setup' => ['authentication::pages.two-factor.setup'],
             'sessions' => ['authentication::pages.sessions.index'],
+            'verify_email' => ['authentication::pages.auth.verify-email'],
             'otp_email' => ['authentication::emails.otp'],
             'new_device_email' => ['authentication::emails.new-device'],
         ];

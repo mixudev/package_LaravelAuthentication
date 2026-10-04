@@ -11,6 +11,9 @@ declare(strict_types=1);
 */
 
 return [
+    'verify_email_title' => 'Verify your email address',
+    'verify_email_subtitle' => 'Check your inbox for a verification link.',
+    'verify_email_resend' => 'Resend verification email',
 
     /*
     |--------------------------------------------------------------------------

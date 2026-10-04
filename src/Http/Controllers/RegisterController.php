@@ -17,6 +17,7 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Http\Requests\RegisterRequest;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
+use Vendor\LaravelAuthentication\Support\AuthenticationView;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
@@ -39,22 +40,20 @@ class RegisterController extends Controller
             abort(404, (string) __('authentication::messages.registration_disabled'));
         }
 
-        $viewName = (string) config('authentication.views.register', 'authentication::pages.auth.register');
+        // A stale published config can name a view that no longer exists; falling back
+        // to JSON would make a browser GET return an API message.
+        $viewName = AuthenticationView::resolve('register', 'authentication::pages.auth.register');
 
-        if (view()->exists($viewName)) {
-            return view($viewName, [
-                'passwordPolicy' => [
-                    'min_length'        => config('authentication.password.validation_rules.min_length', 8),
-                    'require_uppercase' => config('authentication.password.validation_rules.require_uppercase', true),
-                    'require_lowercase' => config('authentication.password.validation_rules.require_lowercase', true),
-                    'require_numbers'   => config('authentication.password.validation_rules.require_numbers', true),
-                    'require_symbols'   => config('authentication.password.validation_rules.require_symbols', true),
-                    'symbols_charset'   => config('authentication.password.validation_rules.symbols_charset', '@$!%*#?&'),
-                ],
-            ]);
-        }
-
-        return response()->json(['message' => 'Please register via POST.']);
+        return view($viewName, [
+            'passwordPolicy' => [
+                'min_length'        => config('authentication.password.validation_rules.min_length', 8),
+                'require_uppercase' => config('authentication.password.validation_rules.require_uppercase', true),
+                'require_lowercase' => config('authentication.password.validation_rules.require_lowercase', true),
+                'require_numbers'   => config('authentication.password.validation_rules.require_numbers', true),
+                'require_symbols'   => config('authentication.password.validation_rules.require_symbols', true),
+                'symbols_charset'   => config('authentication.password.validation_rules.symbols_charset', '@$!%*#?&'),
+            ],
+        ]);
     }
 
     /**

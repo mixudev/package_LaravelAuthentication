@@ -458,8 +458,29 @@ final class AuthenticationConfig
         return (string) $this->config->get("authentication.redirects.{$key}", $default);
     }
 
+    /**
+     * Resolve a configured package view, falling back to the canonical path when
+     * the configured one no longer exists.
+     *
+     * A host that published `config/authentication.php` before the view tree was
+     * grouped still names the removed flat aliases. Resolving that name directly
+     * would raise `View [...] not found` on every page, so the canonical path
+     * wins and only a genuinely missing view fails loudly.
+     */
     public function getView(string $key, string $default): string
     {
-        return (string) $this->config->get("authentication.views.{$key}", $default);
+        $configured = (string) $this->config->get("authentication.views.{$key}", $default);
+
+        if ($configured !== '' && view()->exists($configured)) {
+            return $configured;
+        }
+
+        if (view()->exists($default)) {
+            return $default;
+        }
+
+        throw new AuthenticationConfigurationException(
+            "Authentication view [{$default}] is unavailable. Run php artisan vendor:publish --tag=authentication-views --force or fix authentication.views.{$key}."
+        );
     }
 }

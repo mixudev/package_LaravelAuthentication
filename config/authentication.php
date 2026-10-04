@@ -519,6 +519,7 @@ return [
         'two_factor_challenge' => 'authentication::pages.two-factor.challenge',
         'two_factor_setup'     => 'authentication::pages.two-factor.setup',
         'sessions'             => 'authentication::pages.sessions.index',
+        'verify_email'        => 'authentication::pages.auth.verify-email',
         'new_device_email'     => 'authentication::emails.new-device',
     ],
 

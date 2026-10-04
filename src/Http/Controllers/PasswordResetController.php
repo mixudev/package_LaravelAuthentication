@@ -25,6 +25,7 @@ use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
 use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
+use Vendor\LaravelAuthentication\Support\AuthenticationView;
 use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class PasswordResetController extends Controller
@@ -43,13 +44,11 @@ class PasswordResetController extends Controller
             abort(404, 'Password reset feature is currently disabled.');
         }
 
-        $viewName = (string) config('authentication.views.forgot_password', 'authentication::pages.password.forgot-password');
+        // A stale published config can name a view that no longer exists; falling back
+        // to JSON would make a browser GET return an API message.
+        $viewName = AuthenticationView::resolve('forgot_password', 'authentication::pages.password.forgot-password');
 
-        if (view()->exists($viewName)) {
-            return view($viewName);
-        }
-
-        return response()->json(['message' => 'Please request password reset link via POST.']);
+        return view($viewName);
     }
 
     public function sendResetLinkEmail(ForgotPasswordRequest $request): RedirectResponse|JsonResponse
@@ -111,17 +110,13 @@ class PasswordResetController extends Controller
             abort(404, 'Password reset feature is currently disabled.');
         }
 
-        $viewName = (string) config('authentication.views.reset_password', 'authentication::pages.password.reset-password');
+        // A stale published config can name a view that no longer exists; falling back
+        // to JSON would make a browser GET return an API message.
+        $viewName = AuthenticationView::resolve('reset_password', 'authentication::pages.password.reset-password');
 
-        if (view()->exists($viewName)) {
-            return view($viewName, [
-                'token' => $token,
-                'email' => $request->query('email'),
-            ]);
-        }
-
-        return response()->json([
-            'message' => 'Please reset password via POST.',
+        return view($viewName, [
+            'token' => $token,
+            'email' => $request->query('email'),
         ]);
     }
 

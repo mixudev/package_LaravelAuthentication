@@ -18,6 +18,7 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
 use Vendor\LaravelAuthentication\Http\Requests\LoginRequest;
+use Vendor\LaravelAuthentication\Support\AuthenticationView;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
@@ -33,13 +34,13 @@ class LoginController extends Controller
      */
     public function showLoginForm(): View|JsonResponse
     {
-        $viewName = (string) config('authentication.views.login', 'authentication::pages.auth.login');
+        // A stale published config can name a view that no longer exists. Falling
+        // back to JSON here turns every GET page into "Please authenticate via
+        // POST", so the canonical view wins and a genuinely missing view fails
+        // loudly instead of silently.
+        $viewName = AuthenticationView::resolve('login', 'authentication::pages.auth.login');
 
-        if (view()->exists($viewName)) {
-            return view($viewName);
-        }
-
-        return response()->json(['message' => 'Please authenticate via POST.']);
+        return view($viewName);
     }
 
     /**

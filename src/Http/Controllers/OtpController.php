@@ -27,6 +27,7 @@ use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
 use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
+use Vendor\LaravelAuthentication\Support\AuthenticationView;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 use Vendor\LaravelAuthentication\Support\ThrottleMessage;
@@ -55,13 +56,11 @@ class OtpController extends Controller
             abort(404, 'OTP authentication is disabled.');
         }
 
-        $viewName = (string) config('authentication.views.otp_request', 'authentication::pages.otp.request');
+        // A stale published config can name a view that no longer exists; falling back
+        // to JSON would make a browser GET return an API message.
+        $viewName = AuthenticationView::resolve('otp_request', 'authentication::pages.otp.request');
 
-        if (view()->exists($viewName)) {
-            return view($viewName);
-        }
-
-        return response()->json(['message' => 'Please request an OTP code via POST.']);
+        return view($viewName);
     }
 
     /**
@@ -100,13 +99,11 @@ class OtpController extends Controller
         }
 
         $identifier = (string) $request->query('identifier', session('otp_identifier', ''));
-        $viewName = (string) config('authentication.views.otp_verify', 'authentication::pages.otp.verify');
+        // A stale published config can name a view that no longer exists; falling back
+        // to JSON would make a browser GET return an API message.
+        $viewName = AuthenticationView::resolve('otp_verify', 'authentication::pages.otp.verify');
 
-        if (view()->exists($viewName)) {
-            return view($viewName, ['identifier' => $identifier]);
-        }
-
-        return response()->json(['message' => 'Please verify OTP code via POST.', 'identifier' => $identifier]);
+        return view($viewName, ['identifier' => $identifier]);
     }
 
     /**

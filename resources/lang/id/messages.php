@@ -11,6 +11,9 @@ declare(strict_types=1);
 */
 
 return [
+    'verify_email_title' => 'Verifikasi alamat email Anda',
+    'verify_email_subtitle' => 'Periksa kotak masuk Anda untuk tautan verifikasi.',
+    'verify_email_resend' => 'Kirim ulang email verifikasi',
 
     /*
     |--------------------------------------------------------------------------
