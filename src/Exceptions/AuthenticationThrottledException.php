@@ -13,10 +13,10 @@ class AuthenticationThrottledException extends AuthenticationException
 
     public function __construct(
         public readonly int $secondsRemaining,
-        string $message = 'Too many login attempts. Please try again later.',
+        string $message = '',
         int $code = 0,
         ?\Throwable $previous = null
     ) {
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message !== '' ? $message : (string) trans('authentication::messages.auth_throttled_later'), $code, $previous);
     }
 }

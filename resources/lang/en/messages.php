@@ -78,6 +78,8 @@ return [
     | Password Reset Messages
     |--------------------------------------------------------------------------
     */
+    'password_reset_link_sent' => 'If an account with that email exists, a password reset link has been sent. Please check your inbox.',
+    'auth_throttled_later' => 'Too many login attempts. Please try again later.',
     'email_verification_forbidden' => 'This verification link does not belong to your account.',
     'email_verification_invalid' => 'Invalid email verification link. The hash does not match your current email address.',
     /*

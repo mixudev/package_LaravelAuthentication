@@ -37,14 +37,14 @@ final class AuthenticationResult
 
     public static function failed(
         AuthenticationStatus $status = AuthenticationStatus::INVALID_CREDENTIALS,
-        string $message = 'These credentials do not match our records.',
+        string $message = '',
         array $metadata = []
     ): self {
         return new self(
             status: $status,
             user: null,
             token: null,
-            message: $message,
+            message: $message !== '' ? $message : (string) __('authentication::messages.invalid_credentials'),
             metadata: $metadata
         );
     }

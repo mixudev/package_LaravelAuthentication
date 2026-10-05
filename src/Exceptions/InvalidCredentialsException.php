@@ -11,8 +11,8 @@ class InvalidCredentialsException extends AuthenticationException
 {
     protected string $errorCode = 'INVALID_CREDENTIALS';
 
-    public function __construct(string $message = 'These credentials do not match our records.', int $code = 0, ?\Throwable $previous = null)
+    public function __construct(string $message = '', int $code = 0, ?\Throwable $previous = null)
     {
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message !== '' ? $message : (string) trans('authentication::messages.invalid_credentials'), $code, $previous);
     }
 }

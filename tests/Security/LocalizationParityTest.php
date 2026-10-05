@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\Tests\Security;
 
+use Vendor\LaravelAuthentication\DTO\AuthenticationResult;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
+use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Tests\TestCase;
 
 /**
@@ -139,6 +142,95 @@ class LocalizationParityTest extends TestCase
         $this->assertSame([], $offenders, "User-facing copy is still hardcoded:\n".implode("\n", $offenders));
     }
 
+    /**
+     * A default parameter is a constant expression, so `__()` cannot be one.
+     * Every copy that used to sit in a signature therefore had to be a literal,
+     * which is how "If an account with that email exists…" and the exception
+     * sentences survived the first pass.
+     *
+     * Machine identifiers are excluded on purpose: `$status = 'within_budget'`
+     * and `protected string $errorCode = 'INVALID_CREDENTIALS'` are wire values
+     * that must stay stable across locales and must never be translated.
+     */
+    public function test_no_default_parameter_carries_a_user_facing_english_sentence(): void
+    {
+        $offenders = [];
+
+        foreach ($this->sourceFiles(extra: ['Exceptions', 'DTO']) as $file) {
+            $lines = file($file, FILE_IGNORE_NEW_LINES);
+            if ($lines === false) {
+                continue;
+            }
+
+            foreach ($lines as $index => $line) {
+                if (!preg_match('/\\$(?:message|genericMessage|reason|detail|errorMessage)\\w*\\s*=\\s*\'([^\']{12,})\'/', $line, $match)) {
+                    continue;
+                }
+
+                // A sentence has whitespace. A snake_case token is a wire value.
+                if (preg_match('/\\s/', $match[1]) !== 1) {
+                    continue;
+                }
+
+                $offenders[] = basename($file).':'.($index + 1).' => '.$match[1];
+            }
+        }
+
+        $this->assertSame([], $offenders, "A signature still hardcodes user-facing copy:\n".implode("\n", $offenders));
+    }
+
+    /**
+     * The exception and DTO defaults are the sentences a user actually sees when
+     * nothing overrides them, so both locales are pinned here.
+     */
+    public function test_default_exception_sentences_follow_the_locale(): void
+    {
+        app()->setLocale('en');
+        $this->assertSame(
+            'These credentials do not match our records.',
+            (new InvalidCredentialsException())->getMessage()
+        );
+        $this->assertSame(
+            'Too many login attempts. Please try again later.',
+            (new AuthenticationThrottledException(30))->getMessage()
+        );
+
+        app()->setLocale('id');
+        $this->assertNotSame(
+            'These credentials do not match our records.',
+            (new InvalidCredentialsException())->getMessage(),
+            'InvalidCredentialsException ignored the active locale.'
+        );
+        $this->assertNotSame(
+            'Too many login attempts. Please try again later.',
+            (new AuthenticationThrottledException(30))->getMessage(),
+            'AuthenticationThrottledException ignored the active locale.'
+        );
+        $this->assertNotSame(
+            'These credentials do not match our records.',
+            AuthenticationResult::failed()->message,
+            'AuthenticationResult::failed() ignored the active locale.'
+        );
+    }
+
+    public function test_an_explicit_message_still_overrides_the_localized_default(): void
+    {
+        app()->setLocale('id');
+
+        $this->assertSame(
+            'Custom throttle sentence.',
+            (new AuthenticationThrottledException(30, 'Custom throttle sentence.'))->getMessage()
+        );
+        $this->assertSame(
+            'Custom credential sentence.',
+            (new InvalidCredentialsException('Custom credential sentence.'))->getMessage()
+        );
+        $this->assertSame(
+            'Custom failure sentence.',
+            \Vendor\LaravelAuthentication\DTO\AuthenticationResult::failed(message: 'Custom failure sentence.')->message
+        );
+    }
+
     public function test_email_bodies_render_in_the_active_locale(): void
     {
         foreach (self::LOCALES as $locale) {
@@ -232,9 +324,10 @@ class LocalizationParityTest extends TestCase
     }
 
     /**
+     * @param  list<string>  $extra
      * @return list<string>
      */
-    private function sourceFiles(): array
+    private function sourceFiles(array $extra = []): array
     {
         $root = realpath(__DIR__.'/../../src');
 
@@ -242,8 +335,13 @@ class LocalizationParityTest extends TestCase
             return [];
         }
 
+        $directories = array_merge(
+            ['Http/Controllers', 'Http/Middleware', 'Http/Requests', 'Mail', 'DTO'],
+            $extra
+        );
+
         $files = [];
-        foreach (['Http/Controllers', 'Http/Middleware', 'Mail', 'DTO'] as $subdirectory) {
+        foreach ($directories as $subdirectory) {
             $path = $root.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $subdirectory);
             if (! is_dir($path)) {
                 continue;

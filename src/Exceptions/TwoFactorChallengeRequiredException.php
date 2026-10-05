@@ -10,8 +10,8 @@ class TwoFactorChallengeRequiredException extends AuthenticationException
 {
     public function __construct(
         public readonly Authenticatable $user,
-        string $message = 'Two-factor authentication challenge required.'
+        string $message = ''
     ) {
-        parent::__construct($message);
+        parent::__construct($message !== '' ? $message : (string) trans('authentication::messages.two_factor_challenge_required'));
     }
 }

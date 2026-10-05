@@ -91,8 +91,7 @@ class PasswordResetController extends Controller
         // Normalize timing to prevent timing-based enumeration attacks
         usleep(random_int(50_000, 150_000));
 
-        /** @var string $genericMessage */
-        $genericMessage = 'If an account with that email exists, a password reset link has been sent. Please check your inbox.';
+        $genericMessage = (string) __('authentication::messages.password_reset_link_sent');
 
         if ($request->expectsJson()) {
             return response()->json([

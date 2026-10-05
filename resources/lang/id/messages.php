@@ -74,6 +74,8 @@ return [
     | Pesan Reset Password
     |--------------------------------------------------------------------------
     */
+    'password_reset_link_sent' => 'Jika terdapat akun dengan email tersebut, tautan pengaturan ulang kata sandi telah dikirim. Silakan periksa kotak masuk Anda.',
+    'auth_throttled_later' => 'Terlalu banyak percobaan masuk. Silakan coba lagi nanti.',
     'email_verification_forbidden' => 'Tautan verifikasi ini bukan milik akun Anda.',
     'email_verification_invalid' => 'Tautan verifikasi email tidak valid. Hash tidak cocok dengan alamat email Anda saat ini.',
     /*
