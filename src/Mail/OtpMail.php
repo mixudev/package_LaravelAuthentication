@@ -26,6 +26,15 @@ class OtpMail extends Mailable implements ShouldBeEncrypted
 {
     use Queueable, SerializesModels;
 
+    /**
+     * The locale captured when the mail was queued.
+     *
+     * A queued mailable is rendered by `queue:work`, not by the request that
+     * created it, so without this a worker running under the host's default
+     * `APP_LOCALE=en` sends English copy to a user who registered in Indonesian.
+     */
+    public ?string $queuedLocale = null;
+
     public function __construct(
         public readonly string $code,
         public readonly int $expiryMinutes,
@@ -34,6 +43,8 @@ class OtpMail extends Mailable implements ShouldBeEncrypted
         public readonly ?string $customSubject = null,
         public readonly ?string $customView = null
     ) {
+        $this->queuedLocale ??= app()->getLocale();
+
         // Queue connection can be customized via config
         $queueConnection = config('authentication.mail.queue_connection');
 
@@ -51,9 +62,15 @@ class OtpMail extends Mailable implements ShouldBeEncrypted
      */
     public function envelope(): Envelope
     {
+        $locale = $this->queuedLocale;
+        if ($locale !== null) {
+            app()->setLocale($locale);
+        }
+
         $appName = (string) config('app.name', 'Laravel');
         $defaultSubject = "{$appName} — " . (string) __('authentication::messages.mail_otp_title');
-        $subject = $this->customSubject ?: (string) config('authentication.features.otp.email_subject', $defaultSubject);
+        $configuredSubject = config('authentication.features.otp.email_subject');
+        $subject = $this->customSubject ?: (is_string($configuredSubject) && $configuredSubject !== '' ? $configuredSubject : $defaultSubject);
 
         return new Envelope(
             subject: $subject,

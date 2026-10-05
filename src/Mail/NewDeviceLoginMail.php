@@ -24,12 +24,20 @@ class NewDeviceLoginMail extends Mailable implements ShouldBeEncrypted
 {
     use Queueable, SerializesModels;
 
+    /**
+     * Locale captured at construction, for the same queue-worker reason as
+     * {@see OtpMail::$queuedLocale}.
+     */
+    public ?string $queuedLocale = null;
+
     public function __construct(
         public readonly Authenticatable $user,
         public readonly AuthenticationDevice $device,
         public readonly ?string $customSubject = null,
         public readonly ?string $customView = null
     ) {
+        $this->queuedLocale ??= app()->getLocale();
+
         $queueConnection = config('authentication.mail.queue_connection');
 
         if ($queueConnection) {
@@ -41,9 +49,15 @@ class NewDeviceLoginMail extends Mailable implements ShouldBeEncrypted
 
     public function envelope(): Envelope
     {
+        $locale = $this->queuedLocale;
+        if ($locale !== null) {
+            app()->setLocale($locale);
+        }
+
         $appName = (string) config('app.name', 'Laravel');
         $defaultSubject = "{$appName} — " . (string) __('authentication::messages.mail_new_device_title');
-        $subject = $this->customSubject ?: (string) config('authentication.security.new_device_notification.mail_subject', $defaultSubject);
+        $configuredSubject = config('authentication.security.new_device_notification.mail_subject');
+        $subject = $this->customSubject ?: (is_string($configuredSubject) && $configuredSubject !== '' ? $configuredSubject : $defaultSubject);
 
         return new Envelope(
             subject: $subject,
