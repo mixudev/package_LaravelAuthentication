@@ -28,7 +28,7 @@ class ConfirmPasswordController extends Controller
     {
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Please confirm your password.',
+                'message' => (string) __('authentication::messages.confirm_password_required'),
             ]);
         }
 
@@ -50,7 +50,7 @@ class ConfirmPasswordController extends Controller
 
         if (!$user) {
             throw ValidationException::withMessages([
-                'password' => [__('authentication::messages.unauthenticated')],
+                'password' => [(string) __('authentication::messages.unauthenticated')],
             ]);
         }
 
@@ -59,7 +59,7 @@ class ConfirmPasswordController extends Controller
         if ($this->rateLimiter->tooManyAttempts('confirm_password', (string) $user->getAuthIdentifier(), $ip)) {
             $seconds = $this->rateLimiter->availableIn('confirm_password', (string) $user->getAuthIdentifier(), $ip);
             throw ValidationException::withMessages([
-                'password' => [__('authentication::messages.throttle_error', ['seconds' => $seconds])],
+                'password' => [(string) __('authentication::messages.throttle_error', ['seconds' => $seconds])],
             ]);
         }
 
@@ -69,7 +69,7 @@ class ConfirmPasswordController extends Controller
             $this->rateLimiter->hit('confirm_password', (string) $user->getAuthIdentifier(), $ip);
 
             throw ValidationException::withMessages([
-                'password' => [__('authentication::messages.invalid_password')],
+                'password' => [(string) __('authentication::messages.invalid_password')],
             ]);
         }
 
@@ -84,7 +84,7 @@ class ConfirmPasswordController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message'   => 'Password confirmed successfully.',
+                'message'   => (string) __('authentication::messages.password_confirmed'),
                 'confirmed' => true,
             ]);
         }

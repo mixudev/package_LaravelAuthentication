@@ -67,6 +67,6 @@ class SessionRevokeOthersRateLimitTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('message', 'All other sessions revoked successfully.');
+            ->assertJsonPath('message', 'All other active sessions have been logged out.');
     }
 }

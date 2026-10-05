@@ -28,7 +28,7 @@ class RequirePasswordConfirmation
 
         if (!$user) {
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Unauthenticated.'], 401);
+                return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
             }
 
             return redirect()->guest(route('authentication.login'));
@@ -46,7 +46,7 @@ class RequirePasswordConfirmation
         if ((time() - $confirmedAt) > $timeout) {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message'                        => 'Password confirmation required.',
+                    'message'                        => (string) __('authentication::messages.confirm_password_required'),
                     'password_confirmation_required' => true,
                 ], 423);
             }

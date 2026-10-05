@@ -45,9 +45,9 @@ class VerifyOtpRequest extends FormRequest
         return [
             'identifier.required' => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => $identifierLabel]),
             'identifier.string'   => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.string', ['attribute' => $identifierLabel]),
-            'code.required'       => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => 'kode OTP']),
-            'code.min'            => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.min.string', ['attribute' => 'kode OTP', 'min' => 4]),
-            'code.max'            => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.max.string', ['attribute' => 'kode OTP', 'max' => 16]),
+            'code.required'       => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => (string) __('authentication::messages.attribute_otp')]),
+            'code.min'            => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.min.string', ['attribute' => (string) __('authentication::messages.attribute_otp'), 'min' => 4]),
+            'code.max'            => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.max.string', ['attribute' => (string) __('authentication::messages.attribute_otp'), 'max' => 16]),
         ];
     }
 

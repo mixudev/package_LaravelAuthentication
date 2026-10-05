@@ -29,7 +29,7 @@ class TwoFactorSetupController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
         }
 
         $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
@@ -51,7 +51,7 @@ class TwoFactorSetupController extends Controller
         if ($this->twoFactorService->isEnabledFor($user)) {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message'            => 'Two-factor authentication is already enabled.',
+                    'message'            => (string) __('authentication::messages.two_factor_already_enabled'),
                     'two_factor_enabled' => true,
                 ], 400);
             }
@@ -61,7 +61,7 @@ class TwoFactorSetupController extends Controller
                 : (string) config('authentication.redirects.login', '/dashboard');
 
             return redirect($redirectUrl)
-                ->with('status', 'Two-factor authentication is already enabled on your account.');
+                ->with('status', (string) __('authentication::messages.two_factor_already_enabled'));
         }
 
         $setupData = $this->twoFactorService->setup($user);
@@ -87,19 +87,19 @@ class TwoFactorSetupController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
         }
 
         // Jika 2FA sudah aktif, tolak konfirmasi ulang
         if ($this->twoFactorService->isEnabledFor($user)) {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Two-factor authentication is already enabled.',
+                    'message' => (string) __('authentication::messages.two_factor_already_enabled'),
                 ], 400);
             }
 
             return redirect()->route('authentication.auth.sessions.index')
-                ->with('status', 'Two-factor authentication is already enabled.');
+                ->with('status', (string) __('authentication::messages.two_factor_already_enabled'));
         }
 
         $request->validate([
@@ -123,7 +123,7 @@ class TwoFactorSetupController extends Controller
             $this->rateLimiter->hit('two_factor', (string) $user->getAuthIdentifier(), $ip);
 
             throw ValidationException::withMessages([
-                'code' => [__('authentication::messages.invalid_two_factor_code')],
+                'code' => [(string) __('authentication::messages.invalid_two_factor_code')],
             ]);
         }
 
@@ -131,11 +131,11 @@ class TwoFactorSetupController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Two-factor authentication enabled successfully.',
+                'message' => (string) __('authentication::messages.two_factor_enabled'),
             ]);
         }
 
-        return redirect()->route('authentication.auth.sessions.index')->with('status', __('authentication::messages.two_factor_enabled'));
+        return redirect()->route('authentication.auth.sessions.index')->with('status', (string) __('authentication::messages.two_factor_enabled'));
     }
 
     public function destroy(Request $request): RedirectResponse|JsonResponse
@@ -147,7 +147,7 @@ class TwoFactorSetupController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
         }
 
         $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
@@ -167,7 +167,7 @@ class TwoFactorSetupController extends Controller
             $this->rateLimiter->hit('confirm_password', (string) $user->getAuthIdentifier(), $ip);
 
             throw ValidationException::withMessages([
-                'password' => [__('authentication::messages.invalid_password')],
+                'password' => [(string) __('authentication::messages.invalid_password')],
             ]);
         }
 
@@ -175,10 +175,10 @@ class TwoFactorSetupController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Two-factor authentication disabled successfully.',
+                'message' => (string) __('authentication::messages.two_factor_disabled'),
             ]);
         }
 
-        return back()->with('status', __('authentication::messages.two_factor_disabled'));
+        return back()->with('status', (string) __('authentication::messages.two_factor_disabled'));
     }
 }

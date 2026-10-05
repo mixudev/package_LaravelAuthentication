@@ -24,7 +24,7 @@ class AuthenticateWithCustomGuard
 
         if (!$this->auth->guard($resolvedGuard)->check()) {
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Unauthenticated.'], 401);
+                return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
             }
 
             return redirect()->guest(route('authentication.login'));

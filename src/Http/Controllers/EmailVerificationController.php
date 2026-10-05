@@ -46,23 +46,23 @@ class EmailVerificationController extends Controller
 
         if ($user === null) {
             return $request->expectsJson()
-                ? response()->json(['message' => 'Unauthenticated.'], 401)
+                ? response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401)
                 : redirect()->route('authentication.login');
         }
 
         // Pastikan {id} di URL sesuai dengan user yang login
         if ((string) $user->getKey() !== $id) {
-            abort(403, 'This verification link does not belong to your account.');
+            abort(403, (string) __('authentication::messages.email_verification_forbidden'));
         }
 
         // Pastikan {hash} di URL sesuai dengan email user yang login (sama dengan Illuminate\Auth\Middleware\EnsureEmailIsVerified)
         if (!hash_equals(sha1((string) ($user->getEmailForVerification() ?? '')), $hash)) {
-            abort(403, 'Invalid email verification link. The hash does not match your current email address.');
+            abort(403, (string) __('authentication::messages.email_verification_invalid'));
         }
 
         if ($user->hasVerifiedEmail()) {
             return $request->expectsJson()
-                ? response()->json(['message' => 'Email is already verified.'])
+                ? response()->json(['message' => (string) __('authentication::messages.email_already_verified')])
                 : redirect()->intended('/dashboard?verified=1');
         }
 
@@ -78,7 +78,7 @@ class EmailVerificationController extends Controller
         }
 
         return $request->expectsJson()
-            ? response()->json(['message' => 'Email verified successfully.'])
+            ? response()->json(['message' => (string) __('authentication::messages.email_verified')])
             : redirect()->intended('/dashboard?verified=1');
     }
 
@@ -88,7 +88,7 @@ class EmailVerificationController extends Controller
 
         if ($user !== null && $user->hasVerifiedEmail()) {
             return $request->expectsJson()
-                ? response()->json(['message' => 'Email already verified.'])
+                ? response()->json(['message' => (string) __('authentication::messages.email_already_verified')])
                 : redirect()->intended('/dashboard');
         }
 
@@ -97,7 +97,7 @@ class EmailVerificationController extends Controller
         }
 
         return $request->expectsJson()
-            ? response()->json(['message' => 'Verification link sent.'])
-            : back()->with('status', 'verification-link-sent');
+            ? response()->json(['message' => (string) __('authentication::messages.verification_link_sent')])
+            : back()->with('status', (string) __('authentication::messages.verification_link_sent'));
     }
 }

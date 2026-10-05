@@ -74,6 +74,46 @@ return [
     | Pesan Reset Password
     |--------------------------------------------------------------------------
     */
+    'email_verification_forbidden' => 'Tautan verifikasi ini bukan milik akun Anda.',
+    'email_verification_invalid' => 'Tautan verifikasi email tidak valid. Hash tidak cocok dengan alamat email Anda saat ini.',
+    /*
+    |--------------------------------------------------------------------------
+    | Label Atribut Form
+    |--------------------------------------------------------------------------
+    */
+    'attribute_name' => 'nama',
+    'attribute_email' => 'email',
+    'attribute_password' => 'kata sandi',
+    'attribute_password_confirmation' => 'konfirmasi kata sandi',
+    'attribute_new_password' => 'kata sandi baru',
+    'attribute_otp' => 'kode OTP',
+    'attribute_identifier' => 'email atau nama pengguna',
+    'authenticated' => 'Berhasil masuk.',
+    'account_locked_support' => 'Akun Anda sedang dikunci sementara. Silakan hubungi dukungan.',
+    'confirm_password_required' => 'Silakan konfirmasi kata sandi Anda.',
+    'password_confirmed' => 'Kata sandi berhasil dikonfirmasi.',
+    'unauthenticated' => 'Anda belum terautentikasi.',
+    'email_already_verified' => 'Alamat email Anda sudah diverifikasi.',
+    'email_verified' => 'Alamat email Anda berhasil diverifikasi.',
+    'verification_link_sent' => 'Tautan verifikasi baru telah dikirim ke email Anda.',
+    'otp_disabled' => 'Autentikasi dengan kode sekali pakai sedang dinonaktifkan.',
+    'otp_sent_generic' => 'Jika terdapat akun dengan identitas tersebut, kode verifikasi telah dikirim.',
+    'otp_send_failed' => 'Kami tidak dapat mengirim kode verifikasi saat ini. Silakan coba lagi nanti.',
+    'otp_invalid' => 'Kode verifikasi salah atau sudah kedaluwarsa.',
+    'otp_verified' => 'Verifikasi berhasil.',
+    'otp_verify_failed' => 'Kami tidak dapat memverifikasi kode saat ini. Silakan minta kode baru dan coba lagi.',
+    'passkey_throttled' => 'Terlalu banyak permintaan passkey. Silakan coba lagi nanti.',
+    'password_reset_disabled' => 'Pemulihan kata sandi sedang dinonaktifkan.',
+    'password_reset_generic' => 'Jika terdapat akun dengan email tersebut, tautan pengaturan ulang kata sandi telah dikirim.',
+    'registration_failed' => 'Kami tidak dapat membuat akun Anda saat ini. Silakan coba lagi nanti.',
+    'two_factor_challenge_required' => 'Autentikasi dua faktor diperlukan untuk melanjutkan.',
+    'two_factor_session_invalid' => 'Sesi dua faktor Anda tidak valid atau sudah kedaluwarsa. Silakan masuk kembali.',
+    'two_factor_success' => 'Autentikasi dua faktor berhasil.',
+    'two_factor_already_enabled' => 'Autentikasi dua faktor sudah aktif pada akun Anda.',
+    'social_auth_failed' => 'Masuk gagal. Silakan coba lagi.',
+    'social_provider_disabled' => 'Masuk dengan :provider tidak tersedia atau tidak didukung.',
+    'social_auth_success' => 'Berhasil masuk menggunakan :provider.',
+    'social_auth_failed' => 'Gagal masuk dengan :provider. Silakan coba lagi.',
     'password_reset_sent'     => 'Tautan untuk mengatur ulang kata sandi telah dikirimkan ke email Anda.',
     'password_reset_done'     => 'Kata sandi Anda berhasil diperbarui. Silakan masuk kembali.',
     'password_reset_invalid'  => 'Tautan reset password tidak valid atau sudah kedaluwarsa.',

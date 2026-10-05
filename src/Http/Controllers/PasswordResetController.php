@@ -41,7 +41,7 @@ class PasswordResetController extends Controller
     public function showLinkRequestForm(): View|JsonResponse
     {
         if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
-            abort(404, 'Password reset feature is currently disabled.');
+            abort(404, (string) __('authentication::messages.password_reset_disabled'));
         }
 
         // A stale published config can name a view that no longer exists; falling back
@@ -54,7 +54,7 @@ class PasswordResetController extends Controller
     public function sendResetLinkEmail(ForgotPasswordRequest $request): RedirectResponse|JsonResponse
     {
         if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
-            abort(404, 'Password reset feature is currently disabled.');
+            abort(404, (string) __('authentication::messages.password_reset_disabled'));
         }
 
         if ($this->isForgotPasswordThrottled($request)) {
@@ -107,7 +107,7 @@ class PasswordResetController extends Controller
     public function showResetForm(Request $request, string $token): View|JsonResponse
     {
         if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
-            abort(404, 'Password reset feature is currently disabled.');
+            abort(404, (string) __('authentication::messages.password_reset_disabled'));
         }
 
         // A stale published config can name a view that no longer exists; falling back
@@ -123,7 +123,7 @@ class PasswordResetController extends Controller
     public function reset(ResetPasswordRequest $request): RedirectResponse
     {
         if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
-            abort(404, 'Password reset feature is currently disabled.');
+            abort(404, (string) __('authentication::messages.password_reset_disabled'));
         }
 
         $claimKey = $this->claimResetToken($request);
@@ -153,7 +153,7 @@ class PasswordResetController extends Controller
         if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Password reset feature is currently disabled.',
+                'message' => (string) __('authentication::messages.password_reset_disabled'),
             ], 403);
         }
 
@@ -185,7 +185,7 @@ class PasswordResetController extends Controller
         // Always return generic success to prevent user enumeration
         return response()->json([
             'status'  => 'success',
-            'message' => 'If an account exists with that email, a password reset link has been dispatched.',
+            'message' => (string) __('authentication::messages.password_reset_generic'),
         ]);
     }
 
@@ -194,7 +194,7 @@ class PasswordResetController extends Controller
         if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Password reset feature is currently disabled.',
+                'message' => (string) __('authentication::messages.password_reset_disabled'),
             ], 403);
         }
 
@@ -203,7 +203,7 @@ class PasswordResetController extends Controller
         if ($claimKey === null) {
             return response()->json([
                 'status'  => 'failed',
-                'message' => 'Unable to reset password. The reset link is invalid or has expired.',
+                'message' => (string) __('authentication::messages.password_reset_invalid'),
             ], 400);
         }
 
@@ -221,13 +221,13 @@ class PasswordResetController extends Controller
         if ($status === Password::PASSWORD_RESET) {
             return response()->json([
                 'status'  => 'success',
-                'message' => 'Password has been reset successfully.',
+                'message' => (string) __('authentication::messages.password_reset_done'),
             ]);
         }
 
         return response()->json([
             'status'  => 'failed',
-            'message' => 'Unable to reset password. The reset link is invalid or has expired.',
+            'message' => (string) __('authentication::messages.password_reset_invalid'),
         ], 400);
     }
 

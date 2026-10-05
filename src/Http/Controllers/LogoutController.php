@@ -32,7 +32,7 @@ class LogoutController extends Controller
 
         return response()->json([
             'status'  => 'success',
-            'message' => 'Logged out successfully.',
+            'message' => (string) __('authentication::messages.logged_out'),
         ]);
     }
 }

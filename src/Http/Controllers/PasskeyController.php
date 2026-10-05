@@ -37,7 +37,7 @@ class PasskeyController extends Controller
         if ($this->rateLimiter->tooManyAttempts('passkeys', null, $ip)) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Too many passkey requests. Please try again later.',
+                'message' => (string) __('authentication::messages.passkey_throttled'),
             ], 429);
         }
 
@@ -77,7 +77,7 @@ class PasskeyController extends Controller
 
             return response()->json([
                 'status'   => 'success',
-                'message'  => __('authentication::messages.sign_in_btn'),
+                'message'  => (string) __('authentication::messages.sign_in_btn'),
                 'redirect' => config('authentication.redirects.login', '/dashboard'),
                 'token'    => $result->token,
                 // SEC-03: safe user payload — jangan expose Eloquent model mentah.
@@ -87,18 +87,18 @@ class PasskeyController extends Controller
             return response()->json([
                 'status'  => 'error',
                 // Jangan bocorkan detail lockout — cukup pesan standar.
-                'message' => 'Your account has been temporarily locked for security reasons. Please try again later.',
+                'message' => (string) __('authentication::messages.account_locked'),
             ], 423);
         } catch (InvalidCredentialsException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => __('authentication::messages.passkey_failed'),
+                'message' => (string) __('authentication::messages.passkey_failed'),
             ], 422);
         } catch (AuthenticationException $e) {
             return response()->json([
                 'status'  => 'error',
                 // Jangan bocorkan internal WebAuthn helper messages (rpIdHash mismatch, origin, dll).
-                'message' => __('authentication::messages.passkey_failed'),
+                'message' => (string) __('authentication::messages.passkey_failed'),
             ], 400);
         }
     }
@@ -112,7 +112,7 @@ class PasskeyController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
         }
 
         $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
@@ -144,7 +144,7 @@ class PasskeyController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
         }
 
         $name = (string) ($request->input('name') ?: 'Passkey (' . now()->format('M d, H:i') . ')');
@@ -154,7 +154,7 @@ class PasskeyController extends Controller
 
             return response()->json([
                 'status'     => 'success',
-                'message'    => __('authentication::messages.passkey_registered'),
+                'message'    => (string) __('authentication::messages.passkey_registered'),
                 'credential' => [
                     'id'   => $credential->id,
                     'name' => $credential->name,
@@ -164,7 +164,7 @@ class PasskeyController extends Controller
             return response()->json([
                 'status'  => 'error',
                 // Jangan bocorkan internal WebAuthn helper messages ke client.
-                'message' => __('authentication::messages.passkey_registration_failed'),
+                'message' => (string) __('authentication::messages.passkey_registration_failed'),
             ], 422);
         }
     }
@@ -178,7 +178,7 @@ class PasskeyController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
         }
 
         $deleted = $this->passkeyService->deletePasskey($user, $id);
@@ -187,14 +187,14 @@ class PasskeyController extends Controller
             return response()->json([
                 'status'  => $deleted ? 'success' : 'not_found',
                 'message' => $deleted
-                    ? __('authentication::messages.passkey_deleted')
+                    ? (string) __('authentication::messages.passkey_deleted')
                     : 'Passkey not found.',
             ], $deleted ? 200 : 404);
         }
 
         return back()->with(
             $deleted ? 'status' : 'error',
-            $deleted ? __('authentication::messages.passkey_deleted') : 'Passkey not found.'
+            $deleted ? (string) __('authentication::messages.passkey_deleted') : 'Passkey not found.'
         );
     }
 }

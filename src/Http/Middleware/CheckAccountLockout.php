@@ -25,7 +25,7 @@ class CheckAccountLockout
         if ($user !== null && $this->lockService->isLocked($user)) {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Account is temporarily locked. Please contact support.',
+                    'message' => (string) __('authentication::messages.account_locked_support'),
                 ], 403);
             }
 

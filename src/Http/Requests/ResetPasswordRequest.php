@@ -35,8 +35,8 @@ class ResetPasswordRequest extends FormRequest
 
         return [
             'token.required'     => 'Token reset password tidak valid atau sudah kedaluwarsa.',
-            'email.required'     => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => 'email']),
-            'email.email'        => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.email', ['attribute' => 'email']),
+            'email.required'     => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => (string) __('authentication::messages.attribute_email')]),
+            'email.email'        => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.email', ['attribute' => (string) __('authentication::messages.attribute_email')]),
             'password.required'  => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.required', ['attribute' => $newPasswordLabel]),
             'password.confirmed' => \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('validation.confirmed', ['attribute' => $newPasswordLabel]),
         ];

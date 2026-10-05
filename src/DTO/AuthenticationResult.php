@@ -30,7 +30,7 @@ final class AuthenticationResult
             status: AuthenticationStatus::SUCCESS,
             user: $user,
             token: $token,
-            message: 'Authentication successful.',
+            message: (string) __('authentication::messages.authenticated'),
             metadata: $metadata
         );
     }

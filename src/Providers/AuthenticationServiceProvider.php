@@ -312,10 +312,12 @@ class AuthenticationServiceProvider extends ServiceProvider
 
         $resetRoute = RouteConfig::name('password.reset');
 
-        if ($router->has($resetRoute) && ResetPassword::$createUrlCallback === null) {
+        if (ResetPassword::$createUrlCallback === null) {
             ResetPassword::createUrlUsing(
-                static function (CanResetPassword $notifiable, string $token) use ($resetRoute): string {
-                    return route($resetRoute, [
+                static function (CanResetPassword $notifiable, string $token) use ($router, $resetRoute): string {
+                    $targetRoute = $router->has($resetRoute) ? $resetRoute : 'password.reset';
+
+                    return route($targetRoute, [
                         'token' => $token,
                         'email' => $notifiable->getEmailForPasswordReset(),
                     ]);
@@ -325,11 +327,13 @@ class AuthenticationServiceProvider extends ServiceProvider
 
         $verifyRoute = RouteConfig::name('verification.verify');
 
-        if ($router->has($verifyRoute) && VerifyEmail::$createUrlCallback === null) {
+        if (VerifyEmail::$createUrlCallback === null) {
             VerifyEmail::createUrlUsing(
-                static function (MustVerifyEmail $notifiable) use ($verifyRoute): string {
+                static function (MustVerifyEmail $notifiable) use ($router, $verifyRoute): string {
+                    $targetRoute = $router->has($verifyRoute) ? $verifyRoute : 'verification.verify';
+
                     return URL::temporarySignedRoute(
-                        $verifyRoute,
+                        $targetRoute,
                         Carbon::now()->addMinutes((int) config('auth.verification.expire', 60)),
                         [
                             'id'   => $notifiable instanceof Model ? $notifiable->getKey() : throw new \LogicException('Email verification notifiable must be an Eloquent model.'),

@@ -85,7 +85,7 @@ class RegisterController extends Controller
         }
 
         return redirect()->intended($this->config->getRedirect('register', '/dashboard'))
-            ->with('status', __('authentication::messages.registered'));
+            ->with('status', (string) __('authentication::messages.registered'));
     }
 
     /**
@@ -96,7 +96,7 @@ class RegisterController extends Controller
         if (!$this->registrationService->isEnabled()) {
             return response()->json([
                 'status'  => 'error',
-                'message' => __('authentication::messages.registration_disabled'),
+                'message' => (string) __('authentication::messages.registration_disabled'),
             ], 403);
         }
 
@@ -109,7 +109,7 @@ class RegisterController extends Controller
 
             return response()->json([
                 'status'  => 'success',
-                'message' => __('authentication::messages.registered'),
+                'message' => (string) __('authentication::messages.registered'),
                 'user'    => [
                     'id'    => $user->getAuthIdentifier(),
                     'name'  => $user->name ?? null,
@@ -127,7 +127,7 @@ class RegisterController extends Controller
             return response()->json([
                 'status'  => 'error',
                 // Jangan bocorkan detail internal (mis. "registration disabled") — pesan generik.
-                'message' => 'Unable to register an account right now. Please try again later.',
+                'message' => (string) __('authentication::messages.registration_failed'),
             ], 422);
         }
     }

@@ -35,7 +35,7 @@ class OtpEnumerationTest extends TestCase
         $responseExisting->assertStatus(200);
         $responseExisting->assertJson([
             'status'  => 'success',
-            'message' => 'If an account exists with that identifier, a verification code has been dispatched.',
+            'message' => 'If an account exists for that identifier, a verification code has been sent.',
         ]);
 
         // 2. Non-existent user
@@ -45,7 +45,7 @@ class OtpEnumerationTest extends TestCase
         $responseNonexistent->assertStatus(200);
         $responseNonexistent->assertJson([
             'status'  => 'success',
-            'message' => 'If an account exists with that identifier, a verification code has been dispatched.',
+            'message' => 'If an account exists for that identifier, a verification code has been sent.',
         ]);
     }
 
@@ -69,7 +69,7 @@ class OtpEnumerationTest extends TestCase
         $responseWrongCode->assertStatus(401);
         $responseWrongCode->assertJson([
             'status'  => 'error',
-            'message' => 'The provided OTP code is incorrect or has expired.',
+            'message' => 'The verification code is incorrect or has expired.',
         ]);
 
         $responseNonexistent = $this->postJson('/api/v1/auth/otp/verify', [
@@ -79,7 +79,7 @@ class OtpEnumerationTest extends TestCase
         $responseNonexistent->assertStatus(401);
         $responseNonexistent->assertJson([
             'status'  => 'error',
-            'message' => 'The provided OTP code is incorrect or has expired.',
+            'message' => 'The verification code is incorrect or has expired.',
         ]);
     }
 }

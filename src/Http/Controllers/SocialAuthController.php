@@ -46,7 +46,7 @@ class SocialAuthController extends Controller
     public function redirect(string $provider): Response
     {
         if (!$this->socialAuthService->isProviderEnabled($provider)) {
-            abort(404, "Social provider [{$provider}] is disabled or unsupported.");
+            abort(404, (string) __('authentication::messages.social_provider_disabled', ['provider' => $provider]));
         }
 
         $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve(request());
@@ -68,7 +68,7 @@ class SocialAuthController extends Controller
     public function callback(string $provider, Request $request): RedirectResponse
     {
         if (!$this->socialAuthService->isProviderEnabled($provider)) {
-            abort(404, "Social provider [{$provider}] is disabled or unsupported.");
+            abort(404, (string) __('authentication::messages.social_provider_disabled', ['provider' => $provider]));
         }
 
         $context = AuthenticationContext::fromRequest($request);
@@ -109,19 +109,19 @@ class SocialAuthController extends Controller
             }
 
             return redirect()->intended($this->config->getRedirect('login', '/dashboard'))
-                ->with('status', "Successfully signed in with " . ucfirst($provider) . ".");
+                ->with('status', (string) __('authentication::messages.social_auth_success', ['provider' => ucfirst($provider)]));
         } catch (AccountLockedException $e) {
             return redirect()->route('authentication.login')
-                ->withErrors(['identifier' => 'Your account has been temporarily locked for security reasons. Please try again later.']);
+                ->withErrors(['identifier' => (string) __('authentication::messages.account_locked')]);
         } catch (AuthenticationException $e) {
             report($e);
 
             return redirect()->route('authentication.login')
-                ->withErrors(['identifier' => "Social sign-in with {$provider} failed. Please try again."]);
+                ->withErrors(['identifier' => (string) __('authentication::messages.social_auth_failed', ['provider' => ucfirst($provider)])]);
         } catch (\Throwable $e) {
             report($e);
             return redirect()->route('authentication.login')
-                ->withErrors(['identifier' => "Social sign-in with {$provider} failed. Please try again."]);
+                ->withErrors(['identifier' => (string) __('authentication::messages.social_auth_failed', ['provider' => ucfirst($provider)])]);
         }
     }
 
@@ -150,7 +150,7 @@ class SocialAuthController extends Controller
 
                     return response()->json([
                         'status'              => 'two_factor_required',
-                        'message'             => 'Two-factor authentication code required.',
+                        'message'             => (string) __('authentication::messages.two_factor_required'),
                         'pending_token'       => $pendingToken,
                         'two_factor_required' => true,
                     ], 200);
@@ -170,7 +170,7 @@ class SocialAuthController extends Controller
             return response()->json([
                 'status'  => 'locked',
                 // Pesan standar — jangan bocorkan detail lockout yang bisa membantu attacker.
-                'message' => 'Your account has been temporarily locked for security reasons. Please try again later.',
+                'message' => (string) __('authentication::messages.account_locked'),
             ], 423);
         } catch (AuthenticationException $e) {
             return response()->json([

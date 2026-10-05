@@ -58,7 +58,7 @@ class SensitiveResponseTest extends TestCase
         $response->assertStatus(400);
         $response->assertJson([
             'status'  => 'failed',
-            'message' => 'Unable to reset password. The reset link is invalid or has expired.',
+            'message' => 'This password reset link is invalid or has expired.',
         ]);
     }
 }

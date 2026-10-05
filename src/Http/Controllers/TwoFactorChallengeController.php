@@ -44,7 +44,7 @@ class TwoFactorChallengeController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message'             => 'Two-factor challenge required.',
+                'message'             => (string) __('authentication::messages.two_factor_challenge_required'),
                 'two_factor_required' => true,
             ]);
         }
@@ -88,7 +88,7 @@ class TwoFactorChallengeController extends Controller
 
         if (!$userId) {
             return $request->expectsJson()
-                ? response()->json(['message' => 'Invalid or expired two-factor session.'], 401)
+                ? response()->json(['message' => (string) __('authentication::messages.two_factor_session_invalid')], 401)
                 : redirect()->route('authentication.login');
         }
 
@@ -115,7 +115,7 @@ class TwoFactorChallengeController extends Controller
         $hasRecovery = $request->filled('recovery_code');
         if ($hasTotp === $hasRecovery) {
             throw ValidationException::withMessages([
-                'code' => [__('authentication::messages.invalid_two_factor_code')],
+                'code' => [(string) __('authentication::messages.invalid_two_factor_code')],
             ]);
         }
 
@@ -129,7 +129,7 @@ class TwoFactorChallengeController extends Controller
             $request->request->remove('recovery_code');
 
             throw ValidationException::withMessages([
-                $fieldName => [__('authentication::messages.invalid_two_factor_code')],
+                $fieldName => [(string) __('authentication::messages.invalid_two_factor_code')],
             ]);
         }
 
@@ -138,7 +138,7 @@ class TwoFactorChallengeController extends Controller
         if ($this->rateLimiter->tooManyAttempts('two_factor', (string) $userId, $ip)) {
             $seconds = $this->rateLimiter->availableIn('two_factor', (string) $userId, $ip);
             throw ValidationException::withMessages([
-                $fieldName => [__('authentication::messages.throttle_error', ['seconds' => $seconds])],
+                $fieldName => [(string) __('authentication::messages.throttle_error', ['seconds' => $seconds])],
             ]);
         }
 
@@ -161,7 +161,7 @@ class TwoFactorChallengeController extends Controller
             $request->request->remove('recovery_code');
 
             throw ValidationException::withMessages([
-                $fieldName => [__('authentication::messages.invalid_two_factor_code')],
+                $fieldName => [(string) __('authentication::messages.invalid_two_factor_code')],
             ]);
         }
 
@@ -201,7 +201,7 @@ class TwoFactorChallengeController extends Controller
 
         $response = $request->expectsJson()
             ? response()->json([
-                'message' => 'Two-factor authentication successful.',
+                'message' => (string) __('authentication::messages.two_factor_success'),
                 'token'   => $token,
                 // SEC-03: Jangan kembalikan Eloquent model mentah — bocorkan hash password & kolom internal.
                 'user'    => SafeUserPresenter::present($user),

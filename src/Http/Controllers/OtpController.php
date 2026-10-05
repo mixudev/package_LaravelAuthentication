@@ -53,7 +53,7 @@ class OtpController extends Controller
     public function showRequestForm(): View|JsonResponse
     {
         if (!$this->otpService->isEnabled()) {
-            abort(404, 'OTP authentication is disabled.');
+            abort(404, (string) __('authentication::messages.otp_disabled'));
         }
 
         // A stale published config can name a view that no longer exists; falling back
@@ -69,7 +69,7 @@ class OtpController extends Controller
     public function sendOtp(SendOtpRequest $request): RedirectResponse
     {
         if (!$this->otpService->isEnabled()) {
-            abort(404, 'OTP authentication is disabled.');
+            abort(404, (string) __('authentication::messages.otp_disabled'));
         }
 
         $identifier = (string) $request->input('identifier');
@@ -79,12 +79,12 @@ class OtpController extends Controller
             $this->otpService->generate($identifier, $context);
 
             return redirect()->route('authentication.otp.verify.form', ['identifier' => $identifier])
-                ->with('status', 'If an account exists with that identifier, a verification code has been dispatched.');
+                ->with('status', (string) __('authentication::messages.otp_sent_generic'));
         } catch (AuthenticationException $e) {
             // Jangan bocorkan detail internal exception ke user.
             // Pesan generik untuk mencegah user enumeration & info disclosure.
             throw ValidationException::withMessages([
-                'identifier' => ['Unable to send an OTP code right now. Please try again later.'],
+                'identifier' => [(string) __('authentication::messages.otp_send_failed')],
             ]);
         }
     }
@@ -95,7 +95,7 @@ class OtpController extends Controller
     public function showVerifyForm(Request $request): View|JsonResponse
     {
         if (!$this->otpService->isEnabled()) {
-            abort(404, 'OTP authentication is disabled.');
+            abort(404, (string) __('authentication::messages.otp_disabled'));
         }
 
         $identifier = (string) $request->query('identifier', session('otp_identifier', ''));
@@ -112,7 +112,7 @@ class OtpController extends Controller
     public function verifyOtp(VerifyOtpRequest $request): RedirectResponse
     {
         if (!$this->otpService->isEnabled()) {
-            abort(404, 'OTP authentication is disabled.');
+            abort(404, (string) __('authentication::messages.otp_disabled'));
         }
 
         $identifier = (string) $request->input('identifier');
@@ -151,15 +151,15 @@ class OtpController extends Controller
             }
 
             return redirect()->intended($this->config->getRedirect('login', '/dashboard'))
-                ->with('status', 'Authentication successful.');
+                ->with('status', (string) __('authentication::messages.authenticated'));
         } catch (AccountLockedException $e) {
             throw ValidationException::withMessages([
-                'identifier' => ['Your account has been temporarily locked for security reasons. Please try again later.'],
+                'identifier' => [(string) __('authentication::messages.account_locked')],
             ]);
         } catch (InvalidCredentialsException|AuthenticationException $e) {
             // Jangan bocorkan detail internal exception ke user.
             throw ValidationException::withMessages([
-                'code' => ['The provided OTP code is incorrect or has expired.'],
+                'code' => [(string) __('authentication::messages.otp_invalid')],
             ]);
         }
     }
@@ -172,7 +172,7 @@ class OtpController extends Controller
         if (!$this->otpService->isEnabled()) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'OTP authentication is disabled.',
+                'message' => (string) __('authentication::messages.otp_disabled'),
             ], 403);
         }
 
@@ -184,7 +184,7 @@ class OtpController extends Controller
 
             return response()->json([
                 'status'  => 'success',
-                'message' => 'If an account exists with that identifier, a verification code has been dispatched.',
+                'message' => (string) __('authentication::messages.otp_sent_generic'),
             ]);
         } catch (AuthenticationThrottledException $e) {
             return response()->json([
@@ -196,7 +196,7 @@ class OtpController extends Controller
             // pesan ini bisa dipakai attacker untuk mengkonfirmasi identifier valid.
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Unable to send an OTP code right now. Please try again later.',
+                'message' => (string) __('authentication::messages.otp_send_failed'),
             ], 429);
         }
     }
@@ -209,7 +209,7 @@ class OtpController extends Controller
         if (!$this->otpService->isEnabled()) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'OTP authentication is disabled.',
+                'message' => (string) __('authentication::messages.otp_disabled'),
             ], 403);
         }
 
@@ -223,7 +223,7 @@ class OtpController extends Controller
             if ($user === null) {
                 return response()->json([
                     'status'  => 'error',
-                    'message' => 'The provided OTP code is incorrect or has expired.',
+                    'message' => (string) __('authentication::messages.otp_invalid'),
                 ], 401);
             }
 
@@ -231,7 +231,7 @@ class OtpController extends Controller
             if ($this->lockService->isLocked($user)) {
                 return response()->json([
                     'status'  => 'locked',
-                    'message' => 'Your account has been temporarily locked. Please contact support.',
+                    'message' => (string) __('authentication::messages.account_locked_support'),
                 ], 423);
             }
 
@@ -243,7 +243,7 @@ class OtpController extends Controller
 
                     return response()->json([
                         'status'              => 'two_factor_required',
-                        'message'             => 'Two-factor authentication code required.',
+                        'message'             => (string) __('authentication::messages.two_factor_required'),
                         'pending_token'       => $pendingToken,
                         'two_factor_required' => true,
                     ], 200);
@@ -254,7 +254,7 @@ class OtpController extends Controller
 
             return response()->json([
                 'status'  => 'success',
-                'message' => 'OTP verified successfully.',
+                'message' => (string) __('authentication::messages.otp_verified'),
                 'token'   => $token,
                 // SEC-03: safe user payload — jangan expose Eloquent model mentah (hash password dll).
                 'user'    => SafeUserPresenter::present($user),
@@ -267,13 +267,13 @@ class OtpController extends Controller
         } catch (InvalidCredentialsException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'The provided OTP code is incorrect or has expired.',
+                'message' => (string) __('authentication::messages.otp_invalid'),
             ], 401);
         } catch (AuthenticationException $e) {
             // Jangan bocorkan detail internal exception ke client.
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Unable to verify the OTP code right now. Please request a new code and try again.',
+                'message' => (string) __('authentication::messages.otp_verify_failed'),
             ], 422);
         }
     }

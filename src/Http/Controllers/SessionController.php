@@ -37,7 +37,7 @@ class SessionController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
         }
 
         $currentSessionId = $request->hasSession() ? $request->session()->getId() : null;
@@ -91,7 +91,7 @@ class SessionController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
         }
 
         $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
@@ -129,11 +129,11 @@ class SessionController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Session revoked successfully.',
+                'message' => (string) __('authentication::messages.session_revoked'),
             ]);
         }
 
-        return back()->with('status', __('authentication::messages.session_revoked'));
+        return back()->with('status', (string) __('authentication::messages.session_revoked'));
     }
 
     public function destroyOthers(Request $request): RedirectResponse|JsonResponse
@@ -145,7 +145,7 @@ class SessionController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
         }
 
         $currentSessionId = $request->hasSession() ? $request->session()->getId() : null;
@@ -167,7 +167,7 @@ class SessionController extends Controller
             $this->rateLimiter->hit('confirm_password', (string) $user->getAuthIdentifier(), $ip);
 
             throw ValidationException::withMessages([
-                'password' => [__('authentication::messages.invalid_password')],
+                'password' => [(string) __('authentication::messages.invalid_password')],
             ]);
         }
 
@@ -175,10 +175,10 @@ class SessionController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'All other sessions revoked successfully.',
+                'message' => (string) __('authentication::messages.other_sessions_revoked'),
             ]);
         }
 
-        return back()->with('status', __('authentication::messages.other_sessions_revoked'));
+        return back()->with('status', (string) __('authentication::messages.other_sessions_revoked'));
     }
 }

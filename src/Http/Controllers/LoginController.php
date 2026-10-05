@@ -59,7 +59,7 @@ class LoginController extends Controller
         } catch (AuthenticationThrottledException $e) {
             session()->flash('auth_retry_after', max(0, (int) $e->secondsRemaining));
             throw ValidationException::withMessages([
-                'identifier' => [__('authentication::messages.throttle_error', ['seconds' => $e->secondsRemaining])],
+                'identifier' => [(string) __('authentication::messages.throttle_error', ['seconds' => $e->secondsRemaining])],
             ]);
         } catch (AccountLockedException $e) {
             $lockoutMinutes = (int) config('authentication.security.account_lockout.lockout_duration_mins', 15);
@@ -68,9 +68,9 @@ class LoginController extends Controller
                 'identifier' => [$e->getMessage()],
             ]);
         } catch (InvalidCredentialsException|\Vendor\LaravelAuthentication\Exceptions\InvalidStrategyException) {
-            $message = __('authentication::messages.invalid_credentials');
+            $message = (string) __('authentication::messages.invalid_credentials');
             throw ValidationException::withMessages([
-                'identifier' => [$message ?: __('authentication::messages.invalid_credentials')],
+                'identifier' => [$message ?: (string) __('authentication::messages.invalid_credentials')],
             ]);
         }
     }
@@ -88,7 +88,7 @@ class LoginController extends Controller
 
             return response()->json([
                 'status'  => 'success',
-                'message' => 'Authenticated successfully.',
+                'message' => (string) __('authentication::messages.authenticated'),
                 'token'   => $result->token,
                 // SEC-03: safe user payload — jangan expose Eloquent model mentah.
                 'user'    => SafeUserPresenter::present($result->user),
@@ -102,14 +102,14 @@ class LoginController extends Controller
 
             return response()->json([
                 'status'              => 'two_factor_required',
-                'message'             => __('authentication::messages.two_factor_required'),
+                'message'             => (string) __('authentication::messages.two_factor_required'),
                 'pending_token'       => $pendingToken,
                 'two_factor_required' => true,
             ], 200);
         } catch (AuthenticationThrottledException $e) {
             return response()->json([
                 'status'            => 'throttled',
-                'message'           => __('authentication::messages.throttle_error', ['seconds' => $e->secondsRemaining]),
+                'message'           => (string) __('authentication::messages.throttle_error', ['seconds' => $e->secondsRemaining]),
                 'seconds_remaining' => $e->secondsRemaining,
             ], 429);
         } catch (AccountLockedException $e) {
@@ -120,7 +120,7 @@ class LoginController extends Controller
         } catch (InvalidCredentialsException|\Vendor\LaravelAuthentication\Exceptions\InvalidStrategyException) {
             return response()->json([
                 'status'  => 'invalid_credentials',
-                'message' => __('authentication::messages.invalid_credentials'),
+                'message' => (string) __('authentication::messages.invalid_credentials'),
             ], 401);
         }
     }

@@ -69,11 +69,55 @@ return [
     'mail_secure_account'     => 'Secure Account & Revoke Session',
     'mail_new_device_footer'  => 'This email was sent automatically to help protect your account.',
 
+    'social_provider_disabled' => 'Social sign-in with :provider is disabled or unsupported.',
+    'social_auth_success' => 'Signed in successfully with :provider.',
+    'social_auth_failed' => 'Sign-in with :provider failed. Please try again.',
+
     /*
     |--------------------------------------------------------------------------
     | Password Reset Messages
     |--------------------------------------------------------------------------
     */
+    'email_verification_forbidden' => 'This verification link does not belong to your account.',
+    'email_verification_invalid' => 'Invalid email verification link. The hash does not match your current email address.',
+    /*
+    |--------------------------------------------------------------------------
+    | Attribute Labels
+    |--------------------------------------------------------------------------
+    */
+    'attribute_name' => 'name',
+    'attribute_email' => 'email',
+    'attribute_password' => 'password',
+    'attribute_password_confirmation' => 'password confirmation',
+    'attribute_new_password' => 'new password',
+    'attribute_otp' => 'verification code',
+    'attribute_identifier' => 'email or username',
+    'authenticated' => 'Signed in successfully.',
+    'account_locked_support' => 'Your account is temporarily locked. Please contact support.',
+    'confirm_password_required' => 'Please confirm your password.',
+    'password_confirmed' => 'Password confirmed successfully.',
+    'unauthenticated' => 'Unauthenticated.',
+    'email_already_verified' => 'Your email address is already verified.',
+    'email_verified' => 'Your email address has been verified.',
+    'verification_link_sent' => 'A new verification link has been sent to your email.',
+    'otp_disabled' => 'One-time password authentication is currently disabled.',
+    'otp_sent_generic' => 'If an account exists for that identifier, a verification code has been sent.',
+    'otp_send_failed' => 'We are unable to send a verification code right now. Please try again later.',
+    'otp_invalid' => 'The verification code is incorrect or has expired.',
+    'otp_verified' => 'Verification successful.',
+    'otp_verify_failed' => 'We are unable to verify the code right now. Please request a new code and try again.',
+    'passkey_throttled' => 'Too many passkey requests. Please try again later.',
+    'password_reset_disabled' => 'Password recovery is currently disabled.',
+    'password_reset_generic' => 'If an account exists for that email, a password reset link has been sent.',
+    'registration_failed' => 'We are unable to create your account right now. Please try again later.',
+    'two_factor_challenge_required' => 'Two-factor authentication is required to continue.',
+    'two_factor_session_invalid' => 'Your two-factor session is invalid or has expired. Please sign in again.',
+    'two_factor_success' => 'Two-factor authentication completed successfully.',
+    'two_factor_already_enabled' => 'Two-factor authentication is already enabled on your account.',
+    'social_auth_failed' => 'Sign-in failed. Please try again.',
+    'social_provider_disabled' => 'Social sign-in with :provider is disabled or unsupported.',
+    'social_auth_success' => 'Signed in successfully with :provider.',
+    'social_auth_failed' => 'Sign-in with :provider failed. Please try again.',
     'password_reset_sent'     => 'A password reset link has been sent to your email.',
     'password_reset_done'     => 'Your password has been updated successfully. Please log in again.',
     'password_reset_invalid'  => 'This password reset link is invalid or has expired.',
