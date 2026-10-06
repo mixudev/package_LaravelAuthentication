@@ -113,9 +113,27 @@ class AccountLockService
                     return false;
                 }
 
-                $record->failed_attempts = (int) $record->failed_attempts + 1;
-                $record->last_failure_at = Carbon::now();
-                $record->save();
+                $lockoutMinutes = $this->config->getLockoutDurationMinutes();
+
+                // BUGFIX: If a previous lockout has expired, start a fresh attempt cycle.
+                // Without this, the counter remains >= max_attempts and every subsequent single typo
+                // immediately re-locks the account for another full lockout duration.
+                if ($record->locked_until !== null && $record->locked_until->isPast()) {
+                    $record->failed_attempts = 1;
+                    $record->locked_until = null;
+                    $record->last_failure_at = Carbon::now();
+                    $record->save();
+                } elseif ($record->last_failure_at !== null && $record->last_failure_at->copy()->addMinutes($lockoutMinutes)->isPast()) {
+                    // Stale failures beyond the lockout decay window reset to 1
+                    $record->failed_attempts = 1;
+                    $record->locked_until = null;
+                    $record->last_failure_at = Carbon::now();
+                    $record->save();
+                } else {
+                    $record->failed_attempts = (int) $record->failed_attempts + 1;
+                    $record->last_failure_at = Carbon::now();
+                    $record->save();
+                }
             }
 
             if ($record->failed_attempts >= $maxAttempts) {

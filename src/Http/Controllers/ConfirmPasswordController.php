@@ -15,6 +15,7 @@ use Illuminate\Validation\ValidationException;
 use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class ConfirmPasswordController extends Controller
 {
@@ -59,7 +60,7 @@ class ConfirmPasswordController extends Controller
         if ($this->rateLimiter->tooManyAttempts('confirm_password', (string) $user->getAuthIdentifier(), $ip)) {
             $seconds = $this->rateLimiter->availableIn('confirm_password', (string) $user->getAuthIdentifier(), $ip);
             throw ValidationException::withMessages([
-                'password' => [(string) __('authentication::messages.throttle_error', ['seconds' => $seconds])],
+                'password' => [ThrottleMessage::forSeconds($seconds)],
             ]);
         }
 

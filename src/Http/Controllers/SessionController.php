@@ -21,6 +21,7 @@ use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class SessionController extends Controller
@@ -59,11 +60,7 @@ class SessionController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'status'             => 'success',
-                'user'               => [
-                    'id'    => $user->getAuthIdentifier(),
-                    'name'  => $user->name ?? null,
-                    'email' => $user->email ?? null,
-                ],
+                'user'               => SafeUserPresenter::present($user),
                 'is_2fa_enabled'     => $isTwoFactorEnabled,
                 'passkeys'           => $passkeys,
                 'summary'            => $summary,

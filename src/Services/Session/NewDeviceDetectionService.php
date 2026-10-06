@@ -64,13 +64,16 @@ class NewDeviceDetectionService
                 event(new NewDeviceLoginDetected($user, $device, $context));
 
                 // Send email alert if enabled
-                if ($this->config->isNewDeviceNotificationEnabled() && !empty($user->email)) {
+                $emailCol = $this->config->getIdentifierColumn('email');
+                $userEmail = (string) ($user->{$emailCol} ?? ($user->email ?? (method_exists($user, 'getEmailForPasswordReset') ? $user->getEmailForPasswordReset() : '')));
+
+                if ($this->config->isNewDeviceNotificationEnabled() && !empty($userEmail)) {
                     $mailable = new NewDeviceLoginMail($user, $device);
 
                     if ($this->config->isMailQueueEnabled()) {
-                        Mail::to($user->email)->queue($mailable);
+                        Mail::to($userEmail)->queue($mailable);
                     } else {
-                        Mail::to($user->email)->send($mailable);
+                        Mail::to($userEmail)->send($mailable);
                     }
                 }
             } else {

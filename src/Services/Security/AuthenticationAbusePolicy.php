@@ -46,8 +46,11 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
         }
 
         // Multi-dimensional evaluation: check all enabled dimensions
+        $normalizedId = EmailNormalizer::normalize($data->identifier);
+        $normalizedIp = $this->normalizeIp($context->ipAddress);
+
         foreach ($policyConfig['dimensions'] as $dimension => $settings) {
-            $key = $this->buildDimensionKey($dimension, $data, $context);
+            $key = $this->buildDimensionKey($dimension, $data, $context, $normalizedId, $normalizedIp);
             $maxAttempts = $settings['max_attempts'];
 
             if ($this->cacheLimiter->tooManyAttempts($key, $maxAttempts)) {
@@ -59,7 +62,7 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
         // Soft challenge threshold applies to the account budget before hard throttling.
         $challengeThreshold = (int) ($this->config->getRateLimitConfig('login')['challenge_threshold'] ?? 0);
         if ($challengeThreshold > 0 && isset($policyConfig['dimensions']['account'])) {
-            $accountKey = $this->buildDimensionKey('account', $data, $context);
+            $accountKey = $this->buildDimensionKey('account', $data, $context, $normalizedId, $normalizedIp);
             if ($this->cacheLimiter->attempts($accountKey) + 1 >= $challengeThreshold) {
                 return RateLimitDecision::challenge(0, 'challenge_threshold_exceeded');
             }
@@ -86,8 +89,11 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
             return;
         }
 
+        $normalizedId = EmailNormalizer::normalize($data->identifier);
+        $normalizedIp = $this->normalizeIp($context->ipAddress);
+
         foreach ($policyConfig['dimensions'] as $dimension => $settings) {
-            $key = $this->buildDimensionKey($dimension, $data, $context);
+            $key = $this->buildDimensionKey($dimension, $data, $context, $normalizedId, $normalizedIp);
             $decaySeconds = $settings['decay_minutes'] * 60;
             $this->cacheLimiter->hit($key, $decaySeconds);
         }
@@ -102,8 +108,11 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
             return;
         }
 
+        $normalizedId = EmailNormalizer::normalize($data->identifier);
+        $normalizedIp = $this->normalizeIp($context->ipAddress);
+
         foreach ($policyConfig['dimensions'] as $dimension => $settings) {
-            $key = $this->buildDimensionKey($dimension, $data, $context);
+            $key = $this->buildDimensionKey($dimension, $data, $context, $normalizedId, $normalizedIp);
             $this->cacheLimiter->clear($key);
         }
     }
@@ -130,10 +139,15 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
         return RateLimitDecision::allow('within_composite_budget');
     }
 
-    private function buildDimensionKey(string $dimension, LoginData $data, AuthenticationContext $context): string
-    {
-        $normalizedIdentifier = EmailNormalizer::normalize($data->identifier);
-        $normalizedIp = $this->normalizeIp($context->ipAddress);
+    private function buildDimensionKey(
+        string $dimension,
+        LoginData $data,
+        AuthenticationContext $context,
+        ?string $normalizedIdentifier = null,
+        ?string $normalizedIp = null
+    ): string {
+        $normalizedIdentifier ??= EmailNormalizer::normalize($data->identifier);
+        $normalizedIp ??= $this->normalizeIp($context->ipAddress);
 
         $payload = match ($dimension) {
             'account'    => $normalizedIdentifier,

@@ -146,7 +146,9 @@ class TwoFactorChallengeController extends Controller
         $user      = $userModel::find($userId);
 
         if (!$user) {
-            return redirect()->route('authentication.login');
+            return $request->expectsJson()
+                ? response()->json(['message' => (string) __('authentication::messages.two_factor_session_invalid')], 401)
+                : redirect()->route('authentication.login');
         }
 
         if (!$this->twoFactorService->verifyChallenge($user, $code)) {

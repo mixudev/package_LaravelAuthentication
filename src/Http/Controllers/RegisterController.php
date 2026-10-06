@@ -19,6 +19,7 @@ use Vendor\LaravelAuthentication\Http\Requests\RegisterRequest;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Support\AuthenticationView;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class RegisterController extends Controller
@@ -110,11 +111,7 @@ class RegisterController extends Controller
             return response()->json([
                 'status'  => 'success',
                 'message' => (string) __('authentication::messages.registered'),
-                'user'    => [
-                    'id'    => $user->getAuthIdentifier(),
-                    'name'  => $user->name ?? null,
-                    'email' => $user->email ?? null,
-                ],
+                'user'    => SafeUserPresenter::present($user),
                 'token'   => $token,
             ], 201);
         } catch (AuthenticationThrottledException $e) {

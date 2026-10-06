@@ -133,7 +133,7 @@ class SocialAuthController extends Controller
         if (!$this->socialAuthService->isProviderEnabled($provider)) {
             return response()->json([
                 'status'  => 'error',
-                'message' => "Social provider [{$provider}] is disabled or unsupported.",
+                'message' => (string) __('authentication::messages.social_provider_disabled', ['provider' => $provider]),
             ], 403);
         }
 
@@ -161,7 +161,7 @@ class SocialAuthController extends Controller
 
             return response()->json([
                 'status'  => 'success',
-                'message' => "Authenticated successfully with " . ucfirst($provider) . ".",
+                'message' => (string) __('authentication::messages.social_auth_success', ['provider' => ucfirst($provider)]),
                 'token'   => $token,
                 // SEC-03: safe user payload — jangan expose Eloquent model mentah (hash password dll).
                 'user'    => SafeUserPresenter::present($user),
@@ -175,13 +175,13 @@ class SocialAuthController extends Controller
         } catch (AuthenticationException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => "Social authentication failed. Please try again.",
+                'message' => (string) __('authentication::messages.social_auth_failed', ['provider' => ucfirst($provider)]),
             ], 422);
         } catch (\Throwable $e) {
             report($e);
             return response()->json([
                 'status'  => 'error',
-                'message' => "Social authentication failed. Please try again.",
+                'message' => (string) __('authentication::messages.social_auth_failed', ['provider' => ucfirst($provider)]),
             ], 500);
         }
     }

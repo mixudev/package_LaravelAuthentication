@@ -96,7 +96,22 @@ class AuthenticationService implements AuthenticationServiceInterface
             throw new AccountLockedException($this->config->getLockoutDurationMinutes());
         }
 
-        // 5. Validate Password & Credentials
+        // 5. Pre-check abuse policy rate limits (fail-fast DoS defense under high load)
+        // If the client/network/account has already spent its rate budget from earlier failures,
+        // reject immediately without performing CPU-intensive password hashing or allowing access.
+        $preDecision = $this->abusePolicy->evaluate($data, $context);
+        if (!$preDecision->allowed && in_array($preDecision->action, ['throttle', 'deny'], true)) {
+            $this->auditService->logEvent(
+                SecurityEventType::LOGIN_THROTTLED,
+                $data->identifier,
+                $context,
+                AuthenticationResult::failed(AuthenticationStatus::THROTTLED, (string) __('authentication::messages.auth_too_many_attempts'))
+            );
+
+            throw new AuthenticationThrottledException(max(1, $preDecision->retryAfter));
+        }
+
+        // 6. Validate Password & Credentials
         $isValid = false;
         if ($user !== null) {
             $isValid = $strategy->validateCredentials($user, $data);
