@@ -162,8 +162,9 @@ final class CircuitBreaker
         $state = $this->getState();
 
         if ($state === self::STATE_HALF_OPEN) {
-            $successCount = (int) Cache::get($this->successCountKey(), 0) + 1;
-            Cache::put($this->successCountKey(), $successCount, now()->addMinutes(5));
+            $successKey = $this->successCountKey();
+            Cache::add($successKey, 0, now()->addMinutes(5));
+            $successCount = Cache::increment($successKey);
 
             if ($successCount >= $this->successThreshold) {
                 $this->transitionTo(self::STATE_CLOSED);
@@ -183,8 +184,9 @@ final class CircuitBreaker
         }
 
         if ($state === self::STATE_CLOSED) {
-            $failureCount = (int) Cache::get($this->failureCountKey(), 0) + 1;
-            Cache::put($this->failureCountKey(), $failureCount, now()->addMinutes(5));
+            $failureKey = $this->failureCountKey();
+            Cache::add($failureKey, 0, now()->addMinutes(5));
+            $failureCount = Cache::increment($failureKey);
 
             if ($failureCount >= $this->failureThreshold) {
                 $this->transitionTo(self::STATE_OPEN);

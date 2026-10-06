@@ -129,7 +129,7 @@ class LocalizationParityTest extends TestCase
             }
 
             foreach ($lines as $index => $line) {
-                if (!preg_match_all("/(?:'message'\\s*=>|->with\\('status',|withErrors\\(\\[|abort\\(\\s*\\d+\\s*,)\\s*'([^']{12,})'/", $line, $matches)) {
+                if (!preg_match_all("/(?:'message'\\s*=>|->with\\('status',|withErrors\\(\\[|abort\\(\\s*\\d+\\s*,|throw\\s+new\\s+\\w*Exception\\(\\s*)'([^']{12,})'/", $line, $matches)) {
                     continue;
                 }
 
@@ -323,6 +323,34 @@ class LocalizationParityTest extends TestCase
         return $keys;
     }
 
+    public function test_no_duplicate_keys_in_a_locale_file(): void
+    {
+        foreach (['en', 'id'] as $locale) {
+            $path = __DIR__."/../../resources/lang/{$locale}/messages.php";
+            $lines = file($path, FILE_IGNORE_NEW_LINES);
+            self::assertIsArray($lines, "Missing catalogue for {$locale}.");
+
+            $seen = [];
+            $duplicates = [];
+            foreach ($lines as $index => $line) {
+                if (preg_match("/^\s*'([^']+)'\s*=>/", $line, $match) !== 1) {
+                    continue;
+                }
+
+                $key = $match[1];
+                if (isset($seen[$key])) {
+                    // PHP keeps the LAST definition silently, so a duplicate key
+                    // means an earlier translation is unreachable with no warning.
+                    $duplicates[] = "{$key} (lines {$seen[$key]} and ".($index + 1).')';
+                }
+
+                $seen[$key] = $index + 1;
+            }
+
+            $this->assertSame([], $duplicates, "Duplicate keys in {$locale}/messages.php:\n".implode("\n", $duplicates));
+        }
+    }
+
     /**
      * @param  list<string>  $extra
      * @return list<string>
@@ -336,7 +364,7 @@ class LocalizationParityTest extends TestCase
         }
 
         $directories = array_merge(
-            ['Http/Controllers', 'Http/Middleware', 'Http/Requests', 'Mail', 'DTO'],
+            ['Http/Controllers', 'Http/Middleware', 'Http/Requests', 'Mail', 'DTO', 'Services'],
             $extra
         );
 
@@ -347,10 +375,22 @@ class LocalizationParityTest extends TestCase
                 continue;
             }
 
-            foreach ((array) glob($path.DIRECTORY_SEPARATOR.'*.php') as $file) {
-                $files[] = (string) $file;
+            // Recursive on purpose: Services/ is entirely subdirectories
+            // (Core, Otp, Passkey, Password, Security, Session, TwoFactor).
+            // A glob('*.php') here silently scanned zero service files and
+            // the contract test stayed green while copy was still English.
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS)
+            );
+
+            foreach ($iterator as $file) {
+                if ($file instanceof \SplFileInfo && $file->isFile() && $file->getExtension() === 'php') {
+                    $files[] = $file->getPathname();
+                }
             }
         }
+
+        sort($files);
 
         return $files;
     }

@@ -50,7 +50,7 @@ class PasswordService
             $currentHash = (string) ($user->{$passwordColumn} ?? '');
 
             if ($currentHash !== '' && $this->hasher->check($newPlainPassword, $currentHash)) {
-                throw new AuthenticationException('The new password must differ from the current password.');
+                throw new AuthenticationException((string) __('authentication::messages.password_must_differ'));
             }
         }
 

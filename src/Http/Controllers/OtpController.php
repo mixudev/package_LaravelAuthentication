@@ -125,7 +125,7 @@ class OtpController extends Controller
 
             // BP-08 FIX: Jika OTP valid tapi user tidak ditemukan, jangan redirect sukses palsu.
             if ($user === null) {
-                throw new InvalidCredentialsException('OTP verified but no account found for the given identifier.');
+                throw new InvalidCredentialsException((string) __('authentication::messages.otp_account_missing'));
             }
 
             // BP-02 FIX: Cek account lockout sebelum login — OTP tidak boleh membypass lockout.

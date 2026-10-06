@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Services\Security\Captcha;
 
 use Illuminate\Support\Facades\Http;
+use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\CaptchaDriverInterface;
 
 class HcaptchaDriver implements CaptchaDriverInterface
@@ -13,7 +14,7 @@ class HcaptchaDriver implements CaptchaDriverInterface
         private readonly string $secretKey
     ) {}
 
-    public function verify(string $token, ?string $ipAddress = null): bool
+    public function verify(#[SensitiveParameter] string $token, ?string $ipAddress = null): bool
     {
         if (empty($token) || empty($this->secretKey)) {
             return false;

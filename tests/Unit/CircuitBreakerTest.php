@@ -166,6 +166,38 @@ class CircuitBreakerTest extends TestCase
         $this->assertEquals('recovered', $result);
     }
 
+    /**
+     * SCOPE NOTE — this asserts monotonicity of the TTL seed only, NOT the race.
+     *
+     * A sequential test cannot reproduce the TOCTOU window: the previous
+     * `Cache::put($key, (int) Cache::get($key) + 1)` and the current
+     * `Cache::add($key, 0, $ttl)` + `Cache::increment($key)` produce identical
+     * results in a single thread, so this test passed against both versions.
+     *
+     * The race itself is proven by code reading: read-modify-write is not
+     * atomic, so two concurrent failures can each read N-1 and each write N.
+     * Do not read a green run here as proof the race is fixed — that needs a
+     * multi-process test against a shared Redis/Memcached store.
+     */
+    public function test_counter_seed_does_not_reset_an_existing_failure_count(): void
+    {
+        $breaker = new CircuitBreaker('test.monotonic', failureThreshold: 5, timeout: 5);
+
+        try {
+            $breaker->call(fn() => throw new \RuntimeException('Fail once'));
+        } catch (\RuntimeException) {
+        }
+
+        // A second failure must increment the existing atomic counter to 2.
+        // `add(..., 0, ttl)` is intentionally a no-op when the key exists.
+        try {
+            $breaker->call(fn() => throw new \RuntimeException('Fail twice'));
+        } catch (\RuntimeException) {
+        }
+
+        $this->assertSame(2, $breaker->getMetrics()['failures']);
+    }
+
     public function test_get_metrics_returns_state_and_counters(): void
     {
         $breaker = new CircuitBreaker('test.metrics', failureThreshold: 3, timeout: 5);

@@ -43,7 +43,7 @@ class RegistrationService implements RegistrationServiceInterface
     public function register(RegisterData $data, AuthenticationContext $context): Authenticatable
     {
         if (!$this->isEnabled()) {
-            throw new AuthenticationException('Registration is currently disabled.');
+            throw new AuthenticationException((string) __('authentication::messages.registration_disabled_runtime'));
         }
 
         $ip = $context->ipAddress;

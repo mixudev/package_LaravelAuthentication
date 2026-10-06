@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Support;
 
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use SensitiveParameter;
 
 /**
  * TwoFactorPendingToken
@@ -61,7 +62,7 @@ final class TwoFactorPendingToken
      * can successfully resolve. This prevents replay attacks where multiple
      * requests resolve the same token before any consume() is called.
      */
-    public function resolve(string $token): int|string|null
+    public function resolve(#[SensitiveParameter] string $token): int|string|null
     {
         $key = $this->keyFor($token);
         $consumedKey = $key . ':consumed';
@@ -91,13 +92,13 @@ final class TwoFactorPendingToken
      * DEPRECATED after H-03 fix: resolve() now consumes atomically.
      * Kept for backward compatibility but is now a no-op.
      */
-    public function consume(string $token): void
+    public function consume(#[SensitiveParameter] string $token): void
     {
         // No-op: resolve() already consumed the token atomically
         // Kept for backward compatibility with existing controller code
     }
 
-    public function keyFor(string $token): string
+    public function keyFor(#[SensitiveParameter] string $token): string
     {
         return self::CACHE_PREFIX . hash('sha256', $token);
     }

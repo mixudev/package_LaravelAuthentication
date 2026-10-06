@@ -99,7 +99,7 @@ class TwoFactorService
     /**
      * Confirm initial TOTP setup with code.
      */
-    public function confirm(Authenticatable $user, string $code): bool
+    public function confirm(Authenticatable $user, #[SensitiveParameter] string $code): bool
     {
         $userId = $user->getAuthIdentifier();
         /** @var TwoFactorAuthentication|null $record */
@@ -176,7 +176,7 @@ class TwoFactorService
     /**
      * Verify challenge code during login (either TOTP or one-time hashed recovery code).
      */
-    public function verifyChallenge(Authenticatable $user, string $code): bool
+    public function verifyChallenge(Authenticatable $user, #[SensitiveParameter] string $code): bool
     {
         $userId = $user->getAuthIdentifier();
 

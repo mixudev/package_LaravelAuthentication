@@ -23,7 +23,6 @@ return [
     'auth_failed'             => 'These credentials do not match our records.',
     'invalid_credentials'     => 'These credentials do not match our records.',
     'invalid_password'        => 'The provided password was incorrect.',
-    'unauthenticated'         => 'Your session is unauthenticated.',
     'throttled'               => 'Too many login attempts. Please try again in :seconds seconds.',
     'throttle_error'          => 'Too many attempts. Please try again in :seconds seconds.',
     'throttle_error_unknown'  => 'Too many attempts. Please try again later.',
@@ -50,7 +49,6 @@ return [
     |--------------------------------------------------------------------------
     */
     'otp_sent'                => 'A verification code has been sent to your email.',
-    'otp_invalid'             => 'The verification code is invalid or has expired.',
     'otp_expired'             => 'The OTP code has expired. Please request a new one.',
     'otp_resent'              => 'A new verification code has been resent.',
     'mail_otp_title'          => 'Login Verification Code',
@@ -68,10 +66,6 @@ return [
     'mail_new_device_safe'    => 'If this was you, you can ignore this email. If you did not perform this activity, secure your account immediately:',
     'mail_secure_account'     => 'Secure Account & Revoke Session',
     'mail_new_device_footer'  => 'This email was sent automatically to help protect your account.',
-
-    'social_provider_disabled' => 'Social sign-in with :provider is disabled or unsupported.',
-    'social_auth_success' => 'Signed in successfully with :provider.',
-    'social_auth_failed' => 'Sign-in with :provider failed. Please try again.',
 
     /*
     |--------------------------------------------------------------------------
@@ -116,7 +110,6 @@ return [
     'two_factor_session_invalid' => 'Your two-factor session is invalid or has expired. Please sign in again.',
     'two_factor_success' => 'Two-factor authentication completed successfully.',
     'two_factor_already_enabled' => 'Two-factor authentication is already enabled on your account.',
-    'social_auth_failed' => 'Sign-in failed. Please try again.',
     'social_provider_disabled' => 'Social sign-in with :provider is disabled or unsupported.',
     'social_auth_success' => 'Signed in successfully with :provider.',
     'social_auth_failed' => 'Sign-in with :provider failed. Please try again.',
@@ -278,4 +271,26 @@ return [
     'retry_seconds_only'     => ':seconds seconds',
 
     'divider'                 => 'OR',
+    'otp_disabled_runtime' => 'OTP authentication is currently disabled.',
+    'otp_recently_requested' => 'An OTP was recently requested. Please wait before requesting another.',
+    'otp_expired_or_invalid' => 'The OTP code has expired or is invalid.',
+    'otp_too_many_attempts' => 'Too many invalid attempts. Please request a new OTP code.',
+    'otp_incorrect' => 'The provided OTP code is incorrect.',
+    'passkey_challenge_used' => 'Passkey registration challenge expired or already used. Please retry.',
+    'passkey_challenge_expired' => 'Passkey registration challenge expired. Please retry.',
+    'passkey_credential_missing' => 'Missing WebAuthn credential ID.',
+    'passkey_payload_invalid' => 'WebAuthn registration payload missing public key or attestation object.',
+    'passkey_challenge_missing' => 'Missing challenge in WebAuthn clientDataJSON.',
+    'passkey_assertion_invalid' => 'Passkey challenge expired or invalid.',
+    'passkey_clone_detected' => 'WebAuthn cloned authenticator detected: invalid sign counter.',
+    'password_must_differ' => 'The new password must differ from the current password.',
+    'auth_disabled_runtime' => 'Authentication service is currently disabled.',
+    'auth_too_many_attempts' => 'Too many login attempts.',
+    'strategy_unsupported' => 'The requested authentication strategy is not supported.',
+    'registration_disabled_runtime' => 'Registration is currently disabled.',
+    'otp_account_missing' => 'OTP verified but no account found for the given identifier.',
+    'account_locked_runtime' => 'Account is temporarily locked.',
+    'password_reset_token_invalid' => 'Invalid or expired password reset token.',
+    'passkey_payload_incomplete' => 'Invalid or incomplete passkey assertion payload.',
+    'passkey_ceremony_invalid' => 'Invalid passkey assertion ceremony type.',
 ];

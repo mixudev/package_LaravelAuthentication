@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vendor\LaravelAuthentication\Services\Security;
 
+use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\CaptchaDriverInterface;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException;
@@ -51,7 +52,7 @@ class CaptchaService
         return $attempts >= $threshold;
     }
 
-    public function verify(?string $token, ?string $ipAddress = null): bool
+    public function verify(#[SensitiveParameter] ?string $token, ?string $ipAddress = null): bool
     {
         if (!$this->isEnabled()) {
             return true;

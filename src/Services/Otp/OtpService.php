@@ -51,7 +51,7 @@ class OtpService implements OtpServiceInterface
     public function generate(string $identifier, AuthenticationContext $context): string
     {
         if (!$this->isEnabled()) {
-            throw new AuthenticationException('OTP authentication is currently disabled.');
+            throw new AuthenticationException((string) __('authentication::messages.otp_disabled_runtime'));
         }
 
         $normalized = EmailNormalizer::normalize($identifier);
@@ -64,7 +64,7 @@ class OtpService implements OtpServiceInterface
         }
 
         if ($this->isThrottled($normalized, $context)) {
-            throw new AuthenticationException('An OTP was recently requested. Please wait before requesting another.');
+            throw new AuthenticationException((string) __('authentication::messages.otp_recently_requested'));
         }
 
         $length = $this->config->getOtpLength();
@@ -197,7 +197,7 @@ class OtpService implements OtpServiceInterface
     public function verify(string $identifier, #[SensitiveParameter] string $code, AuthenticationContext $context): ?Authenticatable
     {
         if (!$this->isEnabled()) {
-            throw new AuthenticationException('OTP authentication is currently disabled.');
+            throw new AuthenticationException((string) __('authentication::messages.otp_disabled_runtime'));
         }
 
         $normalized = EmailNormalizer::normalize($identifier);
@@ -224,7 +224,7 @@ class OtpService implements OtpServiceInterface
                 ['reason' => 'expired_or_invalid']
             );
 
-            throw new InvalidCredentialsException('The OTP code has expired or is invalid.');
+            throw new InvalidCredentialsException((string) __('authentication::messages.otp_expired_or_invalid'));
         }
 
         // Track every verification request in the feature bucket before the per-code
@@ -250,7 +250,7 @@ class OtpService implements OtpServiceInterface
                 ['reason' => 'max_attempts_exceeded']
             );
 
-            throw new AuthenticationException('Too many invalid attempts. Please request a new OTP code.');
+            throw new AuthenticationException((string) __('authentication::messages.otp_too_many_attempts'));
         }
 
         $inputHash = hash('sha256', trim($code));
@@ -263,7 +263,7 @@ class OtpService implements OtpServiceInterface
                 ['reason' => 'mismatch']
             );
 
-            throw new InvalidCredentialsException('The provided OTP code is incorrect.');
+            throw new InvalidCredentialsException((string) __('authentication::messages.otp_incorrect'));
         }
 
         // H-01 FIX: Claim successful consumption with an atomic add operation.
@@ -271,7 +271,7 @@ class OtpService implements OtpServiceInterface
         // verifiers are rejected even if they read the payload before deletion.
         $consumedKey = $cacheKey . ':consumed';
         if (!$this->cache->add($consumedKey, true, now()->addMinutes($this->config->getOtpExpiryMinutes()))) {
-            throw new InvalidCredentialsException('The OTP code has expired or is invalid.');
+            throw new InvalidCredentialsException((string) __('authentication::messages.otp_expired_or_invalid'));
         }
 
         // Successfully verified: Invalidate immediately to prevent reuse

@@ -30,7 +30,7 @@ class CheckAccountLockout
             }
 
             return redirect()->route('authentication.login')->withErrors([
-                'identifier' => 'Account is temporarily locked.',
+                'identifier' => (string) __('authentication::messages.account_locked_runtime'),
             ]);
         }
 

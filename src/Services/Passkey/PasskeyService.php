@@ -141,14 +141,14 @@ class PasskeyService
         // H-04 FIX: Atomic challenge claim via add() gate
         // Only first concurrent registration succeeds; prevents duplicate credentials
         if (!$this->cache->add($consumedKey, true, now()->addMinutes(5))) {
-            throw new AuthenticationException('Passkey registration challenge expired or already used. Please retry.');
+            throw new AuthenticationException((string) __('authentication::messages.passkey_challenge_used'));
         }
 
         $storedChallenge = $this->cache->get($challengeKey);
 
         if (!$storedChallenge || !is_string($storedChallenge)) {
             $this->cache->forget($consumedKey); // Release claim if challenge invalid
-            throw new AuthenticationException('Passkey registration challenge expired. Please retry.');
+            throw new AuthenticationException((string) __('authentication::messages.passkey_challenge_expired'));
         }
 
         // Invalidate challenge immediately (single-use anti-replay)
@@ -168,13 +168,13 @@ class PasskeyService
 
         $credentialId = (string) ($payload['id'] ?? $payload['rawId'] ?? '');
         if (empty($credentialId)) {
-            throw new AuthenticationException('Missing WebAuthn credential ID.');
+            throw new AuthenticationException((string) __('authentication::messages.passkey_credential_missing'));
         }
 
         // 2. Extract and strictly parse/normalize public key
         $rawPublicKey = (string) ($response['publicKey'] ?? $response['attestationObject'] ?? '');
         if (empty($rawPublicKey)) {
-            throw new AuthenticationException('WebAuthn registration payload missing public key or attestation object.');
+            throw new AuthenticationException((string) __('authentication::messages.passkey_payload_invalid'));
         }
 
         $normalizedPublicKeyPem = WebAuthnHelper::normalizePublicKeyToPem($rawPublicKey);
@@ -231,19 +231,19 @@ class PasskeyService
         $assertion = PasskeyAssertion::fromArray($payload);
 
         if (empty($assertion->id) || empty($assertion->clientDataJSON) || empty($assertion->authenticatorData) || empty($assertion->signature)) {
-            throw new InvalidCredentialsException('Invalid or incomplete passkey assertion payload.');
+            throw new InvalidCredentialsException((string) __('authentication::messages.passkey_payload_incomplete'));
         }
 
         $clientDataRaw = WebAuthnHelper::base64UrlDecode($assertion->clientDataJSON);
         $clientData = json_decode($clientDataRaw, true);
 
         if (!is_array($clientData) || ($clientData['type'] ?? '') !== 'webauthn.get') {
-            throw new InvalidCredentialsException('Invalid passkey assertion ceremony type.');
+            throw new InvalidCredentialsException((string) __('authentication::messages.passkey_ceremony_invalid'));
         }
 
         $challenge = (string) ($clientData['challenge'] ?? '');
         if ($challenge === '') {
-            throw new InvalidCredentialsException('Missing challenge in WebAuthn clientDataJSON.');
+            throw new InvalidCredentialsException((string) __('authentication::messages.passkey_challenge_missing'));
         }
 
         $cacheKey = "passkey_auth_challenge:{$challenge}";
@@ -253,12 +253,12 @@ class PasskeyService
         // one concurrent assertion can enter the authentication flow.
         $consumedKey = $cacheKey . ':consumed';
         if (!$this->cache->add($consumedKey, true, now()->addMinutes(5))) {
-            throw new InvalidCredentialsException('Passkey challenge expired or invalid.');
+            throw new InvalidCredentialsException((string) __('authentication::messages.passkey_assertion_invalid'));
         }
 
         if (!$this->cache->get($cacheKey)) {
             $this->cache->forget($consumedKey);
-            throw new InvalidCredentialsException('Passkey challenge expired or invalid.');
+            throw new InvalidCredentialsException((string) __('authentication::messages.passkey_assertion_invalid'));
         }
 
         $this->cache->forget($cacheKey);
@@ -334,7 +334,7 @@ class PasskeyService
             // Once counter has incremented, REQUIRE strict increase (no rollback, no zero)
             if ($parsedAuthData['sign_count'] <= $credential->sign_count) {
                 report(new InvalidCredentialsException("Passkey clone detected: counter rollback from {$credential->sign_count} to {$parsedAuthData['sign_count']} for credential {$credential->id}."));
-                throw new InvalidCredentialsException('WebAuthn cloned authenticator detected: invalid sign counter.');
+                throw new InvalidCredentialsException((string) __('authentication::messages.passkey_clone_detected'));
             }
         }
 

@@ -70,7 +70,7 @@ class AuthenticationService implements AuthenticationServiceInterface
     public function authenticate(LoginData $data, AuthenticationContext $context): AuthenticationResult
     {
         if (!$this->isEnabled()) {
-            throw new AuthenticationException('Authentication service is currently disabled.');
+            throw new AuthenticationException((string) __('authentication::messages.auth_disabled_runtime'));
         }
 
         // 1. Dispatch LoginAttempted event
@@ -128,7 +128,7 @@ class AuthenticationService implements AuthenticationServiceInterface
                     SecurityEventType::LOGIN_THROTTLED,
                     $data->identifier,
                     $context,
-                    AuthenticationResult::failed(AuthenticationStatus::THROTTLED, 'Too many login attempts.')
+                    AuthenticationResult::failed(AuthenticationStatus::THROTTLED, (string) __('authentication::messages.auth_too_many_attempts'))
                 );
 
                 throw new AuthenticationThrottledException(max(1, $decision->retryAfter));
@@ -232,7 +232,7 @@ class AuthenticationService implements AuthenticationServiceInterface
         $strategyName = $data->strategy ?: $this->config->getDefaultStrategy();
 
         if (!$this->strategyRegistry->has($strategyName)) {
-            throw new InvalidStrategyException('The requested authentication strategy is not supported.');
+            throw new InvalidStrategyException((string) __('authentication::messages.strategy_unsupported'));
         }
 
         return $this->strategyRegistry->get($strategyName);
