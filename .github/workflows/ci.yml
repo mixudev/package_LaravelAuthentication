@@ -14,14 +14,24 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        php: [8.2, 8.3, 8.4]
-        laravel: ['11.*', '12.*']
+        php: ['8.2', '8.3', '8.4']
+        laravel: ['12.*', '13.*']
+        include:
+          # Laravel 13 drops PHP 8.2 support, test with 8.3+ only
+          - php: '8.2'
+            laravel: '13.*'
+            skip: true
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Skip Matrix Entry
+        if: matrix.skip == true
+        run: echo "Skipping PHP ${{ matrix.php }} with Laravel ${{ matrix.laravel }}" && exit 0
+
       - name: Setup PHP
+        if: matrix.skip != true
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
@@ -29,15 +39,19 @@ jobs:
           coverage: none
 
       - name: Install Dependencies
+        if: matrix.skip != true
         run: |
           composer require "illuminate/support:${{ matrix.laravel }}" --no-interaction --no-update
           composer update --prefer-dist --no-interaction --no-progress
 
       - name: Validate Composer
+        if: matrix.skip != true
         run: composer validate --strict
 
       - name: Execute Tests
+        if: matrix.skip != true
         run: vendor/bin/phpunit --testdox
 
       - name: Execute Static Analysis
+        if: matrix.skip != true
         run: vendor/bin/phpstan analyse --no-progress

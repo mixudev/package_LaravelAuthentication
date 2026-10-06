@@ -3,10 +3,10 @@
 [![CI Tests](https://github.com/mixudev/package_LaravelAuthentication/actions/workflows/ci.yml/badge.svg)](https://github.com/mixudev/package_LaravelAuthentication/actions)
 [![Latest Version](https://img.shields.io/github/v/tag/mixudev/package_LaravelAuthentication?label=version&color=blue)](https://github.com/mixudev/package_LaravelAuthentication/releases)
 [![PHP Version](https://img.shields.io/badge/php-%5E8.2%20%7C%20%5E8.3%20%7C%20%5E8.4%20%7C%20%5E8.5-8892BF.svg)](https://php.net)
-[![Laravel Version](https://img.shields.io/badge/laravel-10.x%20%7C%2011.x%20%7C%2012.x%20%7C%2013.x-FF2D20.svg)](https://laravel.com)
+[![Laravel Version](https://img.shields.io/badge/laravel-12.x%20%7C%2013.x-FF2D20.svg)](https://laravel.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Arsitektur autentikasi enterprise siap produksi, modular, portable, dan aman (*secure-by-default*) untuk aplikasi **Laravel 10.x, 11.x, 12.x, dan 13.x**. 
+Arsitektur autentikasi enterprise siap produksi, modular, portable, dan aman (*secure-by-default*) untuk aplikasi **Laravel 12.x dan 13.x**. 
 
 Dirancang untuk monolit web, REST API, SPA, maupun arsitektur multi-tenant tanpa perlu modifikasi pada core code aplikasi host.
 
