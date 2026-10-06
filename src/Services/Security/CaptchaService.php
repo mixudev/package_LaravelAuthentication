@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Vendor\LaravelAuthentication\Services\Security;
 
 use SensitiveParameter;
+use Vendor\LaravelAuthentication\Contracts\AuthenticationAbusePolicyInterface;
 use Vendor\LaravelAuthentication\Contracts\CaptchaDriverInterface;
-use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException;
 use Vendor\LaravelAuthentication\Services\Security\Captcha\HcaptchaDriver;
 use Vendor\LaravelAuthentication\Services\Security\Captcha\NullCaptchaDriver;
@@ -20,7 +20,7 @@ class CaptchaService
 
     public function __construct(
         private readonly AuthenticationConfig $config,
-        private readonly FeatureRateLimiterInterface $rateLimiter
+        private readonly AuthenticationAbusePolicyInterface $abusePolicy
     ) {
         $this->driver = $this->resolveDriver();
     }
@@ -47,7 +47,7 @@ class CaptchaService
             return true;
         }
 
-        $attempts = $this->rateLimiter->attempts('login', $identifier, $ipAddress);
+        $attempts = $this->abusePolicy->getAccountAttempts($identifier ?? '', $ipAddress);
 
         return $attempts >= $threshold;
     }

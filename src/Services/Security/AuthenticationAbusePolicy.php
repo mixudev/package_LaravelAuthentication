@@ -210,4 +210,20 @@ class AuthenticationAbusePolicy implements AuthenticationAbusePolicyInterface
     {
         return "auth:challenge:{$token}";
     }
+
+    public function getAccountAttempts(string $identifier, string $ipAddress, string $clientId = 'default'): int
+    {
+        $policyConfig = $this->config->getAbusePolicyConfig();
+
+        if (!$policyConfig['enabled'] || !isset($policyConfig['dimensions']['account'])) {
+            // Fallback: read the FeatureRateLimiter login counter
+            return $this->rateLimiter->attempts('login', $identifier, $ipAddress, $clientId);
+        }
+
+        $normalizedIdentifier = EmailNormalizer::normalize($identifier);
+        $hash = hash('sha256', $normalizedIdentifier);
+        $key  = "auth_rl:login:abuse:account:{$hash}";
+
+        return $this->cacheLimiter->attempts($key);
+    }
 }

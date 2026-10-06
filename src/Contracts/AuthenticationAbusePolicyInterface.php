@@ -45,4 +45,11 @@ interface AuthenticationAbusePolicyInterface
      * Returns true on first valid verification, false on replay/expiry/invalid.
      */
     public function verifyChallengeToken(string $token, LoginData $data, AuthenticationContext $context): bool;
+
+    /**
+     * Return the number of recorded login failures for the given identifier.
+     * When abuse_policy is enabled this reads the 'account' dimension bucket;
+     * otherwise it falls back to the FeatureRateLimiter login counter.
+     */
+    public function getAccountAttempts(string $identifier, string $ipAddress, string $clientId = 'default'): int;
 }
