@@ -13,8 +13,8 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationConfigurationException
  * Two invariants live here:
  * 1. The configured API auth middleware must be a non-empty list of strings.
  *    An empty list would leave "authenticated" API routes open to anyone.
- * 2. Route names are namespaced under a configurable prefix so this package
- *    cannot collide with the host application's own global route names.
+ * 2. Route names use Laravel's conventional bare names by default. Hosts can
+ *    opt into a namespace with routes.web.route_name_prefix.
  */
 final class RouteConfig
 {
@@ -74,18 +74,15 @@ final class RouteConfig
     /**
      * Route name prefix for package web routes.
      *
-     * Kept configurable but always non-empty so a bare `route('authentication.login')` in host
-     * code never resolves to a package route by accident.
+     * An empty prefix intentionally produces Laravel's conventional bare names.
+     * A configured non-empty prefix is normalized with a trailing dot.
      */
     public static function webRouteNamePrefix(): string
     {
-        $prefix = trim((string) config('authentication.routes.web.route_name_prefix', 'authentication.'));
+        $prefix = trim((string) config('authentication.routes.web.route_name_prefix', ''));
 
         if ($prefix === '') {
-            throw new AuthenticationConfigurationException(
-                'authentication.routes.web.route_name_prefix must not be empty; '
-                . 'an empty prefix makes package route names collide with host application routes.'
-            );
+            return '';
         }
 
         return str_ends_with($prefix, '.') ? $prefix : $prefix . '.';

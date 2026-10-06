@@ -10,9 +10,13 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
         ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $verifyRoute = Route::has('authentication.two-factor.verify')
-        ? route('authentication.two-factor.verify')
+    $verifyRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('two-factor.verify'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('two-factor.verify'))
         : url('/two-factor-challenge');
+
+    $loginRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        : url('/login');
 
     $inputMode = $inputMode ?? 'totp';
     $totpDigits = (int) config('authentication.features.two_factor.digits', 6);
@@ -75,9 +79,9 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
                         name="trust_device"
                         type="checkbox"
                         value="1"
-                        class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 cursor-pointer dark:bg-slate-700"
                     >
-                    <label for="trust_device" class="ml-2 block text-xs text-slate-600 cursor-pointer">
+                    <label for="trust_device" class="ml-2 block text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
                         {{ __('authentication::messages.trust_device_label') }}
                     </label>
                 </div>
@@ -93,15 +97,15 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
                 <button
                     type="button"
                     @click="recovery = !recovery"
-                    class="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline transition"
+                    class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition"
                     x-text="recovery ? '{{ __('authentication::messages.two_factor_use_totp') }}' : '{{ __('authentication::messages.two_factor_use_recovery') }}'"
                 ></button>
             </div>
         </form>
 
         {{-- Link Kembali ke Login --}}
-        <div class="text-center border-t border-slate-100 pt-3">
-            <a href="{{ route('authentication.login') }}" class="text-xs text-slate-500 hover:text-slate-700 transition">
+        <div class="text-center border-t border-slate-100 dark:border-slate-700 pt-3">
+            <a href="{{ $loginRoute }}" class="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                 ← {{ __('authentication::messages.back_to_login_arrow') }}
             </a>
         </div>

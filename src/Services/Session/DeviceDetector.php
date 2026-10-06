@@ -20,24 +20,12 @@ class DeviceDetector
         $deviceName = "{$browser} on {$platform}";
         $location = $this->detectLocation();
 
-        // MEDIUM-11 FIX: Enhanced fingerprint with Accept headers and TLS hints if available in HTTP context
-        // Safely check container binding before accessing request helper
+        // Device fingerprint dari basis stabil: userId, platform, browser, IP subnet.
+        // Accept-Language dan Accept-Encoding TIDAK dipakai karena volatil antar request
+        // (browser bisa mengirim encoding berbeda, user bisa ganti bahasa).
         $ipSubnet = $this->resolveIpSubnet($ipAddress);
-        $acceptLanguage = '';
-        $acceptEncoding = '';
-        if (function_exists('app') && app()->bound('request')) {
-            try {
-                $req = request();
-                if ($req) {
-                    $acceptLanguage = (string) ($req->header('Accept-Language') ?? '');
-                    $acceptEncoding = (string) ($req->header('Accept-Encoding') ?? '');
-                }
-            } catch (\Throwable) {
-                // Ignore in CLI or tests where request is unbound
-            }
-        }
 
-        $fingerprint = hash('sha256', "{$userId}|{$platform}|{$browser}|{$ipSubnet}|{$acceptLanguage}|{$acceptEncoding}");
+        $fingerprint = hash('sha256', "{$userId}|{$platform}|{$browser}|{$ipSubnet}");
 
         return [
             'platform'    => $platform,

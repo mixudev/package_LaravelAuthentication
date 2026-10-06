@@ -468,16 +468,11 @@ return [
             // URL prefix untuk seluruh route web package, mis. 'account' -> /account/login
             'prefix'  => '',
             /*
-            | Prefix NAMA route web package.
-            |
-            | Prefix wajib non-empty. Package mendaftarkan nama route global seperti
-            | 'login' dan 'password.confirm'; bila host app juga mendaftarkan nama
-            | yang sama, lookup name terdaftar terakhir menimpa yang sebelumnya, dan
-            | redirect()->route('authentication.login') bisa mengarah ke route milik host.
-            | Prefix 'authentication.' menempatkan seluruh nama package di namespace
-            | sendiri sehingga tidak dapat bentrok dengan route host.
+            | Prefix nama route web package. Kosong berarti nama Laravel standar
+            | seperti 'login' dan 'password.reset'. Isi misalnya 'authentication.'
+            | bila host ingin mengisolasi route package dari route aplikasinya.
             */
-            'route_name_prefix' => 'authentication.',
+            'route_name_prefix' => '',
             // EnsureSessionSecurity menambahkan security headers (nosniff,
             // X-Frame-Options, Referrer-Policy) ke semua halaman auth package.
             'middleware' => ['web', 'authentication.session-security', 'authentication.throttle'],
