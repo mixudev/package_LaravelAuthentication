@@ -44,23 +44,6 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.sign_in')">
 
-    {{-- Load CAPTCHA Script (hanya jika perlu tampil) --}}
-    @if ($showCaptcha)
-        @if ($captchaDriver === 'turnstile')
-            @push('scripts')
-                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-            @endpush
-        @elseif (str_starts_with($captchaDriver, 'recaptcha'))
-            @push('scripts')
-                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-            @endpush
-        @elseif ($captchaDriver === 'hcaptcha')
-            @push('scripts')
-                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
-            @endpush
-        @endif
-    @endif
-
     <div class="space-y-4">
 
         {{-- Header Halaman --}}
@@ -162,18 +145,21 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
             @if ($showCaptcha && !empty($captchaSiteKey))
                 <div class="pt-1">
                     @if ($captchaDriver === 'turnstile')
+                        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
                         <div class="cf-turnstile" data-sitekey="{{ $captchaSiteKey }}" data-theme="light"></div>
                         @if ($errors->has('cf-turnstile-response'))
                             <p class="text-xs text-red-500 mt-1">{{ $errors->first('cf-turnstile-response') }}</p>
                         @endif
 
                     @elseif ($captchaDriver === 'recaptcha_v2')
+                        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
                         <div class="g-recaptcha" data-sitekey="{{ $captchaSiteKey }}"></div>
                         @if ($errors->has('g-recaptcha-response'))
                             <p class="text-xs text-red-500 mt-1">{{ $errors->first('g-recaptcha-response') }}</p>
                         @endif
 
                     @elseif ($captchaDriver === 'recaptcha_v3')
+                        <script src="https://www.google.com/recaptcha/api.js?render={{ $captchaSiteKey }}" async defer></script>
                         {{-- reCAPTCHA v3 tidak tampil secara visual, token dikirim via hidden field --}}
                         <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response-v3">
                         <script>
@@ -189,6 +175,7 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
                         </script>
 
                     @elseif ($captchaDriver === 'hcaptcha')
+                        <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
                         <div class="h-captcha" data-sitekey="{{ $captchaSiteKey }}"></div>
                         @if ($errors->has('h-captcha-response'))
                             <p class="text-xs text-red-500 mt-1">{{ $errors->first('h-captcha-response') }}</p>
