@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 
 /**
  * Middleware dynamically enforcing a package-configured or passed guard parameter.
@@ -27,7 +28,7 @@ class AuthenticateWithCustomGuard
                 return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
             }
 
-            return redirect()->guest(route('authentication.login'));
+            return redirect()->guest(route(RouteConfig::name('login')));
         }
 
         return $next($request);

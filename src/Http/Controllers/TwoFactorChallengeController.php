@@ -21,6 +21,7 @@ use Vendor\LaravelAuthentication\Services\Session\NewDeviceDetectionService;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
@@ -39,7 +40,7 @@ class TwoFactorChallengeController extends Controller
     public function show(Request $request): HttpResponse|JsonResponse|RedirectResponse
     {
         if (!$request->session()->has('auth.2fa.user_id')) {
-            return redirect()->route('authentication.login');
+            return redirect()->route(RouteConfig::name('login'));
         }
 
         if ($request->expectsJson()) {
@@ -89,7 +90,7 @@ class TwoFactorChallengeController extends Controller
         if (!$userId) {
             return $request->expectsJson()
                 ? response()->json(['message' => (string) __('authentication::messages.two_factor_session_invalid')], 401)
-                : redirect()->route('authentication.login');
+                : redirect()->route(RouteConfig::name('login'));
         }
 
         if ($request->has('trust_device')) {
@@ -148,7 +149,7 @@ class TwoFactorChallengeController extends Controller
         if (!$user) {
             return $request->expectsJson()
                 ? response()->json(['message' => (string) __('authentication::messages.two_factor_session_invalid')], 401)
-                : redirect()->route('authentication.login');
+                : redirect()->route(RouteConfig::name('login'));
         }
 
         if (!$this->twoFactorService->verifyChallenge($user, $code)) {

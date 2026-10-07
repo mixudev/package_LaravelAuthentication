@@ -28,6 +28,7 @@ use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationView;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 use Vendor\LaravelAuthentication\Support\ThrottleMessage;
@@ -78,7 +79,7 @@ class OtpController extends Controller
         try {
             $this->otpService->generate($identifier, $context);
 
-            return redirect()->route('authentication.otp.verify.form', ['identifier' => $identifier])
+            return redirect()->route(RouteConfig::name('otp.verify.form'), ['identifier' => $identifier])
                 ->with('status', (string) __('authentication::messages.otp_sent_generic'));
         } catch (AuthenticationException $e) {
             // Jangan bocorkan detail internal exception ke user.
@@ -141,7 +142,7 @@ class OtpController extends Controller
                         $request->session()->put('auth.2fa.user_id', $user->getAuthIdentifier());
                         $request->session()->put('auth.2fa.remember', $remember);
                     }
-                    return redirect()->route('authentication.two-factor.challenge');
+                    return redirect()->route(RouteConfig::name('two-factor.challenge'));
                 }
             }
 

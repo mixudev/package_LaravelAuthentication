@@ -19,6 +19,7 @@ use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
 use Vendor\LaravelAuthentication\Http\Requests\LoginRequest;
 use Vendor\LaravelAuthentication\Support\AuthenticationView;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
 
@@ -55,7 +56,7 @@ class LoginController extends Controller
             $this->authService->authenticate($loginData, $context);
             return redirect()->intended(config('authentication.redirects.login', '/dashboard'));
         } catch (TwoFactorChallengeRequiredException) {
-            return redirect()->route('authentication.two-factor.challenge');
+            return redirect()->route(RouteConfig::name('two-factor.challenge'));
         } catch (AuthenticationThrottledException $e) {
             session()->flash('auth_retry_after', max(0, (int) $e->secondsRemaining));
             throw ValidationException::withMessages([

@@ -26,6 +26,7 @@ use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
 use Vendor\LaravelAuthentication\Support\AuthenticationView;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class PasswordResetController extends Controller
@@ -143,7 +144,7 @@ class PasswordResetController extends Controller
         }
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route('authentication.login')->with('status', trans($status))
+            ? redirect()->route(RouteConfig::name('login'))->with('status', trans($status))
             : back()->withErrors(['email' => trans($status)]);
     }
 

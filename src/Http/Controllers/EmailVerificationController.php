@@ -16,6 +16,7 @@ use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\EmailVerified;
 use Vendor\LaravelAuthentication\Support\AuthenticationView;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 
 class EmailVerificationController extends Controller
 {
@@ -47,7 +48,7 @@ class EmailVerificationController extends Controller
         if ($user === null) {
             return $request->expectsJson()
                 ? response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401)
-                : redirect()->route('authentication.login');
+                : redirect()->route(RouteConfig::name('login'));
         }
 
         // Pastikan {id} di URL sesuai dengan user yang login

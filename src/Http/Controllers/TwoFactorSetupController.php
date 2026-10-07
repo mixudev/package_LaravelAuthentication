@@ -14,6 +14,7 @@ use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 
 class TwoFactorSetupController extends Controller
@@ -56,8 +57,8 @@ class TwoFactorSetupController extends Controller
                 ], 400);
             }
 
-            $redirectUrl = \Illuminate\Support\Facades\Route::has('authentication.auth.sessions.index')
-                ? route('authentication.auth.sessions.index')
+            $redirectUrl = \Illuminate\Support\Facades\Route::has(RouteConfig::name('auth.sessions.index'))
+                ? route(RouteConfig::name('auth.sessions.index'))
                 : (string) config('authentication.redirects.login', '/dashboard');
 
             return redirect($redirectUrl)
@@ -98,7 +99,7 @@ class TwoFactorSetupController extends Controller
                 ], 400);
             }
 
-            return redirect()->route('authentication.auth.sessions.index')
+            return redirect()->route(RouteConfig::name('auth.sessions.index'))
                 ->with('status', (string) __('authentication::messages.two_factor_already_enabled'));
         }
 
@@ -135,7 +136,7 @@ class TwoFactorSetupController extends Controller
             ]);
         }
 
-        return redirect()->route('authentication.auth.sessions.index')->with('status', (string) __('authentication::messages.two_factor_enabled'));
+        return redirect()->route(RouteConfig::name('auth.sessions.index'))->with('status', (string) __('authentication::messages.two_factor_enabled'));
     }
 
     public function destroy(Request $request): RedirectResponse|JsonResponse

@@ -22,6 +22,7 @@ use Vendor\LaravelAuthentication\Services\Session\DeviceTrustService;
 use Vendor\LaravelAuthentication\Services\Session\SessionSecurityService;
 use Vendor\LaravelAuthentication\Services\TwoFactor\TwoFactorService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
 use Vendor\LaravelAuthentication\Support\ThrottleMessage;
 use Vendor\LaravelAuthentication\Support\TwoFactorPendingToken;
@@ -99,7 +100,7 @@ class SocialAuthController extends Controller
                         $request->session()->put('auth.2fa.user_id', $user->getAuthIdentifier());
                         $request->session()->put('auth.2fa.remember', true);
                     }
-                    return redirect()->route('authentication.two-factor.challenge');
+                    return redirect()->route(RouteConfig::name('two-factor.challenge'));
                 }
             }
 
@@ -111,16 +112,16 @@ class SocialAuthController extends Controller
             return redirect()->intended($this->config->getRedirect('login', '/dashboard'))
                 ->with('status', (string) __('authentication::messages.social_auth_success', ['provider' => ucfirst($provider)]));
         } catch (AccountLockedException $e) {
-            return redirect()->route('authentication.login')
+            return redirect()->route(RouteConfig::name('login'))
                 ->withErrors(['identifier' => (string) __('authentication::messages.account_locked')]);
         } catch (AuthenticationException $e) {
             report($e);
 
-            return redirect()->route('authentication.login')
+            return redirect()->route(RouteConfig::name('login'))
                 ->withErrors(['identifier' => (string) __('authentication::messages.social_auth_failed', ['provider' => ucfirst($provider)])]);
         } catch (\Throwable $e) {
             report($e);
-            return redirect()->route('authentication.login')
+            return redirect()->route(RouteConfig::name('login'))
                 ->withErrors(['identifier' => (string) __('authentication::messages.social_auth_failed', ['provider' => ucfirst($provider)])]);
         }
     }

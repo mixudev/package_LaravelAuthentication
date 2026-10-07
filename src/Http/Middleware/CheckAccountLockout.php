@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Vendor\LaravelAuthentication\Services\Security\AccountLockService;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 
 /**
  * Validates that the authenticated user is not locked by administrative or automated policies.
@@ -29,7 +30,7 @@ class CheckAccountLockout
                 ], 403);
             }
 
-            return redirect()->route('authentication.login')->withErrors([
+            return redirect()->route(RouteConfig::name('login'))->withErrors([
                 'identifier' => (string) __('authentication::messages.account_locked_runtime'),
             ]);
         }

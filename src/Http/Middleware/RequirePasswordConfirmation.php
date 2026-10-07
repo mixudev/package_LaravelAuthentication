@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
+use Vendor\LaravelAuthentication\Support\RouteConfig;
 
 /**
  * Middleware ensuring sensitive actions require a recently confirmed password.
@@ -31,7 +32,7 @@ class RequirePasswordConfirmation
                 return response()->json(['message' => (string) __('authentication::messages.unauthenticated')], 401);
             }
 
-            return redirect()->guest(route('authentication.login'));
+            return redirect()->guest(route(RouteConfig::name('login')));
         }
 
         $timeout = $customTimeout ?? $this->config->getConfirmPasswordTimeout();
@@ -55,7 +56,7 @@ class RequirePasswordConfirmation
                 $request->session()->put('url.intended', $request->fullUrl());
             }
 
-            return redirect()->route('authentication.password.confirm');
+            return redirect()->route(RouteConfig::name('password.confirm'));
         }
 
         return $next($request);
