@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.28] - 2026-10-07
+
+### Fixed
+- **`RouteNotFoundException` for all package redirects when `route_name_prefix` is empty**: Controllers and middlewares were hardcoding `'authentication.xxx'` as route names (e.g. `route('authentication.two-factor.challenge')`, `route('authentication.login')`). This only worked when the host set `routes.web.route_name_prefix = 'authentication'`. With the default empty prefix, routes are registered with bare names (`login`, `two-factor.challenge`) causing `RouteNotFoundException` on every redirect — including after successful login, 2FA challenge, password reset, account lockout, and social OAuth callback. All `route()` calls in controllers and middlewares now use `RouteConfig::name('xxx')` to dynamically resolve the configured prefix.
+  - Affected: `LoginController`, `OtpController`, `SocialAuthController`, `TwoFactorChallengeController`, `TwoFactorSetupController`, `PasswordResetController`, `EmailVerificationController`, `RequirePasswordConfirmation`, `CheckAccountLockout`, `AuthenticateWithCustomGuard`
+
+
 ### Security
 - **High-throughput Abuse Policy & Throttling Pre-Check**: Throttled requests are now evaluated and blocked in `AuthenticationService::authenticate()` *before* invoking database queries and expensive Bcrypt password hashing (`Hash::check()`). This prevents CPU starvation and thread exhaustion under high request volume and closes a vulnerability where throttled clients submitting valid passwords could bypass rate limits.
 - **Account Lockout Cycle Reset & Stale Attempt Decay**: In `AccountLockService`, once a lockout duration expires, subsequent failures now cleanly start a new lockout cycle (`failed_attempts = 1`) rather than immediately re-locking the account on a single mistake. Additionally, stale failure records that exceed the decay window automatically reset to 1 rather than accumulating indefinitely.
