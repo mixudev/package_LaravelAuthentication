@@ -36,9 +36,14 @@ class DeviceTrustService
         $userId = $user->getAuthIdentifier();
         $detection = $this->detector->detect($request->userAgent(), ClientIpResolver::resolve($request), $userId);
 
+        $tokenHash = hash('sha256', $token);
+
         /** @var AuthenticationDevice|null $device */
         $device = AuthenticationDevice::where('user_id', $userId)
-            ->where('device_fingerprint', $detection['fingerprint'])
+            ->where(function ($query) use ($tokenHash, $detection) {
+                $query->where('trust_token_hash', $tokenHash)
+                    ->orWhere('device_fingerprint', $detection['fingerprint']);
+            })
             ->first();
 
         if (!$device || !$device->isCurrentlyTrusted()) {
@@ -46,9 +51,12 @@ class DeviceTrustService
         }
 
         // SEC-04 FIX: Prefer the server-side random trust token (per-device, revocable).
-        $tokenHash = hash('sha256', $token);
         if (!empty($device->trust_token_hash)) {
-            return hash_equals($device->trust_token_hash, $tokenHash);
+            $isMatched = hash_equals($device->trust_token_hash, $tokenHash);
+            if ($isMatched) {
+                $device->update(['last_seen_at' => now()]);
+            }
+            return $isMatched;
         }
 
         // Legacy fallback (cookie issued before migration): valid but non-revocable HMAC.
@@ -88,6 +96,10 @@ class DeviceTrustService
         ]);
 
         $cookieName = $this->config->getDeviceTrustCookieName();
+        $sameSite = (string) config('authentication.features.two_factor.trust_device.same_site', 'strict');
+        if (!in_array(strtolower($sameSite), ['lax', 'strict', 'none'], true)) {
+            $sameSite = 'strict';
+        }
 
         return Cookie::make(
             $cookieName,
@@ -98,7 +110,7 @@ class DeviceTrustService
             $request->isSecure(),
             true, // HttpOnly
             false,
-            'strict'
+            $sameSite
         );
     }
 

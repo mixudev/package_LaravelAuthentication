@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Validation\ValidationException;
 use Vendor\LaravelAuthentication\Contracts\FeatureRateLimiterInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
@@ -214,6 +215,7 @@ class TwoFactorChallengeController extends Controller
         // BP-04 FIX: assign return value karena withCookie() bersifat immutable (mengembalikan instance baru)
         if ($request->boolean('trust_device') && $this->config->isDeviceTrustEnabled()) {
             $cookie = $this->deviceTrustService->createTrustCookie($user, $request);
+            Cookie::queue($cookie);
             if (method_exists($response, 'withCookie')) {
                 $response = $response->withCookie($cookie);
             }

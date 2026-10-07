@@ -153,4 +153,81 @@ class TrustedDevicePipelineTest extends TestCase
         $this->expectException(TwoFactorChallengeRequiredException::class);
         $this->authService->authenticate($this->loginData(), $context);
     }
+
+    public function test_logout_preserves_device_trust_by_default(): void
+    {
+        $request = $this->loginRequest();
+        $this->app->instance('request', $request);
+
+        $cookie = $this->trustService->createTrustCookie($this->user, $request);
+        $token = (string) $cookie->getValue();
+        $this->assertNotEmpty($token);
+
+        // Simulate user logging in and then logging out
+        $this->actingAs($this->user);
+        $logoutContext = new AuthenticationContext(
+            '203.0.113.10',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) TrustPipe',
+            AuthenticationChannel::WEB,
+            'web'
+        );
+        $this->authService->logout($logoutContext);
+
+        // Next login with the trusted cookie should STILL skip 2FA
+        $trustRequest = Request::create('/login', 'POST', [], [
+            'auth_trusted_device' => $token,
+        ], [], [
+            'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) TrustPipe',
+            'REMOTE_ADDR'     => '203.0.113.10',
+        ]);
+        $this->app->instance('request', $trustRequest);
+
+        $loginContext = new AuthenticationContext(
+            '203.0.113.10',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) TrustPipe',
+            AuthenticationChannel::WEB,
+            'web'
+        );
+
+        $result = $this->authService->authenticate($this->loginData(), $loginContext);
+        $this->assertTrue($result->isSuccess());
+    }
+
+    public function test_logout_revokes_trust_when_explicitly_configured(): void
+    {
+        config(['authentication.features.two_factor.trust_device.revoke_on_logout' => true]);
+
+        $request = $this->loginRequest();
+        $this->app->instance('request', $request);
+
+        $cookie = $this->trustService->createTrustCookie($this->user, $request);
+        $token = (string) $cookie->getValue();
+
+        $this->actingAs($this->user);
+        $logoutContext = new AuthenticationContext(
+            '203.0.113.10',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) TrustPipe',
+            AuthenticationChannel::WEB,
+            'web'
+        );
+        $this->authService->logout($logoutContext);
+
+        $trustRequest = Request::create('/login', 'POST', [], [
+            'auth_trusted_device' => $token,
+        ], [], [
+            'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) TrustPipe',
+            'REMOTE_ADDR'     => '203.0.113.10',
+        ]);
+        $this->app->instance('request', $trustRequest);
+
+        $loginContext = new AuthenticationContext(
+            '203.0.113.10',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) TrustPipe',
+            AuthenticationChannel::WEB,
+            'web'
+        );
+
+        $this->expectException(TwoFactorChallengeRequiredException::class);
+        $this->authService->authenticate($this->loginData(), $loginContext);
+    }
 }

@@ -356,9 +356,12 @@ return [
 
             // Fitur Remember This Device untuk bypass 2FA pada perangkat terpercaya
             'trust_device' => [
-                'enabled'       => true,
-                'duration_days' => 30,
-                'cookie_name'   => 'auth_trusted_device',
+                'enabled'          => true,
+                'duration_days'    => 30,
+                'cookie_name'      => 'auth_trusted_device',
+                // false = device tetap dipercayai selama durasi 30 hari meskipun user logout.
+                // true = device trust dicabut saat user logout (harus 2FA lagi di login berikutnya).
+                'revoke_on_logout' => false,
             ],
 
             // TTL token pending 2FA untuk alur API stateless (menit).

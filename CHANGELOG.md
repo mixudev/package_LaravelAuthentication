@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.29] - 2026-10-07
+
+### Fixed
+- **Device Trust (30-day "Percayai perangkat ini") Revoked on Standard Logout**: In `AuthenticationService::logout()`, every standard user logout previously invoked `$this->deviceTrustService->revokeUserTrust($user)`, immediately wiping `is_trusted = false` and clearing `trust_token_hash` on the database. As a result, when a user checked "Percayai perangkat ini selama 30 hari" and subsequently logged out, their 30-day trust was immediately destroyed, forcing 2FA to be challenged again on their next login. Logout now preserves device trust across sessions by default, only revoking when explicitly configured (`trust_device.revoke_on_logout = true`) or during credential resets / explicit device revocation.
+- **Resilient Device Lookup via Cryptographic Token Hash**: In `DeviceTrustService::isTrusted()`, devices are now queried by user ID and `trust_token_hash` (or `device_fingerprint` fallback). If a trusted user switches networks (changing IP subnet), the high-entropy revocable token stored in the cookie still reliably verifies the trusted device without breaking.
+- **Queued Device Trust Cookie in 2FA Challenge**: In `TwoFactorChallengeController::verify()`, the trust cookie is now explicitly pushed to `Cookie::queue()` in addition to `$response->withCookie($cookie)`, ensuring it is never dropped during redirects or response middleware transformations.
+- **Configurable Cookie SameSite Attribute**: `DeviceTrustService::createTrustCookie()` now supports configurable SameSite policy (`trust_device.same_site`, defaulting to `'strict'`, compatible with `'lax'`).
+
 ## [1.9.28] - 2026-10-07
 
 ### Fixed
