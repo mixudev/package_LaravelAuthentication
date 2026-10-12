@@ -76,13 +76,36 @@ Deskripsi: Kerangka dasar HTML5 universal dengan dukungan penuh Light/Dark/Auto 
         })();
     </script>
 
-    {{-- Alpine.js Standar untuk Interaktivitas Modal & Komponen --}}
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {{--
+        Alpine.js:
+        - Jika Vite aktif: Alpine sudah di-bundle lewat resources/js/app.js (import Alpine from 'alpinejs').
+          Tidak perlu script CDN — ini menghilangkan floating version risk.
+        - Jika Vite tidak aktif (fallback): gunakan versi pin exact + Subresource Integrity (SRI).
+          Update hash ini setiap upgrade Alpine: https://www.srihash.org
+    --}}
+    @if (!(config('authentication.ui.use_vite', true) && (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))))
+        {{-- Pinned Alpine 3.14.9 dengan SRI — fallback untuk non-Vite host --}}
+        <script
+            defer
+            src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
+            integrity="sha384-ycBMtP1bZSrg0VVWrLr4X5HV2Bnh7fVFfW7tmRD6rFuCPLT0w8OJuSlAmFKgRSA"
+            crossorigin="anonymous"
+        ></script>
+    @endif
 
     {{-- Asset Bundler: Otomatis mendeteksi Vite Host Application dengan safe fallback Tailwind --}}
-    @if (config('authentication.ui.use_vite', true) && (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot'))))
+    @php
+        $viteActive = config('authentication.ui.use_vite', true)
+            && (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')));
+    @endphp
+    @if ($viteActive)
+        {{-- Alpine sudah di-bundle dalam app.js — tidak perlu CDN terpisah --}}
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
+        {{--
+            Tailwind CDN: fallback untuk host app yang tidak memakai Vite.
+            Produksi: pastikan Vite aktif agar Alpine tidak dimuat dari CDN.
+        --}}
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
             tailwind.config = {

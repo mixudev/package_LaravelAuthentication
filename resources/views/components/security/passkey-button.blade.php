@@ -182,7 +182,19 @@ Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn tanpa password.
                 var loginData = await loginRes.json();
 
                 if (loginRes.ok && loginData.status === 'success') {
-                    window.location.href = loginData.redirect || '/dashboard';
+                    // SEC: Validasi same-origin — tolak redirect ke domain eksternal
+                    var rawRedirect = loginData.redirect || '/dashboard';
+                    var safeRedirect = (function(url) {
+                        try {
+                            var parsed = new URL(url, window.location.origin);
+                            // Hanya izinkan path internal (same origin)
+                            return parsed.origin === window.location.origin ? parsed.href : '/dashboard';
+                        } catch (e) {
+                            // Bukan URL valid \u2014 anggap path relatif (aman)
+                            return url.startsWith('/') ? url : '/dashboard';
+                        }
+                    })(rawRedirect);
+                    window.location.href = safeRedirect;
                 } else {
                     alert(loginData.message || '{{ __("authentication::messages.passkey_failed") }}');
                 }

@@ -64,6 +64,9 @@ class InstallCommand extends Command
         // 3. Configure Tailwind CSS & Vite in Host Application
         $this->configureTailwind($filesystem);
 
+        // 4. Inject Alpine.js into Host Application's app.js (if Vite is present)
+        $this->injectAlpine($filesystem);
+
         // 5. Run Migrations (if requested or confirmed)
         if ($this->option('migrate') || ($this->input->isInteractive() && $this->confirm('Would you like to run database migrations now?', true))) {
             $this->line('⚡ Running database migrations...');
@@ -175,5 +178,101 @@ class InstallCommand extends Command
             $this->line('  <comment>ℹ Note:</comment> Custom CSS file not detected automatically. Make sure Tailwind scans package views:');
             $this->line("    <info>./vendor/mixudev/laravel-authentication/resources/views/**/*.blade.php</info>");
         }
+    }
+
+    /**
+     * Inject Alpine.js into the host application's Vite bundle (app.js).
+     *
+     * Strategy:
+     *   1. Detect if Vite is used (vite.config.js / package.json present).
+     *   2. Check package.json — skip if Alpine already installed.
+     *   3. If not installed: run `npm install alpinejs --save-dev`.
+     *   4. Check app.js — skip if Alpine already imported.
+     *   5. If not imported: prepend Alpine bootstrap code to app.js.
+     *
+     * Idempotent: safe to run multiple times.
+     */
+    protected function injectAlpine(Filesystem $filesystem): void
+    {
+        $this->line('🏔️  Configuring Alpine.js...');
+
+        $packageJsonPath = base_path('package.json');
+        $appJsPath       = resource_path('js/app.js');
+
+        // Only proceed if the host app uses Vite (package.json must exist)
+        if (!$filesystem->exists($packageJsonPath)) {
+            $this->line('  <comment>ℹ</comment> No package.json found — skipping Alpine.js injection (non-Vite app).');
+            $this->line('    Package views include a pinned CDN fallback for Alpine 3.x.');
+
+            return;
+        }
+
+        // ── Step 1: Check if Alpine is already in package.json ──────────────
+        $packageJson = json_decode($filesystem->get($packageJsonPath), true);
+        $allDeps = array_merge(
+            (array) ($packageJson['dependencies'] ?? []),
+            (array) ($packageJson['devDependencies'] ?? []),
+            (array) ($packageJson['optionalDependencies'] ?? []),
+        );
+
+        $alpineInstalled = isset($allDeps['alpinejs']);
+
+        if ($alpineInstalled) {
+            $this->line('  <info>✓</info> Alpine.js already in <comment>package.json</comment> — skipping npm install.');
+        } else {
+            // ── Step 2: Install Alpine.js via npm ────────────────────────────
+            $this->line('  📦 Installing <comment>alpinejs</comment> via npm...');
+            $npmBin  = PHP_OS_FAMILY === 'Windows' ? 'npm.cmd' : 'npm';
+            $result  = 0;
+            $output  = [];
+            exec("{$npmBin} install alpinejs --save-dev --silent 2>&1", $output, $result);
+
+            if ($result !== 0) {
+                $this->warn('  ⚠ npm install failed. Install manually: <comment>npm install alpinejs --save-dev</comment>');
+            } else {
+                $this->line('  <info>✓</info> Alpine.js installed successfully.');
+            }
+        }
+
+        // ── Step 3: Check / patch app.js ────────────────────────────────────
+        if (!$filesystem->exists($appJsPath)) {
+            $this->line('  <comment>ℹ</comment> <comment>resources/js/app.js</comment> not found — skipping app.js injection.');
+            $this->line("    Add this manually to your JS entry file:\n");
+            $this->line("    <info>import Alpine from 'alpinejs';\nwindow.Alpine = Alpine;\nAlpine.start();</info>");
+
+            return;
+        }
+
+        $jsContent     = $filesystem->get($appJsPath);
+        $alpineImport  = "import Alpine from 'alpinejs';";
+
+        // Skip if Alpine already imported / started
+        if (str_contains($jsContent, 'alpinejs') || str_contains($jsContent, 'Alpine.start')) {
+            $this->line('  <info>✓</info> Alpine.js already imported in <comment>resources/js/app.js</comment> — skipping injection.');
+
+            return;
+        }
+
+        // ── Step 4: Inject Alpine bootstrap at the TOP of app.js ────────────
+        $alpineBootstrap = <<<'JS'
+import Alpine from 'alpinejs';
+
+window.Alpine = Alpine;
+Alpine.start();
+
+JS;
+
+        // Prepend after any leading comment blocks (preserve existing comments)
+        if (preg_match('/^(\s*(\/\/[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*)(.*)$/s', $jsContent, $m)) {
+            $leadingComments = $m[1];
+            $rest            = $m[3];
+            $newContent      = $leadingComments . $alpineBootstrap . ($rest !== '' ? "\n" . ltrim($rest) : '');
+        } else {
+            $newContent = $alpineBootstrap . $jsContent;
+        }
+
+        $filesystem->put($appJsPath, $newContent);
+        $this->line('  <info>✓</info> Alpine.js injected into <comment>resources/js/app.js</comment>.');
+        $this->line('  <comment>→ Run <info>npm run build</info> or <info>npm run dev</info> to bundle.</comment>');
     }
 }
