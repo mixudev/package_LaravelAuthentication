@@ -319,7 +319,6 @@ class AuthenticationServiceProvider extends ServiceProvider
 
                     return route($targetRoute, [
                         'token' => $token,
-                        'email' => $notifiable->getEmailForPasswordReset(),
                     ]);
                 }
             );

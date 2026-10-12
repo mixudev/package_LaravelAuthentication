@@ -45,15 +45,46 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
 
             <input type="hidden" name="token" value="{{ $token ?? request()->route('token') }}">
 
-            <x-authentication::forms.input
-                name="email"
-                type="email"
-                :label="__('authentication::messages.email_label')"
-                :placeholder="__('authentication::messages.email_placeholder')"
-                :value="old('email', $email ?? request()->email)"
-                :required="true"
-                autocomplete="email"
-            />
+            @php
+                $displayEmail = $email ?? '';
+                $displayName = $name ?? '';
+                $emailMax = (int) config('authentication.ui.input_maxlength', 255);
+                $nameMax = (int) config('authentication.ui.name_maxlength', 60);
+                $emailTrunc = $displayEmail !== '' && mb_strlen($displayEmail) > $emailMax ? mb_substr($displayEmail, 0, $emailMax) : $displayEmail;
+                $nameTrunc = $displayName !== '' && mb_strlen($displayName) > $nameMax ? mb_substr($displayName, 0, $nameMax) : $displayName;
+            @endphp
+
+            {{-- Display-only user identity: do not allow changing email --}}
+            @if ($displayEmail !== '')
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('authentication::messages.email_label') }}</label>
+                    <input
+                        type="email"
+                        readonly
+                        disabled
+                        class="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-3 py-2 text-sm cursor-not-allowed"
+                        value="{{ $emailTrunc }}"
+                        maxlength="{{ $emailMax }}"
+                        aria-readonly="true"
+                    >
+                    <input type="hidden" name="email" value="{{ $emailTrunc }}">
+                </div>
+            @endif
+
+            @if ($nameTrunc !== '')
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('authentication::messages.attribute_name') }}</label>
+                    <input
+                        type="text"
+                        readonly
+                        disabled
+                        class="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-3 py-2 text-sm cursor-not-allowed"
+                        value="{{ $nameTrunc }}"
+                        maxlength="{{ $nameMax }}"
+                        aria-readonly="true"
+                    >
+                </div>
+            @endif
 
             <x-authentication::forms.input
                 name="password"

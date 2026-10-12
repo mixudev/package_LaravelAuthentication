@@ -20,9 +20,10 @@ class ResetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token'    => ['required', 'string'],
-            'email'    => ['required', 'string', 'email:rfc', 'max:255'],
-            'password' => ['required', 'string', 'confirmed', PasswordRule::fromConfig()],
+            'token'                 => ['required', 'string'],
+            'email'                 => ['required', 'string', 'email:rfc', 'max:255'],
+            'password'              => ['required', 'string', 'confirmed', PasswordRule::fromConfig()],
+            'password_confirmation' => ['required', 'string'],
         ];
     }
 

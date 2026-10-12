@@ -77,6 +77,26 @@ class PasswordResetController extends Controller
         // We ALWAYS return the same generic success message to prevent user enumeration
         // (an attacker must not learn whether the submitted email exists in the database).
         $email = (string) $request->input('email', '');
+
+        // Store email for the reset-password form display (no email in URL).
+        // Stored in session with a short-lived approach; the session is flash-like
+        // and is cleared after the reset completes.
+        $request->session()->put('password_reset_email', $email);
+
+        // Optionally resolve display name (best-effort, no enumeration leak: we store
+        // the name only if user already exists — but we store the email regardless).
+        $userModel = config('authentication.user_model');
+        if (is_string($userModel) && class_exists($userModel)) {
+            try {
+                $user = $userModel::query()->where('email', $email)->first();
+                if ($user !== null && isset($user->name)) {
+                    $request->session()->put('password_reset_name', (string) $user->name);
+                }
+            } catch (\Throwable) {
+                // no-op: silently skip on any error; we never reveal user existence
+            }
+        }
+
         if ((bool) config('authentication.mail.queue', true)) {
             SendPasswordResetLinkJob::dispatch($email);
         } else {
@@ -121,9 +141,15 @@ class PasswordResetController extends Controller
         // to JSON would make a browser GET return an API message.
         $viewName = AuthenticationView::resolve('reset_password', 'authentication::pages.password.reset-password');
 
+        $email = session('password_reset_email');
+        if ($email === null || $email === '') {
+            $email = $request->query('email');
+        }
+
         return view($viewName, [
             'token' => $token,
-            'email' => $request->query('email'),
+            'email' => $email,
+            'name'  => session('password_reset_name'),
         ]);
     }
 
@@ -139,9 +165,39 @@ class PasswordResetController extends Controller
             return back()->withErrors(['email' => $this->passwordResetStatusMessage(Password::INVALID_TOKEN)]);
         }
 
+        // SEC: Strict allowlist — only token, email, password, password_confirmation
+        // are passed to the broker. Any extra payload the attacker may have injected
+        // is silently dropped here; it never reaches the broker callback.
+        $credentials = $request->only('email', 'password', 'password_confirmation', 'token');
+
+        // Reject if extra fields are present (deny non-whitelisted payloads).
+        $allowed = ['email', 'password', 'password_confirmation', 'token', '_token', '_method'];
+        foreach (array_keys($request->all()) as $field) {
+            if (!in_array($field, $allowed, true)) {
+                return response()->json([
+                    'status'  => 'failed',
+                    'message' => (string) __('authentication::messages.password_reset_invalid'),
+                    'errors'  => [
+                        'password' => [(string) __('authentication::messages.password_reset_invalid')],
+                    ],
+                ], 422);
+            }
+        }
+
+        // Reject if extra fields are present (deny non-whitelisted payloads).
+        $allowed = ['email', 'password', 'password_confirmation', 'token', '_token', '_method'];
+        foreach (array_keys($request->all()) as $field) {
+            if (!in_array($field, $allowed, true)) {
+                if ($request->expectsJson()) {
+                    abort(422, (string) __('authentication::messages.password_reset_invalid'));
+                }
+                return back()->withErrors(['password' => (string) __('authentication::messages.password_reset_invalid')]);
+            }
+        }
+
         try {
             $status = Password::broker()->reset(
-                $request->only('email', 'password', 'password_confirmation', 'token'),
+                $credentials,
                 function ($user, $password) use ($request) {
                     $this->completeReset($user, $password, $request);
                 }
@@ -156,6 +212,11 @@ class PasswordResetController extends Controller
 
         if ($status !== Password::PASSWORD_RESET) {
             Cache::forget($claimKey);
+        }
+
+        // Invalidate the password_reset_email session key after successful reset
+        if ($status === Password::PASSWORD_RESET) {
+            $request->session()->forget(['password_reset_email', 'password_reset_name']);
         }
 
         return $status === Password::PASSWORD_RESET
