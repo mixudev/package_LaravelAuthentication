@@ -105,5 +105,68 @@ class PasswordResetTest extends TestCase
         $response->assertStatus(302);
         $response->assertSessionHasErrors(['password']);
     }
+
+    public function test_reset_password_rejects_extra_payload_fields(): void
+    {
+        $user = User::create([
+            'email'    => 'reset_extra@example.com',
+            'password' => Hash::make('OldPassword123!'),
+        ]);
+
+        $token = \Illuminate\Support\Facades\Password::broker()->createToken($user);
+
+        $response = $this->from('/reset-password/' . $token)->post('/reset-password', [
+            'token'                 => $token,
+            'email'                 => 'reset_extra@example.com',
+            'password'              => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+            'is_admin'              => true,
+            'role'                  => 'superadmin',
+        ]);
+
+        // Extra fields must be rejected (422 form redirect with errors)
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors(['password']);
+    }
+
+    public function test_reset_url_does_not_contain_email_in_query_string(): void
+    {
+        \Illuminate\Support\Facades\Notification::fake();
+
+        $user = User::create([
+            'email'    => 'no_email_in_url@example.com',
+            'password' => Hash::make('InitialPassword123!'),
+        ]);
+
+        $this->post('/forgot-password', ['email' => 'no_email_in_url@example.com']);
+
+        \Illuminate\Support\Facades\Notification::assertSentTo(
+            $user,
+            \Illuminate\Auth\Notifications\ResetPassword::class,
+            function ($notification, $channels) use ($user) {
+                $url = $notification->toMail($user)->actionUrl ?? '';
+
+                // URL must NOT expose email
+                $this->assertStringNotContainsString('no_email_in_url@example.com', $url);
+                $this->assertStringNotContainsString('email=', $url);
+
+                return true;
+            }
+        );
+    }
+
+    public function test_forgot_password_stores_email_in_session_not_url(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+
+        $user = User::create([
+            'email'    => 'session_email@example.com',
+            'password' => Hash::make('InitialPassword123!'),
+        ]);
+
+        $response = $this->post('/forgot-password', ['email' => 'session_email@example.com']);
+
+        $response->assertSessionHas('password_reset_email', 'session_email@example.com');
+    }
 }
 
