@@ -39,6 +39,12 @@ class EventIntegrityTest extends TestCase
     {
         parent::setUp();
 
+        // Rate limiter can intercept the failure saturation loop before lockout
+        // engages, turning the lockout assertion into a conditional skip. Disable
+        // it here so this test deterministically tests account lockout itself.
+        config(['authentication.security.rate_limit.enabled' => false]);
+        config(['authentication.security.rate_limits.login.enabled' => false]);
+
         $this->user = User::create([
             'name'     => 'Eve Test',
             'username' => 'evetest',
@@ -192,7 +198,7 @@ class EventIntegrityTest extends TestCase
         }
 
         if ($capturedEvent === null) {
-            $this->markTestSkipped('Account not locked in this test run (may be rate-limited first).');
+            $this->fail('AccountLocked event was not dispatched after exceeding max_failed_attempts.');
         }
 
         $this->assertSame($this->user->getAuthIdentifier(), $capturedEvent->user->getAuthIdentifier());

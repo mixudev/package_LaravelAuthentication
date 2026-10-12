@@ -76,6 +76,7 @@ class AnomalyAndEdgeCaseSecurityTest extends TestCase
             str_repeat('x', 5000),
         ];
 
+        $rejectedCount = 0;
         foreach ($dangerousStrategies as $strategy) {
             try {
                 $service->authenticate(
@@ -90,12 +91,14 @@ class AnomalyAndEdgeCaseSecurityTest extends TestCase
                     $e->getMessage(),
                     'Exception leaks internal namespace'
                 );
+                $rejectedCount++;
             } catch (InvalidCredentialsException | AuthenticationThrottledException | AccountLockedException) {
                 // Also acceptable — request rejected before strategy resolution
+                $rejectedCount++;
             }
         }
 
-        $this->assertTrue(true);
+        $this->assertSame(count($dangerousStrategies), $rejectedCount, 'Every dangerous strategy must be rejected.');
     }
 
     // ---------------------------------------------------------------
@@ -123,6 +126,7 @@ class AnomalyAndEdgeCaseSecurityTest extends TestCase
 
         $bloatedAgent = str_repeat('A', 65535);
 
+        $caughtCount = 0;
         try {
             $service->authenticate(
                 new LoginData('target@example.com', 'WrongPassword!'),
@@ -131,8 +135,10 @@ class AnomalyAndEdgeCaseSecurityTest extends TestCase
             $this->fail('Should not succeed with wrong password.');
         } catch (InvalidCredentialsException | AuthenticationThrottledException | AccountLockedException) {
             // all acceptable — system remained stable
-            $this->assertTrue(true);
+            $caughtCount++;
         }
+
+        $this->assertSame(1, $caughtCount, 'Oversized user-agent attempt must be rejected, not crash.');
     }
 
     // ---------------------------------------------------------------
@@ -158,6 +164,8 @@ class AnomalyAndEdgeCaseSecurityTest extends TestCase
             }
         }
 
+        $rejectedCount = 0;
+
         // Try with CORRECT password from a fresh IP never seen before
         try {
             $service->authenticate(
@@ -169,11 +177,13 @@ class AnomalyAndEdgeCaseSecurityTest extends TestCase
         } catch (AccountLockedException $e) {
             // CORRECT: locked account rejects even valid passwords
             $this->assertStringNotContainsString('ValidPassword1!', $e->getMessage());
+            $rejectedCount++;
         } catch (InvalidCredentialsException | AuthenticationThrottledException) {
             // Acceptable — system rejected the attempt
+            $rejectedCount++;
         }
 
-        $this->assertTrue(true);
+        $this->assertSame(1, $rejectedCount, 'Post-lockout correct-password attempt must be blocked.');
     }
 
     // ---------------------------------------------------------------

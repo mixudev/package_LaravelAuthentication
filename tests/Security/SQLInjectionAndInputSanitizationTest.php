@@ -19,6 +19,16 @@ use Vendor\LaravelAuthentication\Tests\TestCase;
  */
 class SQLInjectionAndInputSanitizationTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Rate limit would cut the password payload loop short, making the count
+        // assertion fail non-deterministically. Disable it for this test class.
+        config(['authentication.security.rate_limit.enabled' => false]);
+        config(['authentication.security.rate_limits.login.enabled' => false]);
+        config(['authentication.security.account_lockout.enabled' => false]);
+    }
+
     /**
      * @return array<string, array{string}>
      */
@@ -62,7 +72,7 @@ class SQLInjectionAndInputSanitizationTest extends TestCase
             $this->assertNotEmpty($e->getMessage());
         } catch (\Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException $e) {
             // Also correct: rate limiter kicked in before resolving user
-            $this->assertTrue(true);
+            $this->assertStringNotContainsString($payload, $e->getMessage());
         }
     }
 
@@ -89,18 +99,18 @@ class SQLInjectionAndInputSanitizationTest extends TestCase
             "\x00",
         ];
 
+        $rejectedCount = 0;
         foreach ($passwordPayloads as $pwd) {
             try {
                 $service->authenticate(new LoginData('sqltarget@example.com', $pwd), $context);
                 $this->fail("Password injection bypassed auth: " . json_encode($pwd));
-            } catch (InvalidCredentialsException) {
-                // correct
-            } catch (\Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException) {
-                // rate-limited — also acceptable
-                break;
+            } catch (\Vendor\LaravelAuthentication\Exceptions\AuthenticationException) {
+                // Correct: every credential-rejection path (invalid credentials,
+                // throttle, lockout) proves the payload did NOT authenticate.
+                $rejectedCount++;
             }
         }
 
-        $this->assertTrue(true);
+        $this->assertSame(count($passwordPayloads), $rejectedCount, 'Every password injection payload must be rejected.');
     }
 }

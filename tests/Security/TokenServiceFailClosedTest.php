@@ -44,6 +44,11 @@ class TokenServiceFailClosedTest extends TestCase
 
     public function test_revoke_current_token_noops_without_sanctum_but_does_not_crash(): void
     {
+        // Intent: revokeAllTokens/revokeCurrentToken are best-effort no-ops when the
+        // user model has no Sanctum. The assertion is that NO exception is thrown —
+        // an unhandled throw here fails the test automatically.
+        $this->expectNotToPerformAssertions();
+
         $service = $this->app->make(TokenService::class);
 
         $user = new class implements Authenticatable {
@@ -59,7 +64,5 @@ class TokenServiceFailClosedTest extends TestCase
         // Tidak boleh throw — revoke best-effort.
         $service->revokeAllTokens($user);
         $service->revokeCurrentToken($user);
-
-        $this->assertTrue(true);
     }
 }
