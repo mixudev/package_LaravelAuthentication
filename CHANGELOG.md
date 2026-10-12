@@ -22,17 +22,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`reset()` Return Type Union**: Metode `PasswordResetController::reset()` dideklarasikan union `RedirectResponse|JsonResponse` agar cocok untuk jalur web dan API sekaligus dan lulus PHPStan Level 8.
 - **Rate Limit Key via `ClientIpResolver`**: Bucket `password_reset` menggunakan `ClientIpResolver::resolve($request)` (trusted proxy-aware) alih-alih `$request->ip()` mentah, konsisten dengan endpoint lain.
 
-### Security (Full i18n & Localization Hardening)
-
-- **Lokalisasi Penuh Dua Bahasa (`en`/`id`)**: Seluruh pesan user-facing di `src/` dan `resources/views/` dimigrasi ke katalog `authentication::messages.*`. Tidak ada string hardcoded bahasa Inggris yang tersisa di controller, middleware, request, exception, atau Blade view.
-- **Password Broker Status Tidak Bocor Key Mentah**: `PasswordResetController` memetakan status broker (`passwords.token`, `passwords.user`, `passwords.throttled`, `passwords.sent`, `passwords.reset`) ke kunci katalog paket via `passwordResetStatusMessage()`. Host yang tidak mempublish `passwords.php` tidak lagi melihat key mentah di UI.
-- **Katalog 239 Key Paritas en/id**: `resources/lang/en/messages.php` dan `resources/lang/id/messages.php` sepenuhnya sinkron.
-
 ### Tests
 
 - **Force-Pass Assertions Dihapus**: `AnomalyAndEdgeCaseSecurityTest` — 3 `assertTrue(true)` diganti counter riil yang membuktikan setiap dangerous strategy/payload benar-benar ditolak. `SQLInjectionAndInputSanitizationTest` — counter riil + setUp disable rate limit/lockout agar loop payload deterministik. `TokenServiceFailClosedTest` — `assertTrue(true)` diganti `expectNotToPerformAssertions()`. `EventIntegrityTest` — `markTestSkipped` kondisional diganti `fail()` eksplisit; setUp disable rate limit agar saturasi failure deterministik.
 - **Test Baru Password Reset Security**: `test_reset_password_is_rate_limited_per_email_and_ip`, `test_reset_password_rejects_extra_payload_fields` — membuktikan kedua temuan adversarial closed.
 - Suite: **480 tests, 1325 assertions. PHPStan Level 8 bersih.**
+
+## [1.9.33] - 2026-10-12
+
+### Added
+
+- **Auto-inject Alpine.js ke Host `app.js` Saat `authentication:install`**: Command `php artisan authentication:install` sekarang mendeteksi dan secara idempoten menginjek Alpine.js ke file entry host (`resources/js/app.js`) bila belum terpasang. Menghilangkan ketergantungan CDN Alpine di environment tanpa akses internet publik.
+
+### Fixed
+
+- **Lokalisasi Penuh Dua Bahasa (`en`/`id`)**: Seluruh string user-facing di `src/` dan `resources/views/` dimigrasi ke katalog `authentication::messages.*` (239 key per bahasa, paritas 100%). Menghilangkan kebocoran string bahasa Inggris yang tersisa di controller, middleware, request, Blade view, dan status broker (`passwords.token` fallback).
 
 ## [1.9.32] - 2026-10-12
 
