@@ -306,59 +306,10 @@ Total: 175 tests, 473 assertions, PHPStan level 8 clean.
 
 Total: 159 tests, 426 assertions, PHPStan level 8 bersih.
 
-## [1.7.4] - 2026-09-06
+## [1.7.5] - 2026-09-06
 
-### Security (Red-Team Sweep — SA-15..SA-19)
-
-- **SA-15 — Internal exception leak dihentikan**: `$e->getMessage()` di `OtpController` (web + API), `SocialAuthController` (web + API), `PasskeyController`, `RegisterController` diganti pesan generik. Detail internal hanya ke `report()`. Lang key baru: `passkey_registration_failed` (en + id).
-- **SA-16 — Fail-closed token API**: `TokenService` tidak lagi mengembalikan token dummy `Str::random(64)` yang tidak pernah di-persist (client menerima token "sukses" yang langsung invalid dan tidak bisa di-revoke). Tanpa Sanctum `HasApiTokens` kini throw `AuthenticationConfigurationException`. `AuthenticationService` + `PasskeyService` injeksi `TokenManagerInterface` (decoupled).
-- **SA-17 — Pending token 2FA opaque + single-use**: `Support\TwoFactorPendingToken` menggantikan kode inline di 4 controller. Cache key = `sha256(token)`, token dikonsumsi setelah verifikasi (anti-replay), TTL configurable `authentication.features.two_factor.pending_token_ttl_minutes` (default 10). Rate limit `two_factor` di-upgrade dari `ip` ke `composite` (user+IP) — memblokir brute force via rotasi IP.
-- **SA-18 — Middleware mati dihidupkan**: `EnsureSessionSecurity`, `CheckAccountLockout`, `AuthenticateWithCustomGuard` sebelumnya dead code (tidak ter-register). Kini alias `authentication.session-security`, `authentication.lockout`, `authentication.guard`. `authentication.session-security` otomatis terpasang di route web + api package — semua halaman auth kini kirim `X-Frame-Options`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`.
-- **SA-19 — Catatan timing recovery code**: ditinjau, tidak eksploitable karena rate limit composite.
-
-### Security (Red-Team Sweep lanjutan — SA-20..SA-24)
-
-- **SA-20 — Brute force `sessions/revoke-others` diblokir**: endpoint password-gated tanpa rate limit → sekarang share limiter `confirm_password` (5/1min, user+IP), hit saat password salah, clear saat sukses.
-- **SA-21 — Brute force setup 2FA diblokir**: `TwoFactorSetupController::confirm` (TOTP setup pra-aktivasi) dan `destroy` (disable butuh password) kini di-rate-limit — attacker tidak bisa brute TOTP setup atau password untuk mematikan 2FA.
-- **SA-22 — Passkey options cache-flood dicegah**: `loginOptions` menyimpan challenge 5 menit per request tanpa limit → feature rate limit baru `passkeys` (60/min per IP) dipasang.
-- **SA-23 — Registration DTO dibersihkan**: `RegisterRequest::toDto()` tidak lagi meneruskan semua field request ke `RegisterData::extra` — hanya `name`/`email`/`password`.
-- **SA-24 — Catatan rotasi secret 2FA setup**: `setup()` berulang pada record unconfirmed me-regenerate secret + recovery codes (bisa meng-orphan kode yang sudah disimpan user). Tidak eksploitable (butuh auth + rate limit), dicatat untuk hardening.
-- **SA-25 — Dead code dihapus & fitur diwiring**: hapus 4 file tak ber-referensi (`Enums/LoginMethod.php`, `Contracts/IdentityResolverInterface.php`, `Contracts/SecurityPolicyInterface.php`, `Providers/AuthenticationRouteServiceProvider.php`). `RequirePasswordConfirmation` kini ter-register sebagai alias `authentication.password-confirm` (sebelumnya tidak bisa dipasang host app).
-- **SA-26 — Interface injection menyeluruh**: 6 service (`AuthenticationService`, `RegistrationService`, `OtpService`, `PasskeyService`, `SocialAuthService`, `SessionController`) inject `AuditLoggerInterface` dan `LoginAttemptManagerInterface` alih-alih implementasi konkret — binding container kini benar-benar terpakai. `AuditLoggerInterface::getRecentLogins()` ditambahkan ke kontrak. `ServiceProviderTest` kini assert semua 11 binding kontrak resolve.
-- **SA-27 — Config keys mati ditandai @deprecated**: `audit.retention_days`, `ui.brand_badge`, `views.otp_email` (pakai `features.otp.email_view`), `password.validation_rules.require_mixed_case` (pakai `require_uppercase`+`require_lowercase`) — tidak dibaca kode mana pun; ditandai di config, tidak dihapus demi backward-compat.
-- **SA-28 — Max active sessions kini di-enforce**: config `max_active_sessions` ada tapi tidak pernah ditegakkan — user bisa punya sesi aktif tak terbatas. `SessionManagerService::enforceMaxActiveSessions()` memangkas sesi tertua saat login melebihi limit (current session tidak pernah dihapus). Dipanggil dari `SessionSecurityService::loginUser()`.
-- **SA-29 — Passkey service tidak lagi bocorkan detail WebAuthn**: `PasskeyService::authenticate` re-throw `$e->getMessage()` dari `WebAuthnHelper` (detail origin/rpIdHash/UV) → sekarang `report($e)` + exception generik. Redundan `request()->is('api/*')` dihapus (channel dari `$context`).
-- **SA-30 — Command `authentication:prune`**: `audit.retention_days` kini di-konsumsi — command hapus attempts/login_histories/password_histories lebih tua dari retensi (per-kolom waktu masing-masing), dukungan `--days` + `--dry-run`.
-
-### Tests (Red-Team)
-
-- `TwoFactorPendingTokenTest` (8 test): opacity token, single-use, replay gagal, TTL config, cache-key hashing, collision.
-- `TokenServiceFailClosedTest` (2 test): throw tanpa Sanctum; revoke no-op aman.
-- `SecurityHeadersTest` (3 test): headers keamanan di login/register/api routes.
-- `RegistrationInjectionTest` (3 test): extra-field injection tidak ter-persist; duplicate email ditolak.
-- `SessionRevokeOthersRateLimitTest` (2 test): brute-force password via revoke-others kena throttle; password benar sukses.
-- `TwoFactorSetupBruteForceTest` (2 test): TOTP setup confirm + disable 2FA kena throttle.
-| `PasskeyRateLimitTest` (2 test): loginOptions kena 429 melewati limit; normal sebelum limit.
-- `PasswordConfirmMiddlewareTest` (3 test): alias middleware resolve; aksi tanpa konfirmasi → 423; dengan konfirmasi → 200.
-- `ServiceProviderTest` (3 test): semua 11 kontrak binding resolve + audit logger ter-bind ke concrete.
-- `TrustedDevicePipelineTest` (3 test): tanpa cookie trust → 2FA required; cookie valid → login langsung; cookie di-revoke → 2FA lagi.
-- `MaxActiveSessionsEnforcementTest` (4 test): over-limit memangkas sesi tertua; at-limit no-op; current session tidak pernah dihapus; feature disabled no-op.
-- `PruneAuditLogsCommandTest` (3 test): hapus data tua > retensi; dry-run no-op; `--days` override menang atas config.
-
-Total: 151 tests, 417 assertions, PHPStan level 8 bersih.
-
-## [1.7.3] - 2026-09-06
-
-### Security (Red-Team lanjutan — SA-31)
-
-- **SA-31 — Audit trail tidak lengkap (nilai enum diam)**: `SecurityEventType` punya 18 kasus tapi hanya 6 yang pernah ditulis ke trail audit — `PASSWORD_CHANGED`, `EMAIL_VERIFIED`, `ACCOUNT_LOCKED`, dll. defined tapi tanpa konsumen; event ter-dispatch namun audit DB (rekam forensik) melewatkan momen siklus hidup ini.
-- **Fix**: audit logging di-wire ke 3 jalur siklus hidup yang sama sekali tidak punya konsumen:
-  - `PasswordService::updatePassword` → log `PASSWORD_CHANGED` (context null-safe untuk CLI/queue — `request()` bisa null).
-  - `EmailVerificationController::verify` → log `EMAIL_VERIFIED`.
-  - `AccountLockService::recordFailureAndCheckLockout` → log `ACCOUNT_LOCKED` (sebelumnya hanya dispatch event, tidak pernah di-audit).
-  - Semua lewat kontrak `AuditLoggerInterface` (SA-26); redaksi identifier tetap (`SecurityHelper::maskIdentifier`).
-- `AuditTrailCompletenessTest` (3 test): trail DB merekam `PASSWORD_CHANGED` dan `ACCOUNT_LOCKED`; kontrak logger resolve dari container.
-- Sisa kasus senyap (`PASSWORD_RESET_*`, `SESSION_REVOKED`, `TOKEN_REVOKED`, `OTP_*`, `USER_REGISTERED`, `SOCIAL_LOGIN`, `ACCOUNT_UNLOCKED`) sudah di-cover oleh listener event saat `default_audit_enabled=true` — fix ini menutup jalur yang TIDAK punya audit write sama sekali.
+### Documentation
+- **Panduan Pruning Audit Logs**: Menambahkan `docs/operations/pruning-audit-logs.md` dan pembaruan index dokumentasi untuk operasional `authentication:prune` (SA-30) dan forensik trail audit lengkap (SA-32).
 
 ## [1.7.4] - 2026-09-06
 
@@ -374,6 +325,63 @@ Total: 151 tests, 417 assertions, PHPStan level 8 bersih.
 - `AuditTrailCompletenessTest` diperluas jadi 6 test: `PASSWORD_CHANGED`, `ACCOUNT_LOCKED`, `OTP_FAILED`, `TOKEN_REVOKED`, `PASSWORD_RESET_REQUESTED` terbukti tertulis di trail DB; kontrak resolve.
 
 Total: 154 tests, 421 assertions, PHPStan level 8 bersih.
+
+## [1.7.3] - 2026-09-06
+
+### Security (Red-Team lanjutan — SA-31)
+
+- **SA-31 — Audit trail tidak lengkap (nilai enum diam)**: `SecurityEventType` punya 18 kasus tapi hanya 6 yang pernah ditulis ke trail audit — `PASSWORD_CHANGED`, `EMAIL_VERIFIED`, `ACCOUNT_LOCKED`, dll. defined tapi tanpa konsumen; event ter-dispatch namun audit DB (rekam forensik) melewatkan momen siklus hidup ini.
+- **Fix**: audit logging di-wire ke 3 jalur siklus hidup yang sama sekali tidak punya konsumen:
+  - `PasswordService::updatePassword` → log `PASSWORD_CHANGED` (context null-safe untuk CLI/queue — `request()` bisa null).
+  - `EmailVerificationController::verify` → log `EMAIL_VERIFIED`.
+  - `AccountLockService::recordFailureAndCheckLockout` → log `ACCOUNT_LOCKED` (sebelumnya hanya dispatch event, tidak pernah di-audit).
+  - Semua lewat kontrak `AuditLoggerInterface` (SA-26); redaksi identifier tetap (`SecurityHelper::maskIdentifier`).
+- `AuditTrailCompletenessTest` (3 test): trail DB merekam `PASSWORD_CHANGED` dan `ACCOUNT_LOCKED`; kontrak logger resolve dari container.
+- Sisa kasus senyap (`PASSWORD_RESET_*`, `SESSION_REVOKED`, `TOKEN_REVOKED`, `OTP_*`, `USER_REGISTERED`, `SOCIAL_LOGIN`, `ACCOUNT_UNLOCKED`) sudah di-cover oleh listener event saat `default_audit_enabled=true` — fix ini menutup jalur yang TIDAK punya audit write sama sekali.
+
+## [1.7.2] - 2026-09-06
+
+### Added
+- **SA-30 — Command `authentication:prune`**: `audit.retention_days` kini dikonsumsi — command menghapus record `authentication_attempts`, `authentication_login_histories`, dan `authentication_password_histories` lebih tua dari masa retensi. Mendukung `--days` override dan `--dry-run`.
+- `PruneAuditLogsCommandTest` (3 test): record tua terhapus, dry-run no-op, override precedence.
+
+Total: 148 tests, 413 assertions, PHPStan level 8 bersih.
+
+## [1.7.1] - 2026-09-06
+
+### Security
+- **SA-28 — Max active sessions kini di-enforce**: `SessionManagerService::enforceMaxActiveSessions()` memangkas sesi tertua saat login melebihi batas (current session tidak pernah dihapus). Dipanggil dari `SessionSecurityService::loginUser()`.
+- **SA-29 — Passkey service tidak lagi bocorkan detail WebAuthn**: `PasskeyService::authenticate` me-report `$e` dan melempar pesan generik, tidak lagi membocorkan detail internal WebAuthn ke client. Redundan `request()->is('api/*')` dihapus.
+- Tests: `MaxActiveSessionsEnforcementTest` (4 test), `TrustedDevicePipelineTest` (3 test).
+
+Total: 145 tests, 397 assertions, PHPStan level 8 bersih.
+
+## [1.7.0] - 2026-09-06
+
+### Security (Red-Team Sweep — SA-15..SA-19)
+
+- **SA-15 — Internal exception leak dihentikan**: `$e->getMessage()` di `OtpController` (web + API), `SocialAuthController` (web + API), `PasskeyController`, `RegisterController` diganti pesan generik. Detail internal hanya ke `report()`. Lang key baru: `passkey_registration_failed` (en + id).
+- **SA-16 — Fail-closed token API**: `TokenService` tidak lagi mengembalikan token dummy `Str::random(64)` yang tidak pernah di-persist. Tanpa Sanctum `HasApiTokens` kini throw `AuthenticationConfigurationException`.
+- **SA-17 — Pending token 2FA opaque + single-use**: `Support\TwoFactorPendingToken` menggantikan kode inline. Cache key = `sha256(token)`, token single-use, rate limit 2FA di-upgrade ke composite (user+IP).
+- **SA-18 — Middleware mati dihidupkan**: `EnsureSessionSecurity`, `CheckAccountLockout`, `AuthenticateWithCustomGuard` didaftarkan alias `authentication.session-security`, `authentication.lockout`, `authentication.guard`. Security headers otomatis terpasang.
+- **SA-19 — Catatan timing recovery code**: ditinjau, tidak eksploitable karena rate limit composite.
+
+### Security (Red-Team Sweep lanjutan — SA-20..SA-27)
+
+- **SA-20 — Brute force `sessions/revoke-others` diblokir**: rate limit `confirm_password` dipasang.
+- **SA-21 — Brute force setup 2FA diblokir**: `confirm` dan `destroy` kini di-rate-limit.
+- **SA-22 — Passkey options cache-flood dicegah**: limiter `passkeys` (60/min per IP) dipasang.
+- **SA-23 — Registration DTO dibersihkan**: `RegisterRequest::toDto()` hanya meneruskan `name`/`email`/`password`.
+- **SA-24 — Catatan rotasi secret 2FA setup**: didokumentasikan.
+- **SA-25 — Dead code dihapus**: 4 file tidak ber-referensi dihapus; `RequirePasswordConfirmation` terdaftar sebagai alias `authentication.password-confirm`.
+- **SA-26 — Interface injection menyeluruh**: 6 service inject `AuditLoggerInterface` dan `LoginAttemptManagerInterface`.
+- **SA-27 — Config keys mati ditandai @deprecated**: 4 config keys mati diberi anotasi.
+
+### Tests (Red-Team)
+
+- `TwoFactorPendingTokenTest` (8 test), `TokenServiceFailClosedTest` (2 test), `SecurityHeadersTest` (3 test), `RegistrationInjectionTest` (3 test), `SessionRevokeOthersRateLimitTest` (2 test), `TwoFactorSetupBruteForceTest` (2 test), `PasskeyRateLimitTest` (2 test), `PasswordConfirmMiddlewareTest` (3 test), `ServiceProviderTest` (3 test).
+
+Total: 138 tests, 381 assertions, PHPStan level 8 bersih.
 
 ## [1.6.1] - 2026-09-06
 
