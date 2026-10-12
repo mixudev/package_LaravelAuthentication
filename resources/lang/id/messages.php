@@ -214,6 +214,7 @@ return [
     'processing'              => 'Memproses...',
     'disable_2fa_password_placeholder' => 'Kata sandi saat ini',
     'setup_totp_placeholder'  => 'Contoh: 123456',
+    'two_factor_setup_subtitle' => 'Pindai QR Code di bawah menggunakan aplikasi Google Authenticator, Authy, atau 1Password di ponsel Anda.',
 
     /*
     |--------------------------------------------------------------------------

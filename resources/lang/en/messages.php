@@ -216,6 +216,7 @@ return [
     'processing'              => 'Processing...',
     'disable_2fa_password_placeholder' => 'Current password',
     'setup_totp_placeholder'  => 'Example: 123456',
+    'two_factor_setup_subtitle' => 'Scan the QR code below using an authenticator app like Google Authenticator, Authy, or 1Password on your phone.',
 
     /*
     |--------------------------------------------------------------------------
