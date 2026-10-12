@@ -168,32 +168,25 @@ class PasswordResetController extends Controller
         // SEC: Strict allowlist — only token, email, password, password_confirmation
         // are passed to the broker. Any extra payload the attacker may have injected
         // is silently dropped here; it never reaches the broker callback.
-        $credentials = $request->only('email', 'password', 'password_confirmation', 'token');
-
-        // Reject if extra fields are present (deny non-whitelisted payloads).
         $allowed = ['email', 'password', 'password_confirmation', 'token', '_token', '_method'];
+        $isJson  = $request->expectsJson();
         foreach (array_keys($request->all()) as $field) {
             if (!in_array($field, $allowed, true)) {
-                return response()->json([
-                    'status'  => 'failed',
-                    'message' => (string) __('authentication::messages.password_reset_invalid'),
-                    'errors'  => [
-                        'password' => [(string) __('authentication::messages.password_reset_invalid')],
-                    ],
-                ], 422);
-            }
-        }
-
-        // Reject if extra fields are present (deny non-whitelisted payloads).
-        $allowed = ['email', 'password', 'password_confirmation', 'token', '_token', '_method'];
-        foreach (array_keys($request->all()) as $field) {
-            if (!in_array($field, $allowed, true)) {
-                if ($request->expectsJson()) {
-                    abort(422, (string) __('authentication::messages.password_reset_invalid'));
+                if ($isJson) {
+                    return response()->json([
+                        'status'  => 'failed',
+                        'message' => (string) __('authentication::messages.password_reset_invalid'),
+                        'errors'  => [
+                            'password' => [(string) __('authentication::messages.password_reset_invalid')],
+                        ],
+                    ], 422);
                 }
+
                 return back()->withErrors(['password' => (string) __('authentication::messages.password_reset_invalid')]);
             }
         }
+
+        $credentials = $request->only('email', 'password', 'password_confirmation', 'token');
 
         try {
             $status = Password::broker()->reset(
@@ -242,6 +235,22 @@ class PasswordResetController extends Controller
 
         // SEC-02 FIX: Timing normalization identical to web endpoint to prevent user enumeration
         $email = (string) $request->input('email', '');
+
+        if ($request->hasSession()) {
+            $request->session()->put('password_reset_email', $email);
+            $userModel = config('authentication.user_model');
+            if (is_string($userModel) && class_exists($userModel)) {
+                try {
+                    $user = $userModel::query()->where('email', $email)->first();
+                    if ($user !== null && isset($user->name)) {
+                        $request->session()->put('password_reset_name', (string) $user->name);
+                    }
+                } catch (\Throwable) {
+                    // no-op
+                }
+            }
+        }
+
         if ((bool) config('authentication.mail.queue', true)) {
             SendPasswordResetLinkJob::dispatch($email);
         } else {
