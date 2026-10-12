@@ -67,7 +67,7 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
                         maxlength="{{ $emailMax }}"
                         aria-readonly="true"
                     >
-                    <input type="hidden" name="email" value="{{ $emailTrunc }}">
+                    <input type="hidden" name="email" value="{{ $displayEmail }}">
                 </div>
             @endif
 

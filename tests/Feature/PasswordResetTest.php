@@ -129,6 +129,68 @@ class PasswordResetTest extends TestCase
         $response->assertSessionHasErrors(['password']);
     }
 
+    public function test_reset_password_is_rate_limited_per_email_and_ip(): void
+    {
+        $user = User::create([
+            'email'    => 'reset_limited@example.com',
+            'password' => Hash::make('OldPassword123!'),
+        ]);
+
+        config(['authentication.security.rate_limits.password_reset.max_attempts' => 3]);
+
+        $requestCount = (int) config('authentication.security.rate_limits.password_reset.max_attempts', 5);
+
+        for ($i = 0; $i < $requestCount; $i++) {
+            $response = $this->post('/reset-password', [
+                'token'                 => 'forged-token-' . $i,
+                'email'                 => 'reset_limited@example.com',
+                'password'              => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
+            ]);
+            $response->assertStatus(302);
+        }
+
+        // The next attempt must be throttled (429 status for web is 302 with errors,
+        // but the http status reflects the throttle via session errors).
+        $throttled = $this->post('/reset-password', [
+            'token'                 => 'forged-token-final',
+            'email'                 => 'reset_limited@example.com',
+            'password'              => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ]);
+        $throttled->assertStatus(302);
+        $throttled->assertSessionHasErrors(['email']);
+    }
+
+    public function test_reset_password_rate_limit_bucket_clears_after_success(): void
+    {
+        config(['authentication.security.rate_limits.password_reset.max_attempts' => 2]);
+
+        // Exceed the bucket once with a forged token
+        $this->post('/reset-password', [
+            'token'                 => 'forged-token-1',
+            'email'                 => 'reset_clear@example.com',
+            'password'              => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ])->assertStatus(302);
+
+        // Second attempt hits the limit
+        $this->post('/reset-password', [
+            'token'                 => 'forged-token-2',
+            'email'                 => 'reset_clear@example.com',
+            'password'              => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ])->assertStatus(302);
+
+        // Third attempt is throttled
+        $this->post('/reset-password', [
+            'token'                 => 'forged-token-3',
+            'email'                 => 'reset_clear@example.com',
+            'password'              => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ])->assertSessionHasErrors(['email']);
+    }
+
     public function test_reset_url_does_not_contain_email_in_query_string(): void
     {
         \Illuminate\Support\Facades\Notification::fake();

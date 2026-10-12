@@ -159,6 +159,25 @@ class PasswordResetController extends Controller
             abort(404, (string) __('authentication::messages.password_reset_disabled'));
         }
 
+        // SEC: Rate-limit the reset submission endpoint the same way forgot-password is.
+        // claimResetToken() serialises concurrent same-token races but does not limit brute
+        // forcing with many distinct tokens; the feature bucket below fills that gap.
+        $ip       = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
+        $email    = strtolower(trim((string) $request->input('email', '')));
+        $isJson   = $request->expectsJson();
+        $clientId = \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)->clientId;
+
+        if ($this->rateLimiter->tooManyAttempts('password_reset', $email !== '' ? $email : null, $ip, $clientId)) {
+            $seconds = $this->rateLimiter->availableIn('password_reset', $email !== '' ? $email : null, $ip, $clientId);
+            $message = \Vendor\LaravelAuthentication\Support\ThrottleMessage::forSeconds($seconds);
+            if ($isJson) {
+                return response()->json(['status' => 'throttled', 'message' => $message], 429);
+            }
+            return back()->withErrors(['email' => $message]);
+        }
+
+        $this->rateLimiter->hit('password_reset', $email !== '' ? $email : null, $ip, $clientId);
+
         $claimKey = $this->claimResetToken($request);
 
         if ($claimKey === null) {
@@ -169,7 +188,6 @@ class PasswordResetController extends Controller
         // are passed to the broker. Any extra payload the attacker may have injected
         // is silently dropped here; it never reaches the broker callback.
         $allowed = ['email', 'password', 'password_confirmation', 'token', '_token', '_method'];
-        $isJson  = $request->expectsJson();
         foreach (array_keys($request->all()) as $field) {
             if (!in_array($field, $allowed, true)) {
                 if ($isJson) {

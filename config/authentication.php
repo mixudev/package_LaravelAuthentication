@@ -229,6 +229,15 @@ return [
                 'decay_minutes' => 1,
                 'strategy'      => 'ip',
             ],
+            'password_reset' => [
+                'enabled'       => true,
+                'max_attempts'  => 5,
+                'decay_minutes' => 10,
+                // Composite (email+IP): membatasi brute force submit password baru.
+                // Token tunggal tidak bisa direplay karena token broker sekali pakai,
+                // tapi bucket ini menghentikan attacker yang mencoba banyak token.
+                'strategy'      => 'composite',
+            ],
         ],
 
         // Enterprise abuse policy uses independent budgets for every login request.
