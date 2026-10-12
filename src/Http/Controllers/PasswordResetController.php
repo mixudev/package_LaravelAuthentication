@@ -153,7 +153,7 @@ class PasswordResetController extends Controller
         ]);
     }
 
-    public function reset(ResetPasswordRequest $request): RedirectResponse
+    public function reset(ResetPasswordRequest $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         if (! (bool) config('authentication.features.forgot_password.enabled', true)) {
             abort(404, (string) __('authentication::messages.password_reset_disabled'));
@@ -198,6 +198,16 @@ class PasswordResetController extends Controller
         } catch (AuthenticationException $e) {
             Cache::forget($claimKey);
 
+            if ($isJson) {
+                return response()->json([
+                    'status'  => 'failed',
+                    'message' => $e->getMessage(),
+                    'errors'  => [
+                        'password' => [$e->getMessage()],
+                    ],
+                ], 422);
+            }
+
             return back()
                 ->withInput($request->only('email'))
                 ->withErrors(['password' => $e->getMessage()]);
@@ -208,8 +218,22 @@ class PasswordResetController extends Controller
         }
 
         // Invalidate the password_reset_email session key after successful reset
-        if ($status === Password::PASSWORD_RESET) {
+        if ($status === Password::PASSWORD_RESET && $request->hasSession()) {
             $request->session()->forget(['password_reset_email', 'password_reset_name']);
+        }
+
+        if ($isJson) {
+            if ($status === Password::PASSWORD_RESET) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => (string) __('authentication::messages.password_reset_done'),
+                ]);
+            }
+
+            return response()->json([
+                'status'  => 'failed',
+                'message' => (string) __('authentication::messages.password_reset_invalid'),
+            ], 400);
         }
 
         return $status === Password::PASSWORD_RESET
