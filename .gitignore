@@ -10,3 +10,4 @@ composer.lock
 Thumbs.db
 /journal/
 .hermes/
+tests/_qrlong_gen.php

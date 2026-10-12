@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.34] - 2026-10-12
+
+### Security
+
+- **Password Reset — Email Tidak Bocor ke URL**: `ResetPassword::createUrlUsing()` sekarang hanya menyertakan `token` di URL. Email disimpan di session (`password_reset_email`, `password_reset_name`) dan dibaca dari sana oleh `showResetForm()`. Sebelumnya email ada di query string, berpotensi tercatat di server log, browser history, dan referer header.
+- **Password Reset — Hidden Input Tidak Terpotong**: Hidden input `name="email"` di form reset sebelumnya menggunakan `$emailTrunc` (nilai terpotong untuk display). Password broker menerima email terpotong sehingga token mismatch dan reset selalu gagal pada email panjang. Fixed: hidden input sekarang menggunakan `$displayEmail` (nilai utuh); hanya label display yang terpotong.
+- **Password Reset — Allowlist Field Ketat**: `PasswordResetController::reset()` sekarang menolak request yang mengandung field di luar `['email', 'password', 'password_confirmation', 'token', '_token', '_method']`. Respons 422 JSON atau redirect back with errors. Mencegah mass-assignment injection via extra POST fields.
+- **Password Reset — Rate Limit per Email + IP**: Endpoint `POST /password/reset` sebelumnya tidak memiliki rate limit independen. Attacker bisa brute-force banyak token berbeda tanpa batas. Sekarang ada bucket `password_reset` (5 attempts / 10 menit, strategi composite email+IP) yang konsisten dengan endpoint sensitif lain.
+- **Session Guard API Safety**: `sendResetLinkEmail()` dan `apiSendResetLink()` dibungkus `$request->hasSession()` guard sebelum write session. Mencegah `RuntimeException: Session store not set on request` pada API request.
+
+### Fixed
+
+- **`reset()` Return Type Union**: Metode `PasswordResetController::reset()` dideklarasikan union `RedirectResponse|JsonResponse` agar cocok untuk jalur web dan API sekaligus dan lulus PHPStan Level 8.
+- **Rate Limit Key via `ClientIpResolver`**: Bucket `password_reset` menggunakan `ClientIpResolver::resolve($request)` (trusted proxy-aware) alih-alih `$request->ip()` mentah, konsisten dengan endpoint lain.
+
+### Security (Full i18n & Localization Hardening)
+
+- **Lokalisasi Penuh Dua Bahasa (`en`/`id`)**: Seluruh pesan user-facing di `src/` dan `resources/views/` dimigrasi ke katalog `authentication::messages.*`. Tidak ada string hardcoded bahasa Inggris yang tersisa di controller, middleware, request, exception, atau Blade view.
+- **Password Broker Status Tidak Bocor Key Mentah**: `PasswordResetController` memetakan status broker (`passwords.token`, `passwords.user`, `passwords.throttled`, `passwords.sent`, `passwords.reset`) ke kunci katalog paket via `passwordResetStatusMessage()`. Host yang tidak mempublish `passwords.php` tidak lagi melihat key mentah di UI.
+- **Katalog 239 Key Paritas en/id**: `resources/lang/en/messages.php` dan `resources/lang/id/messages.php` sepenuhnya sinkron.
+
+### Tests
+
+- **Force-Pass Assertions Dihapus**: `AnomalyAndEdgeCaseSecurityTest` — 3 `assertTrue(true)` diganti counter riil yang membuktikan setiap dangerous strategy/payload benar-benar ditolak. `SQLInjectionAndInputSanitizationTest` — counter riil + setUp disable rate limit/lockout agar loop payload deterministik. `TokenServiceFailClosedTest` — `assertTrue(true)` diganti `expectNotToPerformAssertions()`. `EventIntegrityTest` — `markTestSkipped` kondisional diganti `fail()` eksplisit; setUp disable rate limit agar saturasi failure deterministik.
+- **Test Baru Password Reset Security**: `test_reset_password_is_rate_limited_per_email_and_ip`, `test_reset_password_rejects_extra_payload_fields` — membuktikan kedua temuan adversarial closed.
+- Suite: **480 tests, 1325 assertions. PHPStan Level 8 bersih.**
+
 ## [1.9.32] - 2026-10-12
 
 ### Fixed
