@@ -27,8 +27,8 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
 
     $cardTitle = $title ?? __('authentication::messages.sessions_title', [], null) ?? 'Sesi & Perangkat Aktif';
     $cardSubtitle = $subtitle ?? __('authentication::messages.sessions_subtitle', [], null) ?? 'Kelola dan cabut akses login Anda di perangkat lain.';
-    $revokeOthersRoute = Route::has('authentication.auth.sessions.destroy-others')
-        ? route('authentication.auth.sessions.destroy-others')
+    $revokeOthersRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('auth.sessions.destroy-others'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('auth.sessions.destroy-others'))
         : url('/auth/sessions/revoke-others');
 @endphp
 
@@ -89,7 +89,7 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
                 </div>
 
                 @if (!$session['is_current_device'])
-                    <form method="POST" action="{{ route('authentication.auth.sessions.destroy', $session['id']) }}" onsubmit="return confirm('Cabut akses login untuk perangkat ini?');">
+                    <form method="POST" action="{{ route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('auth.sessions.destroy'), $session['id']) }}" onsubmit="return confirm('Cabut akses login untuk perangkat ini?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline px-2 py-1 cursor-pointer">

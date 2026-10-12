@@ -12,21 +12,21 @@ Deskripsi: Halaman login bersih dengan CAPTCHA adaptif (muncul setelah N kali ga
         ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $loginPerformRoute = Route::has('authentication.login.perform')
-        ? route('authentication.login.perform')
-        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
+    $loginPerformRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login.perform'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login.perform'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) : url('/login'));
 
-    $forgotPasswordRoute = Route::has('authentication.password.request')
-        ? route('authentication.password.request')
-        : (Route::has('authentication.password.request') ? route('authentication.password.request') : url('/forgot-password'));
+    $forgotPasswordRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.request'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.request'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.request')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.request')) : url('/forgot-password'));
 
-    $otpRequestRoute = Route::has('authentication.otp.request.form')
-        ? route('authentication.otp.request.form')
-        : (Route::has('authentication.otp.request') ? route('authentication.otp.request') : url('/otp/login'));
+    $otpRequestRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.request.form'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.request.form'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.request')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.request')) : url('/otp/login'));
 
-    $registerRoute = Route::has('authentication.register')
-        ? route('authentication.register')
-        : (Route::has('authentication.register') ? route('authentication.register') : url('/register'));
+    $registerRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('register'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('register'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('register')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('register')) : url('/register'));
 
     $credentialError = $errors->first('credentials')
         ?: $errors->first('identifier')

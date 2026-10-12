@@ -9,7 +9,7 @@
             <x-authentication::feedback.alert type="success" :message="session('status')" />
         @endif
 
-        <form method="POST" action="{{ route('authentication.verification.send') }}">
+        <form method="POST" action="{{ route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('verification.send')) }}">
             @csrf
             <x-authentication::forms.button type="submit" variant="primary">
                 {{ __('authentication::messages.verify_email_resend') }}

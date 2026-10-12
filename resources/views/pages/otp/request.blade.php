@@ -10,13 +10,13 @@ Deskripsi: Halaman permintaan OTP dengan alert di atas form dan auto-dismiss 3 d
         ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $sendRoute = Route::has('authentication.otp.send')
-        ? route('authentication.otp.send')
-        : (Route::has('authentication.otp.send') ? route('authentication.otp.send') : url('/otp/request'));
+    $sendRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send')) : url('/otp/request'));
 
-    $loginRoute = Route::has('authentication.login')
-        ? route('authentication.login')
-        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
+    $loginRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) : url('/login'));
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.otp_request_title')">

@@ -39,18 +39,26 @@ class InstallCommand extends Command
 
         // 1. Publish Configuration
         $this->line('📄 Publishing configuration...');
-        $this->call('vendor:publish', [
+        if ($this->call('vendor:publish', [
             '--tag'   => 'authentication-config',
             '--force' => $force,
-        ]);
+        ]) !== self::SUCCESS) {
+            $this->error('Failed to publish authentication configuration.');
+
+            return self::FAILURE;
+        }
         $this->line('  <info>✓</info> Configuration published to <comment>config/authentication.php</comment>');
 
         // 2. Publish Migrations
         $this->line('🗄️  Publishing migrations...');
-        $this->call('vendor:publish', [
+        if ($this->call('vendor:publish', [
             '--tag'   => 'authentication-migrations',
             '--force' => $force,
-        ]);
+        ]) !== self::SUCCESS) {
+            $this->error('Failed to publish authentication migrations.');
+
+            return self::FAILURE;
+        }
         $this->line('  <info>✓</info> Database migrations published to <comment>database/migrations/</comment>');
 
         // 3. Configure Tailwind CSS & Vite in Host Application
@@ -59,7 +67,11 @@ class InstallCommand extends Command
         // 5. Run Migrations (if requested or confirmed)
         if ($this->option('migrate') || ($this->input->isInteractive() && $this->confirm('Would you like to run database migrations now?', true))) {
             $this->line('⚡ Running database migrations...');
-            $this->call('migrate');
+            if ($this->call('migrate') !== self::SUCCESS) {
+                $this->error('Database migrations failed. Authentication tables may be missing.');
+
+                return self::FAILURE;
+            }
             $this->line('  <info>✓</info> Migrations executed successfully.');
         }
 

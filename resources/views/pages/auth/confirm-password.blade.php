@@ -10,8 +10,8 @@ Deskripsi: Halaman konfirmasi kata sandi sebelum mengakses area sensitif.
         ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $confirmRoute = Route::has('authentication.password.confirm.submit')
-        ? route('authentication.password.confirm.submit')
+    $confirmRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.confirm.submit'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.confirm.submit'))
         : url('/confirm-password');
 @endphp
 

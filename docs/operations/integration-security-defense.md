@@ -39,26 +39,29 @@ Command ini akan:
 2. ✓ Generate bridge subscriber: `app/Listeners/AuthenticationSecuritySubscriber.php`
 3. ✓ Map 12 auth events → `SecurityDefense::record()`
 4. ✓ Inject `RequestThreatScanner` middleware (WAF layer)
-5. ✓ Prompt untuk register subscriber di `AppServiceProvider`
+5. ✓ Verifikasi registrasi subscriber (auto-discovery `app/Listeners`, tanpa `Event::subscribe` manual)
 
 ## Registrasi Subscriber
 
-Edit `app/Providers/AppServiceProvider.php`:
+Laravel 11+ mendaftarkan subscriber di `app/Listeners` otomatis (event discovery).
+Tidak ada langkah manual:
+
+```bash
+php artisan auth:sync
+php artisan event:list | grep AuthenticationSecuritySubscriber
+```
+
+Pastikan muncul satu baris untuk setiap dari 12 event. Menambahkan
+`Event::subscribe(...)` di `AppServiceProvider` saat discovery aktif mendaftarkan
+12 handler dua kali: `SecurityDefense::record()` jalan dua kali per event dan
+counter brute force mencapai threshold pada setengah percobaan.
+
+Registrasi manual hanya untuk aplikasi yang menonaktifkan event discovery
+(Laravel lama / `withEvents(discover: false)`), dan hanya setelah dipastikan
+`event:list` tidak menunjukkan listener sama sekali:
 
 ```php
-namespace App\Providers;
-
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\ServiceProvider;
-
-class AppServiceProvider extends ServiceProvider
-{
-    public function boot(): void
-    {
-        // Register auth → security-defense bridge
-        Event::subscribe(\App\Listeners\AuthenticationSecuritySubscriber::class);
-    }
-}
+Event::subscribe(\App\Listeners\AuthenticationSecuritySubscriber::class);
 ```
 
 ## Event Mapping

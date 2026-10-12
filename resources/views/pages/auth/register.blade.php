@@ -10,13 +10,13 @@ Deskripsi: Halaman registrasi dengan alert di atas form dan auto-dismiss 3 detik
         ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $registerPerformRoute = Route::has('authentication.register.perform')
-        ? route('authentication.register.perform')
-        : (Route::has('authentication.register') ? route('authentication.register') : url('/register'));
+    $registerPerformRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('register.perform'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('register.perform'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('register')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('register')) : url('/register'));
 
-    $loginRoute = Route::has('authentication.login')
-        ? route('authentication.login')
-        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
+    $loginRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) : url('/login'));
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.register_title')">

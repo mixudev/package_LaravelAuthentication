@@ -10,13 +10,13 @@ Deskripsi: Halaman reset password dengan alert di atas form dan auto-dismiss 3 d
         ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $updateRoute = Route::has('authentication.password.update')
-        ? route('authentication.password.update')
-        : (Route::has('authentication.password.update') ? route('authentication.password.update') : url('/reset-password'));
+    $updateRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.update'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.update'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.update')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.update')) : url('/reset-password'));
 
-    $loginRoute = Route::has('authentication.login')
-        ? route('authentication.login')
-        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
+    $loginRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) : url('/login'));
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.reset_title')">

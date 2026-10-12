@@ -10,12 +10,12 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
         ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $confirmRoute = Route::has('authentication.two-factor.enable')
-        ? route('authentication.two-factor.enable')
+    $confirmRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('two-factor.enable'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('two-factor.enable'))
         : url('/auth/two-factor/confirm');
 
-    $cancelRoute = Route::has('authentication.auth.sessions.index')
-        ? route('authentication.auth.sessions.index')
+    $cancelRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('auth.sessions.index'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('auth.sessions.index'))
         : config('authentication.redirects.login', '/dashboard');
 @endphp
 

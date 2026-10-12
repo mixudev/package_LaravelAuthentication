@@ -10,17 +10,17 @@ Deskripsi: Halaman verifikasi OTP dengan alert di atas form dan auto-dismiss 3 d
         ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $verifyRoute = Route::has('authentication.otp.verify.perform')
-        ? route('authentication.otp.verify.perform')
-        : (Route::has('authentication.otp.verify') ? route('authentication.otp.verify') : url('/otp/verify'));
+    $verifyRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.verify.perform'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.verify.perform'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.verify')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.verify')) : url('/otp/verify'));
 
-    $sendRoute = Route::has('authentication.otp.send')
-        ? route('authentication.otp.send')
-        : (Route::has('authentication.otp.send') ? route('authentication.otp.send') : url('/otp/request'));
+    $sendRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send')) : url('/otp/request'));
 
-    $loginRoute = Route::has('authentication.login')
-        ? route('authentication.login')
-        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
+    $loginRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) : url('/login'));
 
     $identifier = $identifier ?? old('identifier', request('identifier', ''));
     $otpLength  = (int) config('authentication.features.otp.length', 6);

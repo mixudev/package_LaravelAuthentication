@@ -54,6 +54,7 @@ class HealthCheckCommand extends Command
             'Required Tables'      => fn() => $this->checkTables(),
             'User Model Loadable'  => fn() => $this->checkUserModel($config),
             'Strategy Registry'    => fn() => $this->checkStrategies($config),
+            'CAPTCHA Configuration' => fn() => $this->checkCaptchaConfiguration(),
         ];
 
         foreach ($this->checks as $name => $check) {
@@ -86,6 +87,25 @@ class HealthCheckCommand extends Command
         }
 
         return $this->failures === 0 ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Enabled CAPTCHA without provider credentials fails closed instead of
+     * pretending the authentication service is healthy.
+     */
+    protected function checkCaptchaConfiguration(): void
+    {
+        if (! (bool) config('authentication.security.captcha.enabled', false)) {
+            return;
+        }
+
+        $driver = (string) config('authentication.security.captcha.driver', 'turnstile');
+        $siteKey = trim((string) config('authentication.security.captcha.site_key', ''));
+        $secretKey = trim((string) config('authentication.security.captcha.secret_key', ''));
+
+        if ($siteKey === '' || $secretKey === '') {
+            throw new \RuntimeException("CAPTCHA '{$driver}' is enabled but credentials are missing");
+        }
     }
 
     /**
@@ -199,6 +219,7 @@ class HealthCheckCommand extends Command
             'Required Tables' => 'Database schema incomplete',
             'User Model Loadable' => 'User model configuration error',
             'Strategy Registry' => 'Strategy configuration error',
+            'CAPTCHA Configuration' => 'CAPTCHA configuration error',
             default => 'Check failed',
         };
     }

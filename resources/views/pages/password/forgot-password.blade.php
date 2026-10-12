@@ -10,13 +10,13 @@ Deskripsi: Halaman lupa password dengan alert di atas form dan auto-dismiss 3 de
         ? 'authentication::layouts.split'
         : 'authentication::layouts.card';
 
-    $emailRoute = Route::has('authentication.password.email')
-        ? route('authentication.password.email')
-        : (Route::has('authentication.password.email') ? route('authentication.password.email') : url('/forgot-password'));
+    $emailRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.email'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.email'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.email')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.email')) : url('/forgot-password'));
 
-    $loginRoute = Route::has('authentication.login')
-        ? route('authentication.login')
-        : (Route::has('authentication.login') ? route('authentication.login') : url('/login'));
+    $loginRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
+        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) : url('/login'));
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.forgot_title')">

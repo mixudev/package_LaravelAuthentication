@@ -12,20 +12,20 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
     $userName = $user->name ?? 'Pengguna';
     $isEmailVerified = method_exists($user, 'hasVerifiedEmail') ? $user->hasVerifiedEmail() : true;
 
-    $twoFactorSetupRoute = Route::has('authentication.two-factor.setup')
-        ? route('authentication.two-factor.setup')
+    $twoFactorSetupRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('two-factor.setup'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('two-factor.setup'))
         : url('/auth/two-factor/setup');
 
-    $twoFactorDisableRoute = Route::has('authentication.two-factor.disable')
-        ? route('authentication.two-factor.disable')
+    $twoFactorDisableRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('two-factor.disable'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('two-factor.disable'))
         : url('/auth/two-factor/disable');
 
-    $logoutRoute = Route::has('authentication.logout')
-        ? route('authentication.logout')
+    $logoutRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('logout'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('logout'))
         : url('/logout');
 
-    $confirmPasswordRoute = Route::has('authentication.password.confirm')
-        ? route('authentication.password.confirm')
+    $confirmPasswordRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.confirm'))
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('password.confirm'))
         : url('/confirm-password');
 @endphp
 
@@ -196,7 +196,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                                             <p class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $pk->name }}</p>
                                             <p class="text-[10px] text-zinc-400">Terakhir dipakai: {{ $pk->last_used_at ? \Carbon\Carbon::parse($pk->last_used_at)->diffForHumans() : 'Belum pernah' }}</p>
                                         </div>
-                                        <form method="POST" action="{{ route('authentication.passkey.destroy', $pk->id) }}" onsubmit="return confirm('Hapus kunci sandi ini?');">
+                                        <form method="POST" action="{{ route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.destroy'), $pk->id) }}" onsubmit="return confirm('Hapus kunci sandi ini?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-rose-600 hover:text-rose-700 text-xs font-semibold hover:underline cursor-pointer">
@@ -341,7 +341,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                     // POST wajib: challenge adalah state keamanan, bukan sumber daya idempotent.
                     var csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
 
-                    var optRes = await fetch('{{ route("authentication.passkey.register.options") }}', {
+                    var optRes = await fetch('{{ route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.register.options')) }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -380,7 +380,7 @@ Deskripsi: Dashboard lengkap manajemen 2FA, sesi perangkat, profil akun, dan riw
                         }
                     };
 
-                    var regRes = await fetch('{{ route("authentication.passkey.register") }}', {
+                    var regRes = await fetch('{{ route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.register')) }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
