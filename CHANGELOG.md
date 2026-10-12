@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.9.29] - 2026-10-07
+## [1.9.31] - 2026-10-12
+
+### Fixed
+- **`PasswordChanged` Event Context & Subscriber Null-Safety**: `PasswordService::updatePassword()` now accepts an optional `AuthenticationContext $context` parameter (falling back to `AuthenticationContext::fromRequest(request())` or CLI fallback) and passes it when dispatching `PasswordChanged($user, $context)`. This resolves an unhandled `ErrorException: Attempt to read property "ipAddress" on null` in security subscribers and audit listeners when completing password resets. `PasswordResetController::completeReset()` now passes the resolved request context.
+- **OTP Send Form 404 Error**: Fixed invalid fallback URL in `resources/views/pages/otp/request.blade.php` and `verify.blade.php`. The action route fallback previously pointed to `/otp/request` (which is not a registered POST route), causing a 404 Not Found error upon submitting the OTP request form. It now properly points to `/otp/send`.
+- **Passkey Button Component Syntax Error**: Corrected a malformed ternary operator in `resources/views/components/security/passkey-button.blade.php` on `$optionsRoute` and `$loginRoute` definitions.
+- **Password Reset Status Localization Fallback**: `PasswordResetController` now maps Laravel broker status keys onto package message catalogue keys, preventing raw keys (`passwords.token`, `passwords.reset`) from being displayed when host applications do not publish custom `passwords.php` lang files.
+
+## [1.9.30] - 2026-10-12
+
+### Fixed
+- **Prefix Agnostic Route Resolution in Package Views**: Replaced hardcoded route names across Blade views with `RouteConfig::name()` to honor custom `routes.web.route_name_prefix`.
+- **Install & Health Check Command Enhancements**: Improved failure propagation and exit code handling in console commands.
 
 ### Fixed
 - **Device Trust (30-day "Percayai perangkat ini") Revoked on Standard Logout**: In `AuthenticationService::logout()`, every standard user logout previously invoked `$this->deviceTrustService->revokeUserTrust($user)`, immediately wiping `is_trusted = false` and clearing `trust_token_hash` on the database. As a result, when a user checked "Percayai perangkat ini selama 30 hari" and subsequently logged out, their 30-day trust was immediately destroyed, forcing 2FA to be challenged again on their next login. Logout now preserves device trust across sessions by default, only revoking when explicitly configured (`trust_device.revoke_on_logout = true`) or during credential resets / explicit device revocation.

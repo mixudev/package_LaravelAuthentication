@@ -28,7 +28,8 @@ return [
     'throttle_error_unknown'  => 'Terlalu banyak percobaan. Silakan coba lagi nanti.',
     'account_locked'          => 'Akun Anda sementara dikunci karena alasan keamanan.',
     'logged_out'              => 'Anda berhasil keluar dari sistem.',
-    'password_history'        => 'Anda tidak dapat menggunakan kata sandi yang pernah dipakai sebelumnya.',
+    'password_history'        => 'Anda tidak dapat menggunakan salah satu dari :count kata sandi terakhir Anda.',
+    'password_not_found'      => 'Passkey tidak ditemukan.',
     'captcha_failed'          => 'Verifikasi CAPTCHA gagal atau kedaluwarsa. Silakan ulangi.',
 
     /*

@@ -28,7 +28,8 @@ return [
     'throttle_error_unknown'  => 'Too many attempts. Please try again later.',
     'account_locked'          => 'Your account is temporarily locked for security reasons.',
     'logged_out'              => 'You have been logged out successfully.',
-    'password_history'        => 'You cannot reuse any of your recent passwords.',
+    'password_history'        => 'You cannot reuse any of your last :count passwords.',
+    'password_not_found'      => 'Passkey not found.',
     'captcha_failed'          => 'CAPTCHA verification failed or expired. Please try again.',
 
     /*

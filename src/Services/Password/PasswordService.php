@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 use SensitiveParameter;
 use Vendor\LaravelAuthentication\Contracts\AuditLoggerInterface;
 use Vendor\LaravelAuthentication\Contracts\PasswordHistoryRepositoryInterface;
+use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
+use Vendor\LaravelAuthentication\Enums\AuthenticationChannel;
+use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\PasswordChanged;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
@@ -33,12 +36,15 @@ class PasswordService
         return $this->hasher->make($plainPassword);
     }
 
-    public function updatePassword(Authenticatable $user, #[SensitiveParameter] string $newPlainPassword): void
-    {
+    public function updatePassword(
+        Authenticatable $user,
+        #[SensitiveParameter] string $newPlainPassword,
+        ?AuthenticationContext $context = null
+    ): void {
         if ($this->config->isPasswordHistoryEnabled()) {
             $rememberCount = $this->config->getPasswordHistoryCount();
             if ($this->historyRepo->isPreviouslyUsed($user, $newPlainPassword, $rememberCount)) {
-                throw new AuthenticationException("You cannot reuse any of your last {$rememberCount} passwords.");
+                throw new AuthenticationException((string) __('authentication::messages.password_history', ['count' => $rememberCount]));
             }
         }
 
@@ -66,16 +72,18 @@ class PasswordService
             $this->historyRepo->recordPassword($user, $hash);
         }
 
-        $this->events->dispatch(new PasswordChanged($user));
+        $request = request();
+        $context ??= ($request instanceof \Illuminate\Http\Request
+            ? AuthenticationContext::fromRequest($request)
+            : new AuthenticationContext('cli', 'cli', AuthenticationChannel::CLI, 'web'));
+
+        $this->events->dispatch(new PasswordChanged($user, $context));
 
         // Audit trail (context opsional — aman dipanggil dari CLI/queue tanpa request).
-        $request = request();
         $this->auditService->logEvent(
-            \Vendor\LaravelAuthentication\Enums\SecurityEventType::PASSWORD_CHANGED,
+            SecurityEventType::PASSWORD_CHANGED,
             (string) $user->getAuthIdentifier(),
-            $request instanceof \Illuminate\Http\Request
-                ? \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
-                : new \Vendor\LaravelAuthentication\DTO\AuthenticationContext('cli', 'cli', \Vendor\LaravelAuthentication\Enums\AuthenticationChannel::CLI, 'web')
+            $context
         );
     }
 }

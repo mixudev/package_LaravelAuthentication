@@ -8,11 +8,11 @@ Deskripsi: Tombol autentikasi biometrik standar W3C WebAuthn tanpa password.
 @php
     $isPasskeyEnabled = config('authentication.features.passkey.enabled', true);
     $optionsRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.login.options'))
-        Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.register.options'))
-        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.login.options')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.login.options')) : url('/auth/passkey/login-options'));
+        ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.login.options'))
+        : url('/auth/passkey/login-options');
     $loginRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.login'))
         ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.login'))
-        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.login')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('passkey.login')) : url('/auth/passkey/login'));
+        : url('/auth/passkey/login');
 
     $btnBase = 'flex items-center justify-center gap-2.5 w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-100 px-4 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer no-underline select-none shadow-xs hover:bg-gray-50 dark:hover:bg-zinc-800 hover:border-gray-400 dark:hover:border-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 active:scale-[0.99]';
 @endphp

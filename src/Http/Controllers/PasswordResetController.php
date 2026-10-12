@@ -79,14 +79,14 @@ class PasswordResetController extends Controller
         // Dispatch event regardless of status (user enumeration: no difference in response)
         $this->events->dispatch(new PasswordResetRequested(
             (string) $request->input('email', ''),
-            \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+            AuthenticationContext::fromRequest($request)
         ));
 
         // Audit reset request (masked identifier, no enumeration signal)
         $this->auditService->logEvent(
             SecurityEventType::PASSWORD_RESET_REQUESTED,
             (string) $request->input('email', ''),
-            \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+            AuthenticationContext::fromRequest($request)
         );
 
         // Normalize timing to prevent timing-based enumeration attacks
@@ -129,7 +129,7 @@ class PasswordResetController extends Controller
         $claimKey = $this->claimResetToken($request);
 
         if ($claimKey === null) {
-            return back()->withErrors(['email' => trans(Password::INVALID_TOKEN)]);
+            return back()->withErrors(['email' => $this->passwordResetStatusMessage(Password::INVALID_TOKEN)]);
         }
 
         $status = Password::broker()->reset(
@@ -144,8 +144,8 @@ class PasswordResetController extends Controller
         }
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route(RouteConfig::name('login'))->with('status', trans($status))
-            : back()->withErrors(['email' => trans($status)]);
+            ? redirect()->route(RouteConfig::name('login'))->with('status', $this->passwordResetStatusMessage($status))
+            : back()->withErrors(['email' => $this->passwordResetStatusMessage($status)]);
     }
 
     public function apiSendResetLink(ForgotPasswordRequest $request): JsonResponse
@@ -169,14 +169,14 @@ class PasswordResetController extends Controller
 
         $this->events->dispatch(new PasswordResetRequested(
             (string) $request->input('email', ''),
-            \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+            AuthenticationContext::fromRequest($request)
         ));
 
         // Audit reset request (masked identifier, no enumeration signal)
         $this->auditService->logEvent(
             SecurityEventType::PASSWORD_RESET_REQUESTED,
             (string) $request->input('email', ''),
-            \Vendor\LaravelAuthentication\DTO\AuthenticationContext::fromRequest($request)
+            AuthenticationContext::fromRequest($request)
         );
 
         // Normalize timing to prevent timing-based enumeration attacks (match web endpoint)
@@ -250,12 +250,14 @@ class PasswordResetController extends Controller
             throw new \RuntimeException('Password reset user must implement Authenticatable.');
         }
 
-        $this->passwordService->updatePassword($user, $password);
+        $context = AuthenticationContext::fromRequest($request);
+
+        $this->passwordService->updatePassword($user, $password, $context);
         $this->sessionManager->revokeAllAfterCredentialChange($user);
 
         $this->events->dispatch(new PasswordResetCompleted(
             $user,
-            AuthenticationContext::fromRequest($request)
+            $context
         ));
     }
 
@@ -282,6 +284,31 @@ class PasswordResetController extends Controller
         return Cache::add($claimKey, true, now()->addMinutes($ttlMinutes))
             ? $claimKey
             : null;
+    }
+
+    /**
+     * Laravel's PasswordBroker answers with host-app keys (`passwords.token`,
+     * `passwords.reset`, `passwords.throttled`, ...). A host that never
+     * publishes `lang/{locale}/passwords.php` gets the raw key rendered as
+     * "passwords.token", so map every broker status onto the package catalogue.
+     */
+    private function passwordResetStatusMessage(string $status): string
+    {
+        $key = match ($status) {
+            'passwords.token'     => 'password_reset_token_invalid',
+            'passwords.user'      => 'password_reset_invalid',
+            'passwords.throttled' => 'throttle_error_unknown',
+            'passwords.sent'      => 'password_reset_link_sent',
+            'passwords.reset'     => 'password_reset_done',
+            default               => 'password_reset_invalid',
+        };
+
+        $message = (string) __('authentication::messages.'.$key);
+
+        // A stale published package catalogue can miss the key; never show the raw key.
+        return $message === 'authentication::messages.'.$key
+            ? (string) __('authentication::messages.password_reset_invalid')
+            : $message;
     }
 
     private function forgotPasswordThrottleMessage(Request $request): string

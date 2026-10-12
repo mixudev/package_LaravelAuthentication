@@ -12,11 +12,11 @@ Deskripsi: Halaman permintaan OTP dengan alert di atas form dan auto-dismiss 3 d
 
     $sendRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send'))
         ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send'))
-        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('otp.send')) : url('/otp/request'));
+        : url('/otp/send');
 
     $loginRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
         ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login'))
-        : (Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('login')) : url('/login'));
+        : url('/login');
 @endphp
 
 <x-dynamic-component :component="$activeLayout" :title="__('authentication::messages.otp_request_title')">
