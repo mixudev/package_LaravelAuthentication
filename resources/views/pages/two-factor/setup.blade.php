@@ -26,7 +26,7 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
         {{-- Header Halaman --}}
         <x-authentication::header
             :title="__('authentication::messages.two_factor_title')"
-            subtitle="Pindai QR Code di bawah menggunakan aplikasi Google Authenticator, Authy, atau 1Password di ponsel Anda."
+            :subtitle="__('authentication::messages.two_factor_setup_subtitle')"
         />
 
         {{-- Alert Notifikasi --}}
@@ -40,13 +40,13 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
                 <div class="p-3 bg-white rounded-xl shadow-xs border border-zinc-200 dark:border-zinc-700 inline-block">
                     <img
                         src="{{ $qrCodeUrl }}"
-                        alt="QR Code Autentikasi 2 Langkah"
+                        alt="{{ __('authentication::messages.two_factor_title') }}"
                         class="w-48 h-48 block mx-auto rounded-lg"
                         loading="eager"
                     />
                 </div>
                 <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                    Buka Google Authenticator &gt; Tap <strong class="text-zinc-800 dark:text-zinc-200">(+)</strong> &gt; Pilih <strong class="text-zinc-800 dark:text-zinc-200">Scan a QR code</strong>
+                    {!! __('authentication::messages.setup_qr_instruction') !!}
                 </p>
             @endif
 
@@ -55,12 +55,12 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
                 type="button"
                 @click="manualEntry = !manualEntry"
                 class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold hover:underline transition pt-1 cursor-pointer"
-                x-text="manualEntry ? 'Tutup Kunci Manual' : 'Tidak bisa scan? Gunakan Kunci Manual'"
+                x-text="manualEntry ? '{{ __('authentication::messages.manual_key_close') }}' : '{{ __('authentication::messages.manual_key_toggle') }}'"
             ></button>
 
             {{-- Secret Key & Manual Entry --}}
             <div x-show="manualEntry" class="w-full pt-2 border-t border-zinc-200/80 dark:border-zinc-800 space-y-2 text-center" style="display: none;">
-                <div class="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Kunci Rahasia Manual</div>
+                <div class="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{{ __('authentication::messages.manual_secret_key') }}</div>
                 <div class="font-mono text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-widest select-all bg-white dark:bg-zinc-800 py-1.5 px-3 rounded-lg border border-zinc-200 dark:border-zinc-700 inline-block shadow-inner">
                     {{ $secret }}
                 </div>
@@ -74,10 +74,10 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
         @if (!empty($recoveryCodes))
             <div class="p-3.5 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 rounded-xl space-y-2">
                 <div class="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center space-x-1">
-                    <span>⚠️ Simpan Kode Cadangan Pemulihan</span>
+                    <span>{{ __('authentication::messages.save_recovery_codes') }}</span>
                 </div>
                 <p class="text-[11px] text-amber-800 dark:text-amber-400 leading-relaxed">
-                    Simpan kode-kode ini di tempat aman. Gunakan jika Anda kehilangan akses ke ponsel/aplikasi autentikator. Setiap kode hanya berlaku 1 kali.
+                    {{ __('authentication::messages.recovery_codes_description') }}
                 </p>
                 <div class="grid grid-cols-2 gap-1.5 font-mono text-xs text-zinc-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-amber-200/70 dark:border-amber-900/50 select-all shadow-inner">
                     @foreach ($recoveryCodes as $code)
@@ -98,21 +98,21 @@ Deskripsi: Halaman setup TOTP, QR Code scan, secret key, dan recovery codes.
                 type="text"
                 inputmode="numeric"
                 maxlength="6"
-                label="Masukkan Kode 6-Digit dari Aplikasi untuk Konfirmasi"
+            :label="__('authentication::messages.setup_code_label', ['digits' => 6])"
                 placeholder="{{ __('authentication::messages.setup_totp_placeholder') }}"
                 autofocus
                 icon="shield"
             />
 
             <x-authentication::forms.button type="submit" variant="primary" block="true">
-                Aktifkan 2FA Sekarang
+                {{ __('authentication::messages.two_factor_enable') }}
             </x-authentication::forms.button>
         </form>
 
         {{-- Link Batal --}}
         <div class="text-center border-t border-zinc-200 dark:border-zinc-800 pt-3">
             <a href="{{ $cancelRoute }}" class="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition">
-                ← Batal & Kembali
+                ← {{ __('authentication::messages.cancel') }} &amp; {{ __('authentication::messages.back_to_login_arrow') }}
             </a>
         </div>
 

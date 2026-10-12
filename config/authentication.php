@@ -61,8 +61,9 @@ return [
     |       email tidak akan terkirim sama sekali.
     */
     'mail' => [
-        'queue'            => false,  // false = sync (instant), true = queue (butuh worker)
+        'queue'            => true,  // true = queue (default background worker untuk stabilitas), false = sync (instant)
         'queue_connection' => null,  // null = ikuti default queue connection
+        'queue_name'       => 'default',
     ],
 
     /*
@@ -438,7 +439,7 @@ return [
         'enabled'          => true,
         'driver'           => 'database', // 'database', 'log', atau 'null'
         'log_channel'      => 'stack',
-        'queue'            => false, // true = persist audit asynchronously via queue
+        'queue'            => true, // true = persist audit asynchronously via queue
         'queue_connection' => null, // null = default queue connection
         'queue_name'       => 'auth-audit',
         'queue_fallback'   => 'sync', // 'sync' = write inline if dispatch fails; 'log' = log only

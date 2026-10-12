@@ -188,7 +188,7 @@ class PasskeyController extends Controller
                 'status'  => $deleted ? 'success' : 'not_found',
                 'message' => $deleted
                     ? (string) __('authentication::messages.passkey_deleted')
-                    : 'Passkey not found.',
+                    : (string) __('authentication::messages.password_not_found'),
             ], $deleted ? 200 : 404);
         }
 

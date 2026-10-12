@@ -20,9 +20,11 @@ use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\PasswordResetCompleted;
 use Vendor\LaravelAuthentication\Events\PasswordResetRequested;
+use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Http\Requests\ForgotPasswordRequest;
 use Vendor\LaravelAuthentication\Http\Requests\ResetPasswordRequest;
+use Vendor\LaravelAuthentication\Jobs\SendPasswordResetLinkJob;
 use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 use Vendor\LaravelAuthentication\Services\Session\SessionManagerService;
 use Vendor\LaravelAuthentication\Support\AuthenticationView;
@@ -74,7 +76,12 @@ class PasswordResetController extends Controller
         // Intentionally discard the broker status result.
         // We ALWAYS return the same generic success message to prevent user enumeration
         // (an attacker must not learn whether the submitted email exists in the database).
-        $status = Password::broker()->sendResetLink($request->only('email'));
+        $email = (string) $request->input('email', '');
+        if ((bool) config('authentication.mail.queue', true)) {
+            SendPasswordResetLinkJob::dispatch($email);
+        } else {
+            Password::broker()->sendResetLink($request->only('email'));
+        }
 
         // Dispatch event regardless of status (user enumeration: no difference in response)
         $this->events->dispatch(new PasswordResetRequested(
@@ -132,12 +139,20 @@ class PasswordResetController extends Controller
             return back()->withErrors(['email' => $this->passwordResetStatusMessage(Password::INVALID_TOKEN)]);
         }
 
-        $status = Password::broker()->reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) use ($request) {
-                $this->completeReset($user, $password, $request);
-            }
-        );
+        try {
+            $status = Password::broker()->reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function ($user, $password) use ($request) {
+                    $this->completeReset($user, $password, $request);
+                }
+            );
+        } catch (AuthenticationException $e) {
+            Cache::forget($claimKey);
+
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors(['password' => $e->getMessage()]);
+        }
 
         if ($status !== Password::PASSWORD_RESET) {
             Cache::forget($claimKey);
@@ -165,7 +180,12 @@ class PasswordResetController extends Controller
         }
 
         // SEC-02 FIX: Timing normalization identical to web endpoint to prevent user enumeration
-        Password::broker()->sendResetLink($request->only('email'));
+        $email = (string) $request->input('email', '');
+        if ((bool) config('authentication.mail.queue', true)) {
+            SendPasswordResetLinkJob::dispatch($email);
+        } else {
+            Password::broker()->sendResetLink($request->only('email'));
+        }
 
         $this->events->dispatch(new PasswordResetRequested(
             (string) $request->input('email', ''),
@@ -207,12 +227,24 @@ class PasswordResetController extends Controller
             ], 400);
         }
 
-        $status = Password::broker()->reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) use ($request) {
-                $this->completeReset($user, $password, $request);
-            }
-        );
+        try {
+            $status = Password::broker()->reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function ($user, $password) use ($request) {
+                    $this->completeReset($user, $password, $request);
+                }
+            );
+        } catch (AuthenticationException $e) {
+            Cache::forget($claimKey);
+
+            return response()->json([
+                'status'  => 'failed',
+                'message' => $e->getMessage(),
+                'errors'  => [
+                    'password' => [$e->getMessage()],
+                ],
+            ], 422);
+        }
 
         if ($status !== Password::PASSWORD_RESET) {
             Cache::forget($claimKey);

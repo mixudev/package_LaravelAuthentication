@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.32] - 2026-10-12
+
+### Fixed
+- **Friendly Password Reset Validation Feedback (Prevent 500 on Identical/Historical Password)**: In `PasswordResetController::reset()` and `apiResetPassword()`, `AuthenticationException` thrown by `PasswordService::updatePassword()` (e.g. "Kata sandi baru harus berbeda dari kata sandi saat ini" or history reuse rules) is now gracefully caught. Instead of crashing with an unhandled 500 error, it returns back with input and field validation errors on `password` (or a 422 JSON response with error messages) and releases the token claim key for immediate retry.
+- **Queue-by-Default for All Outgoing Emails (Zero SMTP Lag on Web Thread)**:
+  - Added `SendPasswordResetLinkJob` to asynchronously dispatch password reset links via queue workers, eliminating SMTP latency and timeout risks during forgot password requests.
+  - Set default configuration `'mail.queue' => true` and `'audit.queue' => true` in `config/authentication.php` and `AuthenticationConfig::isMailQueueEnabled()`.
+  - Added support for custom queue connections (`mail.queue_connection`) and queue names (`mail.queue_name`) across `SendPasswordResetLinkJob`, `OtpService`, and `NewDeviceDetectionService`.
+
 ## [1.9.31] - 2026-10-12
 
 ### Fixed

@@ -86,12 +86,17 @@ final class AuthenticationConfig
 
     public function isMailQueueEnabled(): bool
     {
-        return (bool) $this->config->get('authentication.mail.queue', false);
+        return (bool) $this->config->get('authentication.mail.queue', true);
     }
 
     public function getMailQueueConnection(): ?string
     {
         return $this->config->get('authentication.mail.queue_connection');
+    }
+
+    public function getMailQueueName(): ?string
+    {
+        return $this->config->get('authentication.mail.queue_name', 'default');
     }
 
     public function getDefaultStrategy(): string

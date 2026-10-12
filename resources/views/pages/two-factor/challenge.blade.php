@@ -52,7 +52,7 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
                     autocomplete="one-time-code"
                     :autofocus="$inputMode === 'totp'"
                     activeWhen="!recovery"
-                    label="Kode Keamanan {{ $totpDigits }}-Digit"
+                    :label="__('authentication::messages.two_factor_code_label', ['digits' => $totpDigits])"
                 />
             </div>
 
@@ -65,7 +65,7 @@ Deskripsi: Halaman verifikasi TOTP / Backup Code saat login dengan 2FA aktif.
                     autocomplete="off"
                     :autofocus="$inputMode === 'recovery'"
                     activeWhen="recovery"
-                    label="Kode Pemulihan Cadangan"
+                    :label="__('authentication::messages.recovery_code_label')"
                     sizeClass="w-7 h-10 text-sm sm:w-8 sm:h-11"
                     gapClass="gap-1"
                 />

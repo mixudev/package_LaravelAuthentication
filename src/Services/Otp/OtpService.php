@@ -163,9 +163,15 @@ class OtpService implements OtpServiceInterface
                     user: $user
                 );
 
-                $queueEnabled = (bool) config('authentication.mail.queue', false);
+                $queueEnabled = (bool) config('authentication.mail.queue', true);
 
                 if ($queueEnabled) {
+                    if ($queueConnection = config('authentication.mail.queue_connection')) {
+                        $mailable->onConnection((string) $queueConnection);
+                    }
+                    if ($queueName = config('authentication.mail.queue_name')) {
+                        $mailable->onQueue((string) $queueName);
+                    }
                     \Illuminate\Support\Facades\Mail::to($recipientEmail)->queue($mailable);
                     \Illuminate\Support\Facades\Log::info('[AUTH] OTP email queued for background delivery', [
                         'recipient' => \Vendor\LaravelAuthentication\Support\SecurityHelper::maskIdentifier($recipientEmail),

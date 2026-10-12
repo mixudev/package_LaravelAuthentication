@@ -25,8 +25,8 @@ Deskripsi: Komponen mandiri untuk disisipkan ke halaman Dashboard/Profile projec
         $sessions = $sessionService->getActiveSessions($currentUser, $currentSessionId);
     }
 
-    $cardTitle = $title ?? __('authentication::messages.sessions_title', [], null) ?? 'Sesi & Perangkat Aktif';
-    $cardSubtitle = $subtitle ?? __('authentication::messages.sessions_subtitle', [], null) ?? 'Kelola dan cabut akses login Anda di perangkat lain.';
+    $cardTitle = $title ?? \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.sessions_title');
+    $cardSubtitle = $subtitle ?? \Vendor\LaravelAuthentication\Support\SecurityHelper::trans('authentication::messages.sessions_subtitle');
     $revokeOthersRoute = Route::has(\Vendor\LaravelAuthentication\Support\RouteConfig::name('auth.sessions.destroy-others'))
         ? route(\Vendor\LaravelAuthentication\Support\RouteConfig::name('auth.sessions.destroy-others'))
         : url('/auth/sessions/revoke-others');

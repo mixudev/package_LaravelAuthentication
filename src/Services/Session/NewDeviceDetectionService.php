@@ -71,6 +71,12 @@ class NewDeviceDetectionService
                     $mailable = new NewDeviceLoginMail($user, $device);
 
                     if ($this->config->isMailQueueEnabled()) {
+                        if ($queueConnection = $this->config->getMailQueueConnection()) {
+                            $mailable->onConnection((string) $queueConnection);
+                        }
+                        if ($queueName = $this->config->getMailQueueName()) {
+                            $mailable->onQueue((string) $queueName);
+                        }
                         Mail::to($userEmail)->queue($mailable);
                     } else {
                         Mail::to($userEmail)->send($mailable);

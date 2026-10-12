@@ -146,19 +146,30 @@ final class SecurityHelper
             return $laravelBaseTrans;
         }
 
-        // 3. Robust human-readable localized fallback
-        $attrName = ucfirst(str_replace('_', ' ', $attribute));
-        return match ($baseRule) {
-            'required', 'required_without_all', 'required_with' => "{$attrName} wajib diisi.",
-            'email' => "{$attrName} harus berupa alamat email yang valid.",
-            'min' => "{$attrName} minimal harus " . ($replace['min'] ?? '8') . " karakter.",
-            'max' => "{$attrName} maksimal " . ($replace['max'] ?? '255') . " karakter.",
-            'confirmed' => "Konfirmasi {$attrName} tidak cocok.",
-            'string' => "{$attrName} harus berupa teks.",
-            'unique' => "{$attrName} sudah digunakan.",
-            'numeric', 'digits' => "{$attrName} harus berupa angka.",
-            default => "{$attrName} tidak valid.",
+        // 3. Package fallback: keep both locales in the catalogue, even when the
+        // host application does not ship Laravel's validation language files.
+        $fallbackKey = match ($baseRule) {
+            'required', 'required_without_all', 'required_with' => 'validation_required',
+            'email' => 'validation_email',
+            'min' => 'validation_min',
+            'max' => 'validation_max',
+            'confirmed' => 'validation_confirmed',
+            'string' => 'validation_string',
+            'unique' => 'validation_unique',
+            'numeric' => 'validation_numeric',
+            'digits' => 'validation_digits',
+            default => null,
         };
+
+        if ($fallbackKey !== null) {
+            $fallback = trans('authentication::messages.' . $fallbackKey, $replace);
+            if (is_string($fallback) && $fallback !== 'authentication::messages.' . $fallbackKey) {
+                return $fallback;
+            }
+        }
+
+        $attrName = ucfirst(str_replace('_', ' ', $attribute));
+        return "{$attrName} is invalid.";
     }
 }
 
