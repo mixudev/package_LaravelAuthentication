@@ -112,17 +112,17 @@ return [
         'rehash' => true,
 
         'validation_rules' => [
-            'min_length'         => 8,     // Minimal jumlah karakter
-            'require_uppercase'  => false,  // Wajib ada huruf besar
-            'require_lowercase'  => false,  // Wajib ada huruf kecil
-            'require_mixed_case' => false,  // @deprecated gunakan require_uppercase + require_lowercase terpisah
-            'require_numbers'    => false,  // Wajib ada angka
-            'require_symbols'    => false,  // Wajib ada karakter spesial
+            'min_length'         => 12,    // Minimal jumlah karakter
+            'require_uppercase'  => true,   // Wajib ada huruf besar
+            'require_lowercase'  => true,   // Wajib ada huruf kecil
+            'require_mixed_case' => true,   // @deprecated gunakan require_uppercase + require_lowercase terpisah
+            'require_numbers'    => true,   // Wajib ada angka
+            'require_symbols'    => true,   // Wajib ada karakter spesial
             'symbols_charset'    => '@$!%*#?&_-+=[]{}|;:,.<>', // Karakter spesial yang diizinkan
          ],
 
         'history' => [
-            'enabled'  => false, // Aktifkan pengecekan riwayat password
+            'enabled'  => true, // Aktifkan pengecekan riwayat password
             'remember' => 5,     // Jumlah password lama yang tidak boleh dipakai ulang
         ],
     ],
@@ -291,7 +291,7 @@ return [
         ))),
 
         'captcha' => [
-            'enabled'                       => false,
+            'enabled'                       => true,
             'driver'                        => 'turnstile', // 'turnstile', 'recaptcha_v2', 'recaptcha_v3', 'hcaptcha'
             'trigger_after_failed_attempts' => 3,           // 0 = selalu minta, >0 = baru minta setelah N kali gagal
             'site_key'                      => env('AUTH_CAPTCHA_SITE_KEY', ''),
@@ -306,7 +306,7 @@ return [
         ],
 
         'account_lockout' => [
-            'enabled'               => false, // Kunci akun setelah gagal berkali-kali
+            'enabled'               => true, // Kunci akun setelah gagal berkali-kali
             'max_failed_attempts'   => 5,
             'lockout_duration_mins' => 15,
             'auto_unlock'           => true,  // Buka kunci otomatis setelah durasi habis
@@ -331,8 +331,8 @@ return [
         // Registrasi user baru (Web & API)
         'registration' => [
             'enabled'                => true,
-            'auto_login_on_register' => true,  // Langsung login setelah daftar
-            'require_email_verify'   => false, // Wajib verifikasi email dulu
+            'auto_login_on_register' => false, // Langsung login setelah daftar
+            'require_email_verify'   => true,  // Wajib verifikasi email dulu
         ],
 
         // Lupa & reset password (Web & API)
@@ -394,7 +394,7 @@ return [
         // Login sosial / OAuth via Laravel Socialite (Web & API)
         'social' => [
             'enabled'       => true,
-            'auto_register' => true, // Buat user baru otomatis jika belum terdaftar
+            'auto_register' => false, // Buat user baru otomatis jika belum terdaftar
             'strict_email_verification' => true, // Tolak pengaitan akun lokal jika OAuth provider tidak mengonfirmasi email_verified
 
             'providers' => [

@@ -437,11 +437,11 @@ Total: 138 tests, 381 assertions, PHPStan level 8 bersih.
 
 ### Security (Tahap 2 — dari Audit Report)
 - **Persistent Account Lockout (SEC-07)**: Lockout & failure counter kini disimpan di database (model `AccountLockout`, migration `2026_02_01_000008`), bukan hanya di cache. Cache-flush / multi-server tidak lagi bisa me-reset lockout untuk bypass brute-force.
-- **Hardened Config Preset (SEC-17)**: `config/authentication-hardened.php` — preset production (password min 12 + uppercase/lowercase/number/symbol, lockout aktif, captcha aktif, require_email_verify, auto_register=false, dsb).
+- **Hardened Configuration Defaults (SEC-17)**: `config/authentication.php` now contains the production security posture (password min 12 + uppercase/lowercase/number/symbol, lockout aktif, captcha aktif, require_email_verify, auto_register=false, dsb).
 - **Fail-Closed CAPTCHA (SEC-22)**: Driver captcha yang tidak dikenal/typo kini melempar `AuthenticationConfigurationException`, bukan diam-diam memakai `NullCaptchaDriver` (yang menonaktifkan captcha tanpa disadari).
 
 ### Files changed
-- `src/Services/Security/AccountLockService.php` (cache → DB), `src/Services/Security/CaptchaService.php` (fail-closed), `src/Models/AccountLockout.php` (baru), `config/authentication.php` (tambah `lockouts` table name), `config/authentication-hardened.php` (baru).
+- `src/Services/Security/AccountLockService.php` (cache → DB), `src/Services/Security/CaptchaService.php` (fail-closed), `src/Models/AccountLockout.php` (baru), `config/authentication.php` (tambah `lockouts` table name dan hardened defaults).
 - Migration baru: `database/migrations/2026_02_01_000008_create_authentication_account_lockouts_table.php` — **WAJIB `php artisan migrate`**.
 - Test baru: `tests/Security/AccountLockoutPersistenceTest`.
 

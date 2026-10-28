@@ -147,10 +147,11 @@ class HealthCheckCommand extends Command
      */
     protected function checkTables(): void
     {
+        $tableNames = (array) config('authentication.database.table_names', []);
         $requiredTables = [
-            'authentication_attempts',
-            'authentication_login_histories',
-            'authentication_account_lockouts',
+            $tableNames['attempts'] ?? 'authentication_attempts',
+            $tableNames['login_histories'] ?? 'authentication_login_histories',
+            $tableNames['lockouts'] ?? 'authentication_account_lockouts',
         ];
 
         foreach ($requiredTables as $table) {

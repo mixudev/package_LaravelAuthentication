@@ -225,7 +225,8 @@ class InstallCommand extends Command
             $npmBin  = PHP_OS_FAMILY === 'Windows' ? 'npm.cmd' : 'npm';
             $result  = 0;
             $output  = [];
-            exec("{$npmBin} install alpinejs --save-dev --silent 2>&1", $output, $result);
+            $command = escapeshellarg($npmBin) . ' install alpinejs --save-dev --silent 2>&1';
+            exec($command, $output, $result);
 
             if ($result !== 0) {
                 $this->warn('  ⚠ npm install failed. Install manually: <comment>npm install alpinejs --save-dev</comment>');
