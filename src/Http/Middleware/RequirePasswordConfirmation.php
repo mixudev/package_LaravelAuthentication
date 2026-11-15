@@ -37,11 +37,20 @@ class RequirePasswordConfirmation
 
         $timeout = $customTimeout ?? $this->config->getConfirmPasswordTimeout();
 
-        $confirmedAt = 0;
         if ($request->hasSession()) {
             $confirmedAt = (int) $request->session()->get('auth.password_confirmed_at', 0);
         } else {
-            $confirmedAt = (int) cache()->get('auth_pwd_confirmed:' . $user->getAuthIdentifier(), 0);
+            // Stateless confirmation must be scoped to the bearer token (not
+            // merely the user ID), otherwise one device unlocks every token.
+            $token = (string) ($request->bearerToken() ?? '');
+            if ($token === '') {
+                return $request->expectsJson()
+                    ? response()->json(['message' => (string) __('authentication::messages.confirm_password_required'), 'password_confirmation_required' => true], 423)
+                    : redirect()->route(RouteConfig::name('password.confirm'));
+            }
+
+            $tokenKey = hash('sha256', $token);
+            $confirmedAt = (int) cache()->get('auth_pwd_confirmed:' . $user->getAuthIdentifier() . ':' . $tokenKey, 0);
         }
 
         if ((time() - $confirmedAt) > $timeout) {

@@ -19,6 +19,7 @@ use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\UserRegistered;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
+use Vendor\LaravelAuthentication\Services\Password\PasswordService;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 /**
@@ -33,6 +34,7 @@ class RegistrationService implements RegistrationServiceInterface
         private readonly AuditLoggerInterface $auditService,
         private readonly PasswordHistoryRepositoryInterface $passwordHistoryRepo,
         private readonly FeatureRateLimiterInterface $rateLimiter,
+        private readonly PasswordService $passwordService,
     ) {}
 
     public function isEnabled(): bool
@@ -55,6 +57,9 @@ class RegistrationService implements RegistrationServiceInterface
         }
 
         $this->rateLimiter->hit('registration', null, $ip, $context->clientId);
+
+        // Validate password complexity at service layer (defense in depth)
+        $this->passwordService->validate($data->password);
 
         $userModelClass = $this->config->getUserModel();
 
@@ -81,7 +86,7 @@ class RegistrationService implements RegistrationServiceInterface
         $this->events->dispatch(new UserRegistered($user, $context));
 
         $this->auditService->logEvent(
-            SecurityEventType::LOGIN_SUCCESS,
+            SecurityEventType::USER_REGISTERED,
             $data->email,
             $context,
             null,

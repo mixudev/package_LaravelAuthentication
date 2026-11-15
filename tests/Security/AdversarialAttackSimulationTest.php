@@ -33,7 +33,11 @@ class AdversarialAttackSimulationTest extends TestCase
         parent::setUp();
 
         // Enable abuse_policy for adversarial testing
-        config(['authentication.security.abuse_policy.enabled' => true]);
+        config([
+            'authentication.security.abuse_policy.enabled' => true,
+            // This suite explicitly verifies lockout signaling, not enumeration resistance.
+            'authentication.security.user_enumeration_protection' => false,
+        ]);
 
         // Turnstile is a bot gate, not a password factor. Binding it here keeps the
         // credential tests focused on authentication rather than third-party failure modes.

@@ -55,6 +55,13 @@ class ConfirmPasswordController extends Controller
             ]);
         }
 
+        if (!$request->hasSession() && $request->bearerToken() === null) {
+            return response()->json([
+                'message'                        => (string) __('authentication::messages.confirm_password_required'),
+                'password_confirmation_required' => true,
+            ], 423);
+        }
+
         $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
 
         if ($this->rateLimiter->tooManyAttempts('confirm_password', (string) $user->getAuthIdentifier(), $ip)) {
@@ -80,7 +87,19 @@ class ConfirmPasswordController extends Controller
         if ($request->hasSession()) {
             $request->session()->put('auth.password_confirmed_at', $now);
         } else {
-            cache()->put('auth_pwd_confirmed:' . $user->getAuthIdentifier(), $now, $this->config->getConfirmPasswordTimeout());
+            $token = (string) ($request->bearerToken() ?? '');
+            if ($token === '') {
+                throw ValidationException::withMessages([
+                    'password' => [(string) __('authentication::messages.confirm_password_required')],
+                ]);
+            }
+
+            $tokenKey = hash('sha256', $token);
+            cache()->put(
+                'auth_pwd_confirmed:' . $user->getAuthIdentifier() . ':' . $tokenKey,
+                $now,
+                $this->config->getConfirmPasswordTimeout()
+            );
         }
 
         if ($request->expectsJson()) {

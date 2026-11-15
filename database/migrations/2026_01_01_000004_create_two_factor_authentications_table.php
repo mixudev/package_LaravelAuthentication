@@ -19,7 +19,9 @@ return new class extends Migration
         if (!Schema::hasTable($table)) {
             Schema::create($table, function (Blueprint $table) {
                 $table->id();
-                $table->unsignedBigInteger('user_id')->unique()->index();
+                AuthenticationConfig::userIdColumn($table);
+                $table->unique('user_id');
+                $table->index('user_id');
                 $table->text('secret');
                 $table->text('recovery_codes')->nullable();
                 $table->timestamp('confirmed_at')->nullable()->index();

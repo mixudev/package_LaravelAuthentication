@@ -54,15 +54,16 @@ final class RateLimitKeyFactory
 
     /**
      * Normalize IP address to canonical binary form for consistent hashing.
-     * 
+     *
      * IPv6 addresses are expanded to canonical form (inet_pton handles compression).
      * inet_pton returns false for invalid IPs; fall back to raw string to avoid crashes.
+     * The binary output is hex-encoded to avoid null bytes in cache keys.
      */
     private function normalizeIp(string $ipAddress): string
     {
         $binary = @inet_pton($ipAddress);
 
-        return $binary !== false ? $binary : $ipAddress;
+        return $binary !== false ? bin2hex($binary) : $ipAddress;
     }
 
     /**
@@ -81,30 +82,31 @@ final class RateLimitKeyFactory
 
     /**
      * Normalize IP to network prefix for rate limiting.
-     * 
+     *
      * IPv4: /24 prefix (first 3 octets)
      * IPv6: /64 prefix (first 64 bits)
-     * 
+     *
      * This prevents attackers from rotating IPs within the same subnet to bypass limits.
+     * The binary output is hex-encoded to avoid null bytes in cache keys.
      */
     private function normalizeNetworkPrefix(string $ipAddress): string
     {
         $binary = @inet_pton($ipAddress);
-        
+
         if ($binary === false) {
             return $ipAddress; // Invalid IP, use as-is
         }
-        
+
         // IPv4: 4 bytes, extract /24 (first 3 bytes)
         if (strlen($binary) === 4) {
-            return substr($binary, 0, 3) . "\x00";
+            return bin2hex(substr($binary, 0, 3) . "\x00");
         }
-        
+
         // IPv6: 16 bytes, extract /64 (first 8 bytes)
         if (strlen($binary) === 16) {
-            return substr($binary, 0, 8) . str_repeat("\x00", 8);
+            return bin2hex(substr($binary, 0, 8) . str_repeat("\x00", 8));
         }
-        
-        return $binary;
+
+        return bin2hex($binary);
     }
 }

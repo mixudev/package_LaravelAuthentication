@@ -19,7 +19,8 @@ return new class extends Migration
         if (!Schema::hasTable($table)) {
             Schema::create($table, function (Blueprint $table) {
                 $table->id();
-                $table->unsignedBigInteger('user_id')->index();
+                AuthenticationConfig::userIdColumn($table);
+                $table->index('user_id');
                 $table->string('ip_address', 45)->nullable();
                 $table->text('user_agent')->nullable();
                 $table->string('login_method', 64)->default('standard');

@@ -1,7 +1,7 @@
 # Security Posture Assessment: mixudev/laravel-authentication v1.9.0
 
-**Assessment Date**: 2026-10-01  
-**Package Version**: 1.9.0  
+**Assessment Date**: 2026-11-15
+**Package Version**: Unreleased hardening changes
 **Security Test Files**: 28 dedicated security test classes  
 **CHANGELOG Security Mentions**: 31 security-related entries
 
@@ -65,7 +65,7 @@ Sistem sudah **sangat aman** untuk production deployment dengan beberapa catatan
 ### Strict Exception Handling
 ✅ **Invalid Strategy → Exception**: No silent fallback to insecure default  
 ✅ **Missing Config → Exception**: Fail early vs runtime vulnerability  
-✅ **Lockout Bypass → Exception**: `AccountLockedException` thrown (cannot login)  
+✅ **Lockout Bypass → Rejection**: locked accounts cannot login; with `user_enumeration_protection=true`, the public response is intentionally masked as `InvalidCredentialsException`
 ✅ **Throttled Request → 429 Response**: Clear rejection vs silent bypass  
 
 ### Circuit Breaker for External Dependencies

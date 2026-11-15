@@ -18,6 +18,7 @@ use Vendor\LaravelAuthentication\Exceptions\AuthenticationThrottledException;
 use Vendor\LaravelAuthentication\Exceptions\InvalidCredentialsException;
 use Vendor\LaravelAuthentication\Exceptions\TwoFactorChallengeRequiredException;
 use Vendor\LaravelAuthentication\Http\Requests\LoginRequest;
+use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 use Vendor\LaravelAuthentication\Support\AuthenticationView;
 use Vendor\LaravelAuthentication\Support\RouteConfig;
 use Vendor\LaravelAuthentication\Support\SafeUserPresenter;
@@ -27,7 +28,8 @@ class LoginController extends Controller
 {
     public function __construct(
         protected readonly AuthenticationServiceInterface $authService,
-        protected readonly CacheRepository $cache
+        protected readonly CacheRepository $cache,
+        protected readonly AuthenticationConfig $config
     ) {}
 
     /**
@@ -65,6 +67,12 @@ class LoginController extends Controller
         } catch (AccountLockedException $e) {
             $lockoutMinutes = (int) config('authentication.security.account_lockout.lockout_duration_mins', 15);
             session()->flash('auth_retry_after', max(0, $lockoutMinutes * 60));
+            // User enumeration protection: don't expose distinct locked response for existing users
+            if ($this->config->isUserEnumerationProtectionEnabled()) {
+                throw ValidationException::withMessages([
+                    'identifier' => [(string) __('authentication::messages.invalid_credentials')],
+                ]);
+            }
             throw ValidationException::withMessages([
                 'identifier' => [$e->getMessage()],
             ]);
@@ -114,6 +122,12 @@ class LoginController extends Controller
                 'seconds_remaining' => $e->secondsRemaining,
             ], 429);
         } catch (AccountLockedException $e) {
+            if ($this->config->isUserEnumerationProtectionEnabled()) {
+                return response()->json([
+                    'status'  => 'invalid_credentials',
+                    'message' => (string) __('authentication::messages.invalid_credentials'),
+                ], 401);
+            }
             return response()->json([
                 'status'  => 'locked',
                 'message' => $e->getMessage(),

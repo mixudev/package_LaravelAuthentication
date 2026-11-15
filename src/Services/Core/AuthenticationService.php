@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Hashing\Hasher;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationServiceInterface;
 use Vendor\LaravelAuthentication\Contracts\AuthenticationStrategyInterface;
 use Vendor\LaravelAuthentication\Contracts\TokenManagerInterface;
@@ -59,8 +60,17 @@ class AuthenticationService implements AuthenticationServiceInterface
         private readonly TwoFactorService $twoFactorService,
         private readonly DeviceTrustService $deviceTrustService,
         private readonly NewDeviceDetectionService $newDeviceService,
-        private readonly AuthenticationConfig $config
+        private readonly AuthenticationConfig $config,
+        private readonly Hasher $hasher
     ) {}
+
+    private ?string $dummyHash = null;
+
+    private function dummyPasswordHash(): string
+    {
+        // Generate once per service instance; hashing every ghost login enables CPU DoS.
+        return $this->dummyHash ??= $this->hasher->make('hermes-dummy-password-not-a-secret');
+    }
 
     public function isEnabled(): bool
     {
@@ -93,6 +103,11 @@ class AuthenticationService implements AuthenticationServiceInterface
                 AuthenticationResult::failed(AuthenticationStatus::ACCOUNT_LOCKED, 'Account is locked.')
             );
 
+            if ($this->config->isUserEnumerationProtectionEnabled()) {
+                // Do not expose a distinct locked response for existing users.
+                throw new InvalidCredentialsException();
+            }
+
             throw new AccountLockedException($this->config->getLockoutDurationMinutes());
         }
 
@@ -120,7 +135,7 @@ class AuthenticationService implements AuthenticationServiceInterface
             // Prevent timing attack: non-existent user (5ms) vs wrong password (423ms)
             \Illuminate\Support\Facades\Hash::check(
                 $data->password,
-                '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi' // bcrypt dummy
+                $this->dummyPasswordHash()
             );
         }
 

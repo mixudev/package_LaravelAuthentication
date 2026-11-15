@@ -15,7 +15,7 @@ class LoginHistoryRepository
     public function recordLogin(int|string $userId, array $data): LoginHistory
     {
         return LoginHistory::create([
-            'user_id'      => (int) $userId,
+            'user_id'      => (string) $userId,
             'ip_address'   => $data['ip_address'] ?? null,
             'user_agent'   => $data['user_agent'] ?? null,
             'login_method' => $data['login_method'] ?? 'standard',
@@ -26,7 +26,7 @@ class LoginHistoryRepository
 
     public function recordLogout(int|string $userId): void
     {
-        LoginHistory::where('user_id', (int) $userId)
+        LoginHistory::where('user_id', (string) $userId)
             ->whereNull('logout_at')
             ->latest('login_at')
             ->limit(1)
@@ -38,7 +38,7 @@ class LoginHistoryRepository
      */
     public function getRecentForUser(int|string $userId, int $limit = 10): \Illuminate\Database\Eloquent\Collection
     {
-        return LoginHistory::where('user_id', (int) $userId)
+        return LoginHistory::where('user_id', (string) $userId)
             ->orderBy('login_at', 'desc')
             ->limit($limit)
             ->get();

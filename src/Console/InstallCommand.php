@@ -244,8 +244,7 @@ class InstallCommand extends Command
             return;
         }
 
-        $jsContent     = $filesystem->get($appJsPath);
-        $alpineImport  = "import Alpine from 'alpinejs';";
+        $jsContent = $filesystem->get($appJsPath);
 
         // Skip if Alpine already imported / started
         if (str_contains($jsContent, 'alpinejs') || str_contains($jsContent, 'Alpine.start')) {

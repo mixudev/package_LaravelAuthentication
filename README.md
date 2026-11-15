@@ -34,7 +34,7 @@ Wires 12 auth events (login, lockout, 2FA, device, password, session) into real-
 | **Multi-Factor Auth (2FA / TOTP)** | Engine TOTP RFC 6238 mandiri (Google Auth, Authy, 1Password), kode pemulihan cadangan, dan fitur *Trust This Device* (30 hari). |
 | **Optimasi Skala 10M+ Data** | *Smart Fast-Path Credential Resolver* dan *Composite Indexing* untuk performa pencarian < 1ms pada tabel puluhan juta baris. |
 | **Active Session & Device Manager** | Deteksi platform/browser/IP, pencabutan sesi jarak jauh, dan *Logout All Other Devices* dengan konfirmasi password. |
-| **Granular Rate Limiting** | Throttle counter independen per fitur (`login`, `registration`, `otp`, `2fa`, `forgot_password`) mencegah cross-feature DoS. |
+| **Granular Rate Limiting** | Throttle counter independen per fitur (`login`, `registration`, `otp`, `2fa`, `confirm_password`, `forgot_password`, dan passkey) mencegah cross-feature DoS. |
 | **Adaptive CAPTCHA & Bot Protection** | Cloudflare Turnstile, Google reCAPTCHA v2/v3, dan hCaptcha dengan threshold otomatis (muncul setelah $N$ kali gagal). |
 | **OAuth Social Login** | Autentikasi instan Google dan GitHub dengan layout modern yang sejajar dan responsif. |
 | **Passwordless OTP Email** | Kode verifikasi sekali pakai kriptografis dengan limit percobaan dan auto-expiry. |
@@ -119,7 +119,7 @@ php artisan config:clear
 
 ```php
 return [
-    // Model user aplikasi host (tanpa hardcode App\Models\User)
+    // Model user aplikasi host; sesuaikan dengan model aplikasi Anda.
     'user_model' => \App\Models\User::class,
     'guard'      => 'web',
 

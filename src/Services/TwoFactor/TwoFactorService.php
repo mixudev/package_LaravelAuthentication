@@ -52,7 +52,7 @@ class TwoFactorService
         $record = TwoFactorAuthentication::where('user_id', $userId)->first();
 
         if ($record === null) {
-            $secret = $this->totp->generateSecret(16);
+            $secret = $this->totp->generateSecret(32);
             $plainRecoveryCodes = $this->generateRecoveryCodes($this->config->getTwoFactorBackupCodesCount());
             $hashedRecoveryCodes = array_map(fn(string $code) => $this->hasher->make(str_replace(['-', ' '], '', trim($code))), $plainRecoveryCodes);
 

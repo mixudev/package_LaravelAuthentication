@@ -187,13 +187,13 @@ final class QrCodeGenerator
         self::placeFinderPatterns($matrix, $isFunction, $dimension);
         self::placeAlignmentPatterns($matrix, $isFunction, $version, $dimension);
         self::placeTimingPatterns($matrix, $isFunction, $dimension);
-        self::reserveFormatAndVersion($matrix, $isFunction, $dimension, $version);
+        self::reserveFormatAndVersion($isFunction, $dimension);
 
         // Place data bits in zig-zag path
         self::placeDataBits($matrix, $isFunction, $dimension, $finalCodewords);
 
         // Apply optimal mask (evaluate mask 0)
-        self::applyMaskAndFormat($matrix, $isFunction, $dimension, $version);
+        self::applyMaskAndFormat($matrix, $isFunction, $dimension);
 
         /** @var array<int, array<int, bool>> $cleanMatrix */
         $cleanMatrix = [];
@@ -469,10 +469,9 @@ final class QrCodeGenerator
     }
 
     /**
-     * @param array<int, array<int, bool>> $matrix
      * @param array<int, array<int, bool>> $isFunction
      */
-    private static function reserveFormatAndVersion(array &$matrix, array &$isFunction, int $size, int $version): void
+    private static function reserveFormatAndVersion(array &$isFunction, int $size): void
     {
         for ($i = 0; $i < 9; $i++) {
             if ($i !== 6) {
@@ -533,7 +532,7 @@ final class QrCodeGenerator
      * @param array<int, array<int, bool>> $matrix
      * @param array<int, array<int, bool>> $isFunction
      */
-    private static function applyMaskAndFormat(array &$matrix, array &$isFunction, int $size, int $version): void
+    private static function applyMaskAndFormat(array &$matrix, array &$isFunction, int $size): void
     {
         for ($y = 0; $y < $size; $y++) {
             for ($x = 0; $x < $size; $x++) {

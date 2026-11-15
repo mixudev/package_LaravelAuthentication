@@ -135,15 +135,6 @@ class TwoFactorChallengeController extends Controller
             ]);
         }
 
-        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
-
-        if ($this->rateLimiter->tooManyAttempts('two_factor', (string) $userId, $ip)) {
-            $seconds = $this->rateLimiter->availableIn('two_factor', (string) $userId, $ip);
-            throw ValidationException::withMessages([
-                $fieldName => [(string) __('authentication::messages.throttle_error', ['seconds' => $seconds])],
-            ]);
-        }
-
         $userModel = $this->config->getUserModel();
         $user      = $userModel::find($userId);
 
@@ -153,7 +144,20 @@ class TwoFactorChallengeController extends Controller
                 : redirect()->route(RouteConfig::name('login'));
         }
 
+        $ip = \Vendor\LaravelAuthentication\Support\ClientIpResolver::resolve($request);
+
+        if ($this->rateLimiter->tooManyAttempts('two_factor', (string) $userId, $ip)) {
+            $seconds = $this->rateLimiter->availableIn('two_factor', (string) $userId, $ip);
+            throw ValidationException::withMessages([
+                $fieldName => [(string) __('authentication::messages.throttle_error', ['seconds' => $seconds])],
+            ]);
+        }
+
         if (!$this->twoFactorService->verifyChallenge($user, $code)) {
+            if ($usedPendingToken !== null) {
+                app(TwoFactorPendingToken::class)->release($usedPendingToken);
+            }
+
             $this->rateLimiter->hit('two_factor', (string) $userId, $ip);
 
             // Flash mode marker so failed attempt returns to the same input mode.

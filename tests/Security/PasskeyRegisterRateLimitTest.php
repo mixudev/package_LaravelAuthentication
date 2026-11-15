@@ -18,6 +18,9 @@ class PasskeyRegisterRateLimitTest extends TestCase
             'password' => \Illuminate\Support\Facades\Hash::make('SecretPass123!'),
         ]);
 
+        // This test isolates the feature limiter; confirmation middleware is
+        // covered by PasswordConfirmMiddlewareTest.
+        config(['authentication.features.confirm_password.enabled' => false]);
         $this->actingAs($user);
 
         $throttled = false;

@@ -41,6 +41,9 @@ class PasskeyForgeryTest extends TestCase
             'curve_name'       => 'prime256v1',
             'private_key_type' => OPENSSL_KEYTYPE_EC,
         ]);
+        if ($res === false) {
+            $this->markTestSkipped('OpenSSL EC key generation is unavailable in this PHP environment.');
+        }
         $this->privateKey = $res;
         $details = openssl_pkey_get_details($res);
         $this->assertIsArray($details);

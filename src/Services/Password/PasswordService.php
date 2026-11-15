@@ -16,6 +16,7 @@ use Vendor\LaravelAuthentication\Enums\AuthenticationChannel;
 use Vendor\LaravelAuthentication\Enums\SecurityEventType;
 use Vendor\LaravelAuthentication\Events\PasswordChanged;
 use Vendor\LaravelAuthentication\Exceptions\AuthenticationException;
+use Vendor\LaravelAuthentication\Rules\PasswordRule;
 use Vendor\LaravelAuthentication\Support\AuthenticationConfig;
 
 /**
@@ -34,6 +35,19 @@ class PasswordService
     public function hashPassword(#[SensitiveParameter] string $plainPassword): string
     {
         return $this->hasher->make($plainPassword);
+    }
+
+    /**
+     * Validate password complexity against configured policy.
+     *
+     * @throws AuthenticationException if password fails policy checks
+     */
+    public function validate(#[SensitiveParameter] string $plainPassword): void
+    {
+        $rule = PasswordRule::fromConfig();
+        $rule->validate('password', $plainPassword, function (string $message): void {
+            throw new AuthenticationException($message);
+        });
     }
 
     public function updatePassword(

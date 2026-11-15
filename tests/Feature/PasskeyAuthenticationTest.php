@@ -50,7 +50,9 @@ class PasskeyAuthenticationTest extends TestCase
             'curve_name'       => 'prime256v1',
             'private_key_type' => OPENSSL_KEYTYPE_EC,
         ]);
-        $this->assertNotFalse($ecKey);
+        if ($ecKey === false) {
+            $this->markTestSkipped('OpenSSL EC key generation is unavailable in this PHP environment.');
+        }
         $details = openssl_pkey_get_details($ecKey);
         $this->assertIsArray($details);
         $publicKeyPem = $details['key'];
@@ -126,7 +128,9 @@ class PasskeyAuthenticationTest extends TestCase
     public function test_can_list_and_delete_passkeys(): void
     {
         $ecKey = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]);
-        $this->assertNotFalse($ecKey);
+        if ($ecKey === false) {
+            $this->markTestSkipped('OpenSSL EC key generation is unavailable in this PHP environment.');
+        }
         $details = openssl_pkey_get_details($ecKey);
         $this->assertIsArray($details);
 

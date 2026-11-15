@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security and Documentation
+
+- Hardening audit completed: 476 PHPUnit tests pass, with 9 passkey cryptography tests requiring a working PHP OpenSSL EC configuration.
+- Pending 2FA tokens use atomic one-time claims; passkey sign counters update under a row lock; passkey registration requires recent password confirmation.
+- Account lockout creation retries after PostgreSQL unique-constraint races; UUID/ULID login-history identifiers remain strings.
+- Password confirmation rate limiting is scoped to user and IP, and stateless confirmation requires a bearer token before password validation.
+- Documentation now describes enumeration-safe lockout responses, Windows OpenSSL setup, and trusted-proxy requirements for Secure device-trust cookies.
+
+### Security — P0 Critical Fixes (2026-11-15)
+
+- **Rate Limit Key Factory — Null-Byte-Free Cache Keys**: `RateLimitKeyFactory::normalizeIp()` and `normalizeNetworkPrefix()` now hex-encode binary IP representations with `bin2hex()`. Previously raw `inet_pton()` output (containing `\x00` bytes) was used directly in Redis/Memcached cache keys, risking key collision or truncation. This closes attack vector C2.
+- **Account Lockout — Stale Shadow Key Mitigation**: `AccountLockService::isLocked()` now verifies the lockout record in the database when a Redis shadow key is present, rather than trusting the cache blindly. A stale shadow key (Redis restart, persistence, manual manipulation) is removed when the lockout has expired. New-record creation also clears any stale shadow key. This closes attack vector C4.
+- **Login Controller — Enumeration-Safe Lockout Response**: `LoginController::login()` and `apiLogin()` now return the generic "invalid credentials" message when `authentication.security.user_enumeration_protection` is enabled, instead of exposing the distinct `AccountLockedException` message that reveals account existence. This closes attack vector C3.
+
+### Security — P1 High Fixes (2026-11-15)
+
+- **Password Validation at Service Layer**: `PasswordService::validate()` added using `PasswordRule::fromConfig()`. `RegistrationService::register()` now calls it before hashing, providing defense-in-depth if FormRequest validation is bypassed. This closes attack vector H1.
+- **Password Reset — Token Claim Domain Separation**: `PasswordResetController::claimResetToken()` now hashes `pwd_reset_claim:` prefix before `email:token`, preventing hash confusion between different claim contexts. This closes attack vector H2.
+- **ClientIpResolver — CIDR Validation Hardening**: `matchesCidr()` no longer suppresses `inet_pton()` errors with `@`. Added `isValidCidr()` that validates CIDR format and prefix length before use. Bare IPs (without `/`) are accepted as `/32` or `/128`. This closes attack vector H3.
+- **Password Reset — User/Email Assertion in Broker Callback**: `PasswordResetController::completeReset()` now asserts the reset user's email matches the request email, preventing password change for an arbitrary user if token validation is bypassed. This closes attack vector H4.
+- **TwoFactorChallengeController — Rate Limit After User Lookup**: User existence check (`$userModel::find($userId)`) now happens before the `two_factor` rate limit check, preventing rate-limit exhaustion via non-existent user IDs. This closes attack vector H5.
+
 ## [1.9.34] - 2026-10-12
 
 ### Security

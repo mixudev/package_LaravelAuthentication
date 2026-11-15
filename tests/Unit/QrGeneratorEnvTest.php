@@ -13,14 +13,16 @@ class QrGeneratorEnvTest extends TestCase
     {
         $uri = QrCodeGenerator::dataUri('otpauth://totp/Laravel:user@example.com?secret=NE7U3LRFJNSFMFJD', 220, 4);
 
-        // Prefer PNG when GD is available
+        if (!function_exists('imagepng')) {
+            $this->assertStringStartsWith('data:image/svg+xml;base64,', $uri);
+            return;
+        }
+
         $this->assertStringStartsWith('data:image/png;base64,', $uri);
-
         $png = base64_decode(substr($uri, strlen('data:image/png;base64,')));
-        // PNG signature
-        $this->assertSame("\x89PNG\r\n\x1a\n", substr($png, 0, 8));
+        $this->assertSame("\x89PNG
+\n\x1a\n", substr($png, 0, 8));
 
-        // Write to temporary file for verification and ensure cross-platform cleanup
         $tempFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'qr_test_' . uniqid('', true) . '.png';
         try {
             file_put_contents($tempFile, $png);

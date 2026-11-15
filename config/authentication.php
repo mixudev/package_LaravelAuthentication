@@ -32,6 +32,9 @@ return [
     'database' => [
         'load_migrations' => true,
 
+        // Must match the host users table primary key: bigint, uuid, or ulid.
+        'user_id_type' => 'bigint',
+
         'table_names' => [
             'attempts'           => 'authentication_attempts',
             'login_histories'    => 'authentication_login_histories',
@@ -227,7 +230,7 @@ return [
                 'enabled'       => true,
                 'max_attempts'  => 5,
                 'decay_minutes' => 1,
-                'strategy'      => 'ip',
+                'strategy'      => 'composite',
             ],
             'password_reset' => [
                 'enabled'       => true,

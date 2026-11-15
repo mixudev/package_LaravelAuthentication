@@ -727,6 +727,32 @@ spec:
 
 ## Security Hardening
 
+### OpenSSL dan Passkey/WebAuthn di Windows
+
+PHP harus memiliki ekstensi `openssl` aktif dan konfigurasi OpenSSL yang dapat dibaca. Verifikasi:
+
+```bat
+php -m | findstr /I openssl
+php --ini
+php -r "$k=openssl_pkey_new(['private_key_type'=>OPENSSL_KEYTYPE_EC,'curve_name'=>'prime256v1']); var_dump($k !== false);"
+```
+
+Jika `openssl_pkey_new()` gagal dengan `No such process`, set `OPENSSL_CONF` ke konfigurasi OpenSSL yang disertakan XAMPP/PHP, lalu buka terminal baru:
+
+```bat
+setx OPENSSL_CONF "C:\\xampp\\php\\extras\\openssl\\openssl.cnf"
+```
+
+Uji ulang setelah terminal baru dibuka. Jangan menonaktifkan validasi WebAuthn atau melewati test kriptografi.
+
+### Trusted Proxy dan Secure Cookie
+
+Jika TLS berhenti di Nginx, load balancer, atau CDN, konfigurasi trusted proxies Laravel dengan benar. Device-trust cookie memakai status HTTPS dari request; proxy yang tidak dipercaya dapat membuat request terlihat HTTP dan cookie tidak diberi flag `Secure`.
+
+Wajib verifikasi cookie produksi memiliki `Secure`, `HttpOnly`, dan `SameSite=Strict` atau kebijakan yang dipilih secara sadar.
+
+
+
 ### 1. Rate Limiting Tuning
 
 **Aggressive (high-security)**:

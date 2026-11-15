@@ -11,6 +11,7 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Vendor\LaravelAuthentication\DTO\AuthenticationContext;
 use Vendor\LaravelAuthentication\DTO\AuthenticationResult;
 use Vendor\LaravelAuthentication\DTO\Passkey\PasskeyAssertion;
@@ -325,20 +326,7 @@ class PasskeyService
             throw new AccountLockedException($this->config->getLockoutDurationMinutes());
         }
 
-        // 5. Cloned authenticator detection (Sign count check)
-        // SECURITY FIX (v1.9.1): Strict monotonic counter enforcement (FIDO2 spec §7.2)
-        // A cloned authenticator cannot produce a valid sign_count > last known value.
-        // Reject counter rollback, equality, or suspicious zero (after initial use).
-        // CVSS 9.1: Cloned authenticator bypass removed.
-        if ($credential->sign_count > 0) {
-            // Once counter has incremented, REQUIRE strict increase (no rollback, no zero)
-            if ($parsedAuthData['sign_count'] <= $credential->sign_count) {
-                report(new InvalidCredentialsException("Passkey clone detected: counter rollback from {$credential->sign_count} to {$parsedAuthData['sign_count']} for credential {$credential->id}."));
-                throw new InvalidCredentialsException((string) __('authentication::messages.passkey_clone_detected'));
-            }
-        }
-
-        // 6. Cryptographic signature verification over (authenticatorData || SHA256(clientDataJSON))
+        // 5. Cryptographic signature verification over (authenticatorData || SHA256(clientDataJSON))
         $signatureRaw = WebAuthnHelper::base64UrlDecode($assertion->signature);
         WebAuthnHelper::verifySignature(
             $authDataRaw,
@@ -347,12 +335,26 @@ class PasskeyService
             $credential->public_key
         );
 
-        // 7. Update sign count & last used timestamp upon successful verification
-        // SECURITY: Always use authenticator-reported counter. Manual increment removed.
-        // FIDO2 authenticators MUST maintain their own monotonic counter.
-        $credential->sign_count = $parsedAuthData['sign_count'];
-        $credential->last_used_at = now();
-        $credential->save();
+        // 6. Serialize counter validation and update to close clone-detection races.
+        DB::transaction(function () use ($credential, $parsedAuthData): void {
+            /** @var PasskeyCredential $lockedCredential */
+            $lockedCredential = PasskeyCredential::query()
+                ->whereKey($credential->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedCredential->sign_count > 0
+                && $parsedAuthData['sign_count'] <= $lockedCredential->sign_count) {
+                report(new InvalidCredentialsException("Passkey clone detected for credential {$lockedCredential->id}."));
+                throw new InvalidCredentialsException((string) __('authentication::messages.passkey_clone_detected'));
+            }
+
+            $lockedCredential->sign_count = $parsedAuthData['sign_count'];
+            $lockedCredential->last_used_at = now();
+            $lockedCredential->save();
+        });
+
+        // 7. Establish session and/or API token.
 
         // 8. Establish session and/or API token
         $token = null;

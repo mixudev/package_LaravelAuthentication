@@ -53,6 +53,9 @@ final class HighThroughputAndConcurrencyAuditTest extends TestCase
         Config::set('authentication.security.account_lockout.enabled', true);
         Config::set('authentication.security.account_lockout.max_failed_attempts', 5);
         Config::set('authentication.security.account_lockout.lockout_duration_mins', 15);
+        // This test asserts the durable lockout exception contract; enumeration
+        // behavior is covered separately by UserEnumerationProtectionTest.
+        Config::set('authentication.security.user_enumeration_protection', false);
     }
 
     #[Test]

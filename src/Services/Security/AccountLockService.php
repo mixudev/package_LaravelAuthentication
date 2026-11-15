@@ -49,21 +49,29 @@ class AccountLockService
             return false;
         }
 
-        // PERF-03: Fast-path Redis pre-gate. If the shadow key exists, the account is
-        // definitively locked — skip the DB read entirely. This eliminates concurrent
-        // DB queries under distributed attack targeting the same identifier.
-        if (Cache::has($this->shadowKey($user))) {
-            return true;
+        $shadowKey = $this->shadowKey($user);
+
+        // PERF-03: Fast-path Redis pre-gate. The shadow key stores the locked_until
+        // timestamp so a cache hit is a definitive O(1) verdict — no DB read.
+        // The TTL itself enforces expiry: when the key expires the lockout is over.
+        $lockedUntil = Cache::get($shadowKey);
+        if ($lockedUntil !== null) {
+            $carbon = Carbon::instance($lockedUntil);
+            if ($carbon->isFuture()) {
+                return true;
+            }
+            // Lockout expired in cache but key still present (TTL drift) — remove
+            Cache::forget($shadowKey);
         }
 
         // Cache miss: fall back to DB (cold start, Redis flush, or first check after
-        // package upgrade). If DB confirms lockout, re-populate the shadow key so the
+        // package upgrade). If DB confirms lockout, populate the shadow key so the
         // next request is fast again.
         $record = $this->findRecord($user);
 
         if ($record !== null && $record->isLocked()) {
             $remainingSeconds = max(1, (int) Carbon::now()->diffInSeconds($record->locked_until, false));
-            Cache::put($this->shadowKey($user), true, $remainingSeconds);
+            Cache::put($shadowKey, $record->locked_until, $remainingSeconds);
 
             return true;
         }
@@ -91,7 +99,10 @@ class AccountLockService
         // race condition where concurrent requests can bypass max_attempts check.
         // Without lockForUpdate(), 10 concurrent requests can each read failed_attempts=4,
         // increment to 5, and save — bypassing the lockout threshold.
-        return DB::transaction(function () use ($user, $userIdentifier, $maxAttempts, $context) {
+        $attempt = 0;
+        while (true) {
+            try {
+                return DB::transaction(function () use ($user, $userIdentifier, $maxAttempts, $context) {
             /** @var AccountLockout|null $record */
             $record = $this->findRecordForUpdate($userIdentifier);
 
@@ -118,20 +129,10 @@ class AccountLockService
                     $created->save();
                     $record = $created;
                     $wasCreated = true;
-                } catch (UniqueConstraintViolationException) {
-                    // Lost the insert race. Re-read the winner under lock and fall through
-                    // to the shared increment below — this request also really failed, so
-                    // recording it as +1 is correct.
-                    $record = $this->findRecordForUpdate($userIdentifier);
-
-                    if ($record === null) {
-                        // The winner's transaction committed but rolled back before we
-                        // re-read, or the row was removed by clearFailures(). Treating
-                        // this as a lost failure count is the safe outcome: we do not
-                        // fabricate a row, and we do not report a lockout we cannot
-                        // justify from persisted state.
-                        return false;
-                    }
+                } catch (UniqueConstraintViolationException $exception) {
+                    // PostgreSQL marks the current transaction aborted after a unique
+                    // conflict. Let the outer retry start a fresh transaction.
+                    throw $exception;
                 }
             }
 
@@ -170,10 +171,10 @@ class AccountLockService
                 $record->locked_until = Carbon::now()->addMinutes($lockoutMinutes);
                 $record->save();
 
-                // PERF-03: Populate the Redis shadow key so all subsequent isLocked()
-                // calls for this identifier skip the DB for the full lockout duration.
-                // Use the exact TTL derived from locked_until for consistency.
-                Cache::put($this->shadowKey($user), true, $lockoutMinutes * 60);
+                // PERF-03: Populate the Redis shadow key with the locked_until
+                // timestamp so isLocked() can make an O(1) decision without DB.
+                $remainingSeconds = max(1, (int) Carbon::now()->diffInSeconds($record->locked_until, false));
+                Cache::put($this->shadowKey($user), $record->locked_until, $remainingSeconds);
 
                 $this->events->dispatch(new AccountLocked($user, $context, $lockoutMinutes));
 
@@ -186,8 +187,19 @@ class AccountLockService
                 return true;
             }
 
+            // If we created a new record but didn't lock out, ensure no stale shadow key exists
+            if ($wasCreated && $record->failed_attempts < $maxAttempts) {
+                Cache::forget($this->shadowKey($user));
+            }
+
             return false;
-        });
+                });
+            } catch (UniqueConstraintViolationException $exception) {
+                if (++$attempt >= 2) {
+                    throw $exception;
+                }
+            }
+        }
     }
 
     public function clearFailures(Authenticatable $user): void

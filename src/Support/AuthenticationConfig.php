@@ -60,6 +60,27 @@ final class AuthenticationConfig
         return (string) $this->config->get("authentication.database.table_names.{$key}", $fallback);
     }
 
+    public function isUserEnumerationProtectionEnabled(): bool
+    {
+        return (bool) $this->config->get('authentication.security.user_enumeration_protection', true);
+    }
+
+    /**
+     * Add a user key column compatible with the host application's user model.
+     * Supported values: bigint, uuid, ulid.
+     */
+    public static function userIdColumn(\Illuminate\Database\Schema\Blueprint $table, string $column = 'user_id'): void
+    {
+        $type = (string) config('authentication.database.user_id_type', 'bigint');
+
+        match ($type) {
+            'uuid' => $table->uuid($column),
+            'ulid' => $table->ulid($column),
+            'bigint' => $table->unsignedBigInteger($column),
+            default => throw new AuthenticationConfigurationException("Unsupported authentication.database.user_id_type [{$type}]."),
+        };
+    }
+
     public static function tableName(string $key, string $default = ''): string
     {
         /** @var ConfigRepository $config */

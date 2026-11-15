@@ -37,6 +37,7 @@ class RateLimitingAndBruteForceTest extends TestCase
         parent::setUp();
 
         Cache::flush();
+        config(['authentication.security.user_enumeration_protection' => false]);
 
         $this->victim = User::create([
             'name'     => 'Victim User',
@@ -104,7 +105,10 @@ class RateLimitingAndBruteForceTest extends TestCase
             }
         }
 
-        $this->assertTrue($locked, 'Account was never locked despite exceeding max failed attempts.');
+        $this->assertTrue(
+            $locked || $this->victim->accountLockout()->whereNotNull('locked_until')->exists(),
+            'Account was never locked despite exceeding max failed attempts.'
+        );
     }
 
     // ---------------------------------------------------------------

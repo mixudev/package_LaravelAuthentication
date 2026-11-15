@@ -394,6 +394,24 @@ class PasswordResetController extends Controller
             throw new \RuntimeException('Password reset user must implement Authenticatable.');
         }
 
+        // Defense in depth: ensure the user matches the email in the reset token
+        // to prevent password change for arbitrary user if token validation is bypassed
+        $email = strtolower(trim((string) $request->input('email', '')));
+        if ($email !== '') {
+            $userEmail = method_exists($user, 'getEmailForVerification')
+                ? (string) $user->getEmailForVerification()
+                : null;
+
+            if ($userEmail === null && $user instanceof \Illuminate\Database\Eloquent\Model) {
+                $emailColumn = config('authentication.login.identifiers.email_column', 'email');
+                $userEmail = (string) ($user->{$emailColumn} ?? '');
+            }
+
+            if ($userEmail === '' || strtolower((string) $userEmail) !== $email) {
+                throw new \RuntimeException('Password reset user email mismatch.');
+            }
+        }
+
         $context = AuthenticationContext::fromRequest($request);
 
         $this->passwordService->updatePassword($user, $password, $context);
@@ -422,7 +440,7 @@ class PasswordResetController extends Controller
             return null;
         }
 
-        $claimKey = 'authentication:password-reset:claim:' . hash('sha256', $email . ':' . $token);
+        $claimKey = 'authentication:password-reset:claim:' . hash('sha256', 'pwd_reset_claim:' . $email . ':' . $token);
         $ttlMinutes = max(1, (int) config('auth.passwords.users.expire', 60));
 
         return Cache::add($claimKey, true, now()->addMinutes($ttlMinutes))

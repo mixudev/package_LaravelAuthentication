@@ -286,12 +286,18 @@ class SessionManagerService
             }
 
             // Revoke oldest sessions first, preserving the current one.
-            return DB::table($tableName)
+            // Select IDs first because DELETE ... ORDER BY ... LIMIT is not
+            // portable to PostgreSQL.
+            $idsToDelete = DB::table($tableName)
                 ->where('user_id', $userId)
                 ->when($currentSessionId !== null, fn ($q) => $q->where('id', '!=', $currentSessionId))
                 ->orderBy('last_activity', 'asc')
                 ->limit($excess)
-                ->delete();
+                ->pluck('id');
+
+            return $idsToDelete->isEmpty()
+                ? 0
+                : DB::table($tableName)->whereIn('id', $idsToDelete)->delete();
         }
 
         // Non-database session driver: nothing to prune (devices are not

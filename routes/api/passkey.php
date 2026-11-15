@@ -26,7 +26,7 @@ if (config('authentication.features.passkey.enabled', true)) {
     | Authenticated: Passkey Registration & Management
     */
     Route::middleware(
-        RouteConfig::apiAuthMiddleware()
+        array_merge(RouteConfig::apiAuthMiddleware(), ['authentication.password-confirm'])
     )->group(function () {
         Route::post('/passkey/register-options', [PasskeyController::class, 'registerOptions'])
             ->name('api.auth.passkey.register.options');

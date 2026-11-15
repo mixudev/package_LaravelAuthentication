@@ -72,13 +72,18 @@ class PasswordConfirmMiddlewareTest extends TestCase
             'password' => Hash::make('CorrectPass123!'),
         ]);
 
-        // Route tidak pakai middleware 'web' → stateless: middleware baca dari cache
-        // (bukan session). Set nilai cache seperti ConfirmPasswordController untuk API.
-        cache()->put('auth_pwd_confirmed:' . $user->getAuthIdentifier(), time(), 900);
+        // Stateless confirmation is scoped to the bearer token, never only the user ID.
+        $token = 'test-bearer-token';
+        cache()->put(
+            'auth_pwd_confirmed:' . $user->getAuthIdentifier() . ':' . hash('sha256', $token),
+            time(),
+            900
+        );
 
         $this->actingAs($user);
 
-        $response = $this->postJson('/_probe/secure-action', []);
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/_probe/secure-action', []);
         $response->assertOk()
             ->assertJsonPath('ok', true);
     }

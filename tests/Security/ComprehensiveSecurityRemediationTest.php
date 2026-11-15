@@ -173,18 +173,22 @@ class ComprehensiveSecurityRemediationTest extends TestCase
             'password' => bcrypt('Password123!'),
         ]);
 
+        $token = 'test-bearer-token';
         $this->actingAs($user, 'web');
 
-        $response = $this->postJson('/api/v1/auth/confirm-password', [
-            'password' => 'Password123!',
-        ]);
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/v1/auth/confirm-password', [
+                'password' => 'Password123!',
+            ]);
 
         $response->assertStatus(200);
         $response->assertJson([
             'confirmed' => true,
         ]);
 
-        $this->assertNotNull(cache()->get('auth_pwd_confirmed:' . $user->id));
+        $this->assertNotNull(cache()->get(
+            'auth_pwd_confirmed:' . $user->id . ':' . hash('sha256', $token)
+        ));
     }
 
     /**

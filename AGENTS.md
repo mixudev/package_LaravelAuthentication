@@ -45,7 +45,7 @@ When an authentication request occurs, the flow is strictly structured as follow
 7. Identity Resolution (CredentialResolver -> lookup Eloquent user by column)
         ↓
 8. Account Lockout Check (AccountLockService::isLocked)
-        ↓ (Throws AccountLockedException if locked)
+        ↓ (Throws AccountLockedException if locked; user-enumeration protection masks it as InvalidCredentialsException)
 9. Credential Verification (CredentialValidator: Hasher check + auto-rehash if needed)
         ↓ (On failure: Record failure, check lockout, dispatch LoginFailed, throw InvalidCredentialsException)
 10. Success Lifecycle:
