@@ -23,9 +23,10 @@ if (config('authentication.features.two_factor.enabled', true)) {
     /*
     | Authenticated: 2FA Setup & Management
     */
-    Route::middleware(
-        RouteConfig::apiAuthMiddleware()
-    )->group(function () {
+    Route::middleware([
+        ...RouteConfig::apiAuthMiddleware(),
+        'authentication.password-confirm',
+    ])->group(function () {
         Route::get('/two-factor/setup', [TwoFactorSetupController::class, 'show'])
             ->name('api.auth.two-factor.setup');
 

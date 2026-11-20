@@ -30,7 +30,14 @@ class TwoFactorSetupBruteForceTest extends TestCase
             'password' => Hash::make('CorrectPass123!'),
         ]);
 
-        $this->actingAs($user);
+        $token = 'confirm-two-factor-token';
+        cache()->put(
+            'auth_pwd_confirmed:' . $user->getAuthIdentifier() . ':' . hash('sha256', $token),
+            time(),
+            900
+        );
+
+        $this->actingAs($user)->withHeader('Authorization', 'Bearer ' . $token);
 
         $maxAttempts = (int) config('authentication.security.rate_limits.confirm_password.max_attempts', 5);
         $throttled = false;
@@ -61,7 +68,14 @@ class TwoFactorSetupBruteForceTest extends TestCase
             'password' => Hash::make('CorrectPass123!'),
         ]);
 
-        $this->actingAs($user);
+        $token = 'confirm-two-factor-token';
+        cache()->put(
+            'auth_pwd_confirmed:' . $user->getAuthIdentifier() . ':' . hash('sha256', $token),
+            time(),
+            900
+        );
+
+        $this->actingAs($user)->withHeader('Authorization', 'Bearer ' . $token);
 
         $maxAttempts = (int) config('authentication.security.rate_limits.confirm_password.max_attempts', 5);
         $throttled = false;

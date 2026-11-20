@@ -247,7 +247,9 @@ class ComprehensiveSecurityRemediationTest extends TestCase
             'confirmed_at'   => now(),
         ]);
 
-        $response = $this->actingAs($user)->get('/auth/two-factor/setup');
+        $response = $this->actingAs($user)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->get('/auth/two-factor/setup');
 
         // Should redirect away rather than generating/displaying a new QR setup
         $response->assertRedirect();

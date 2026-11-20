@@ -29,10 +29,15 @@ final class DistributedAttackDetector
         private int $decaySeconds = 300,
         private int $identifierThreshold = 100,
         private int $ipThreshold = 100,
+        private float $samplingRate = 1.0,
     ) {}
 
     public function assess(string $ipAddress, string $identifier): DistributedAttackRisk
     {
+        if ($this->samplingRate < 1.0 && !$this->sampled()) {
+            return new DistributedAttackRisk(0.0, 0, 0);
+        }
+
         $ipHash = hash('sha256', $ipAddress);
         $identifierHash = hash('sha256', mb_strtolower(trim($identifier)));
 
@@ -56,5 +61,14 @@ final class DistributedAttackDetector
         ));
 
         return new DistributedAttackRisk($score, $distinctIdentifiers, $distinctIps);
+    }
+
+    /**
+     * Probabilistic sampling to reduce per-request Redis overhead.
+     * Uses mt_rand for CSPRNG-quality randomness without blocking.
+     */
+    private function sampled(): bool
+    {
+        return (mt_rand() / mt_getrandmax()) < $this->samplingRate;
     }
 }

@@ -17,7 +17,7 @@ class TwoFactorSetupShowRateLimitTest extends TestCase
             'password' => \Illuminate\Support\Facades\Hash::make('SecretPass123!'),
         ]);
 
-        $this->actingAs($user);
+        $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
 
         $throttled = false;
         for ($i = 0; $i < 40; $i++) {
